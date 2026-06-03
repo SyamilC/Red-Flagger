@@ -1,7 +1,7 @@
 label,true_negative,false_positive,false_negative,true_positive
-aggressive_tone,10520,690,228,552
-hookup_focus,11430,279,89,192
-negativity,10335,701,170,784
-sarcasm_cynicism,8293,1348,612,1737
-substance_risk,5710,1431,1583,3266
-incomplete_profile,11060,277,8,645
+aggressive_tone,129,1,9,1
+hookup_focus,139,0,1,0
+negativity,131,0,9,0
+sarcasm_cynicism,90,22,17,11
+substance_risk,54,24,33,29
+incomplete_profile,130,3,0,7

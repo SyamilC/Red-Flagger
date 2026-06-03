@@ -1,0 +1,7 @@
+label,true_negative,false_positive,false_negative,true_positive
+aggressive_tone,130,0,10,0
+hookup_focus,139,0,1,0
+negativity,130,1,9,0
+sarcasm_cynicism,108,4,28,0
+substance_risk,76,2,19,43
+incomplete_profile,133,0,7,0

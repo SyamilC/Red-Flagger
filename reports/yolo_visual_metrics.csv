@@ -1,0 +1,9 @@
+image_id,gt_flags,predicted_flags,mean_iou,precision,recall
+profile_000.jpg,clean,clean,0.4372236820925388,0.75,0.75
+profile_001.jpg,clean,clean,0.576962549456754,0.75,0.75
+profile_002.jpg,Group_Photo_Ambiguity,Group_Photo_Ambiguity,0.0991575488473007,0.75,0.75
+profile_003.jpg,Group_Photo_Ambiguity,Group_Photo_Ambiguity,0.1450285367562657,0.75,0.75
+profile_004.jpg,Face_Obscured,No_Face_Present,0.0,0.75,0.75
+profile_005.jpg,Face_Obscured,No_Face_Present,0.0,0.75,0.75
+profile_006.jpg,No_Face_Present,No_Face_Present,1.0,0.75,0.75
+profile_007.jpg,No_Face_Present,No_Face_Present,1.0,0.75,0.75

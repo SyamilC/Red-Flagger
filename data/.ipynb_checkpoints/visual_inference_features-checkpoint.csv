@@ -1,0 +1,701 @@
+profile_id,image_path,detected_visual_flags,bounding_boxes,confidence_scores,num_persons_detected,iou_metric,visual_flag_source
+0,data/test_images/profile_000.jpg,clean,"[[111.97471618652344, 136.3017120361328, 511.6243591308594, 898.0409545898438]]",[0.8986852169036865],1,0.4372236820925388,yolo_live
+1,data/test_images/profile_001.jpg,clean,"[[6.224613189697266, 41.60316467285156, 599.92236328125, 892.88720703125]]",[0.9229105114936829],1,0.576962549456754,yolo_live
+2,data/test_images/profile_002.jpg,Group_Photo_Ambiguity,"[[194.12527465820312, 109.92747497558594, 304.13720703125, 361.31805419921875], [239.43946838378906, 108.03353881835938, 375.7613525390625, 360.6391296386719], [329.9355773925781, 96.06484985351562, 424.3518981933594, 357.1573181152344]]","[0.6654530167579651, 0.6087894439697266, 0.5029659271240234]",3,0.0991575488473007,yolo_live
+3,data/test_images/profile_003.jpg,Group_Photo_Ambiguity,"[[45.719539642333984, 372.60113525390625, 202.36669921875, 900.0], [188.21304321289062, 341.14111328125, 405.4142150878906, 899.9140625], [326.1009521484375, 320.76104736328125, 600.0, 900.0]]","[0.9357131123542786, 0.9190090298652649, 0.9096625447273254]",3,0.1450285367562657,yolo_live
+4,data/test_images/profile_004.jpg,No_Face_Present,[],[],0,0.0,yolo_live
+5,data/test_images/profile_005.jpg,No_Face_Present,[],[],0,0.0,yolo_live
+6,data/test_images/profile_006.jpg,No_Face_Present,[],[],0,1.0,yolo_live
+7,data/test_images/profile_007.jpg,No_Face_Present,[],[],0,1.0,yolo_live
+8,none,clean,"[[180, 120, 460, 580]]",[0.8421],1,,synthetic_backfill
+9,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6848, 0.6402]",1,,synthetic_backfill
+10,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8455, 0.5393, 0.7277, 0.9194]",4,,synthetic_backfill
+11,none,No_Face_Present,[],[],0,,synthetic_backfill
+12,none,clean,"[[180, 120, 460, 580]]",[0.7898],1,,synthetic_backfill
+13,none,clean,"[[180, 120, 460, 580]]",[0.8663],1,,synthetic_backfill
+14,none,clean,"[[180, 120, 460, 580]]",[0.8034],1,,synthetic_backfill
+15,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.759, 0.792]",1,,synthetic_backfill
+16,none,No_Face_Present,[],[],0,,synthetic_backfill
+17,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9455, 0.6451, 0.8644, 0.6146]",4,,synthetic_backfill
+18,none,clean,"[[180, 120, 460, 580]]",[0.8908],1,,synthetic_backfill
+19,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8661, 0.8085]",1,,synthetic_backfill
+20,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6853, 0.657, 0.9183, 0.8738]",4,,synthetic_backfill
+21,none,clean,"[[180, 120, 460, 580]]",[0.9702],1,,synthetic_backfill
+22,none,clean,"[[180, 120, 460, 580]]",[0.7348],1,,synthetic_backfill
+23,none,clean,"[[180, 120, 460, 580]]",[0.9046],1,,synthetic_backfill
+24,none,clean,"[[180, 120, 460, 580]]",[0.9627],1,,synthetic_backfill
+25,none,clean,"[[180, 120, 460, 580]]",[0.7507],1,,synthetic_backfill
+26,none,clean,"[[180, 120, 460, 580]]",[0.7186],1,,synthetic_backfill
+27,none,clean,"[[180, 120, 460, 580]]",[0.9075],1,,synthetic_backfill
+28,none,No_Face_Present,[],[],0,,synthetic_backfill
+29,none,clean,"[[180, 120, 460, 580]]",[0.8609],1,,synthetic_backfill
+30,none,clean,"[[180, 120, 460, 580]]",[0.9357],1,,synthetic_backfill
+31,none,clean,"[[180, 120, 460, 580]]",[0.7391],1,,synthetic_backfill
+32,none,clean,"[[180, 120, 460, 580]]",[0.9227],1,,synthetic_backfill
+33,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8598, 0.8713, 0.5839, 0.6061]",4,,synthetic_backfill
+34,none,clean,"[[180, 120, 460, 580]]",[0.8775],1,,synthetic_backfill
+35,none,clean,"[[180, 120, 460, 580]]",[0.9542],1,,synthetic_backfill
+36,none,No_Face_Present,[],[],0,,synthetic_backfill
+37,none,clean,"[[180, 120, 460, 580]]",[0.7885],1,,synthetic_backfill
+38,none,No_Face_Present,[],[],0,,synthetic_backfill
+39,none,clean,"[[180, 120, 460, 580]]",[0.8647],1,,synthetic_backfill
+40,none,clean,"[[180, 120, 460, 580]]",[0.8912],1,,synthetic_backfill
+41,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7582, 0.8498]",1,,synthetic_backfill
+42,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9149, 0.8184]",1,,synthetic_backfill
+43,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8364, 0.7262, 0.6045]",3,,synthetic_backfill
+44,none,clean,"[[180, 120, 460, 580]]",[0.9519],1,,synthetic_backfill
+45,none,clean,"[[180, 120, 460, 580]]",[0.8075],1,,synthetic_backfill
+46,none,No_Face_Present,[],[],0,,synthetic_backfill
+47,none,clean,"[[180, 120, 460, 580]]",[0.8522],1,,synthetic_backfill
+48,none,clean,"[[180, 120, 460, 580]]",[0.9538],1,,synthetic_backfill
+49,none,clean,"[[180, 120, 460, 580]]",[0.8748],1,,synthetic_backfill
+50,none,clean,"[[180, 120, 460, 580]]",[0.7327],1,,synthetic_backfill
+51,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9289, 0.8197]",1,,synthetic_backfill
+52,none,clean,"[[180, 120, 460, 580]]",[0.7938],1,,synthetic_backfill
+53,none,No_Face_Present,[],[],0,,synthetic_backfill
+54,none,clean,"[[180, 120, 460, 580]]",[0.739],1,,synthetic_backfill
+55,none,clean,"[[180, 120, 460, 580]]",[0.9223],1,,synthetic_backfill
+56,none,clean,"[[180, 120, 460, 580]]",[0.8736],1,,synthetic_backfill
+57,none,clean,"[[180, 120, 460, 580]]",[0.8494],1,,synthetic_backfill
+58,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9129, 0.876]",1,,synthetic_backfill
+59,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8386, 0.8181, 0.8504, 0.5644]",4,,synthetic_backfill
+60,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6716, 0.8499]",1,,synthetic_backfill
+61,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7729, 0.8641]",1,,synthetic_backfill
+62,none,No_Face_Present,[],[],0,,synthetic_backfill
+63,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.636, 0.7878]",1,,synthetic_backfill
+64,none,clean,"[[180, 120, 460, 580]]",[0.8061],1,,synthetic_backfill
+65,none,clean,"[[180, 120, 460, 580]]",[0.828],1,,synthetic_backfill
+66,none,clean,"[[180, 120, 460, 580]]",[0.8691],1,,synthetic_backfill
+67,none,clean,"[[180, 120, 460, 580]]",[0.8406],1,,synthetic_backfill
+68,none,clean,"[[180, 120, 460, 580]]",[0.8512],1,,synthetic_backfill
+69,none,clean,"[[180, 120, 460, 580]]",[0.8362],1,,synthetic_backfill
+70,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.824, 0.7885, 0.8123]",3,,synthetic_backfill
+71,none,clean,"[[180, 120, 460, 580]]",[0.852],1,,synthetic_backfill
+72,none,clean,"[[180, 120, 460, 580]]",[0.7705],1,,synthetic_backfill
+73,none,clean,"[[180, 120, 460, 580]]",[0.7968],1,,synthetic_backfill
+74,none,clean,"[[180, 120, 460, 580]]",[0.7508],1,,synthetic_backfill
+75,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6541, 0.6023, 0.6906, 0.6296]",4,,synthetic_backfill
+76,none,clean,"[[180, 120, 460, 580]]",[0.8722],1,,synthetic_backfill
+77,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9191, 0.6487]",1,,synthetic_backfill
+78,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7752, 0.5081, 0.8925, 0.9195]",4,,synthetic_backfill
+79,none,clean,"[[180, 120, 460, 580]]",[0.8582],1,,synthetic_backfill
+80,none,clean,"[[180, 120, 460, 580]]",[0.8951],1,,synthetic_backfill
+81,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8183, 0.5686, 0.7593]",3,,synthetic_backfill
+82,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.531, 0.5348, 0.5469, 0.8782]",4,,synthetic_backfill
+83,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7029, 0.551, 0.9432, 0.8775, 0.5561]",5,,synthetic_backfill
+84,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6495, 0.6401, 0.6023]",3,,synthetic_backfill
+85,none,clean,"[[180, 120, 460, 580]]",[0.8702],1,,synthetic_backfill
+86,none,clean,"[[180, 120, 460, 580]]",[0.8062],1,,synthetic_backfill
+87,none,clean,"[[180, 120, 460, 580]]",[0.9084],1,,synthetic_backfill
+88,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.672, 0.8757]",1,,synthetic_backfill
+89,none,No_Face_Present,[],[],0,,synthetic_backfill
+90,none,clean,"[[180, 120, 460, 580]]",[0.869],1,,synthetic_backfill
+91,none,clean,"[[180, 120, 460, 580]]",[0.732],1,,synthetic_backfill
+92,none,clean,"[[180, 120, 460, 580]]",[0.8161],1,,synthetic_backfill
+93,none,clean,"[[180, 120, 460, 580]]",[0.9418],1,,synthetic_backfill
+94,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6559, 0.6561, 0.8319, 0.7035]",4,,synthetic_backfill
+95,none,No_Face_Present,[],[],0,,synthetic_backfill
+96,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6786, 0.7584]",1,,synthetic_backfill
+97,none,clean,"[[180, 120, 460, 580]]",[0.7394],1,,synthetic_backfill
+98,none,clean,"[[180, 120, 460, 580]]",[0.7494],1,,synthetic_backfill
+99,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5745, 0.5152, 0.6402, 0.8512, 0.6249]",5,,synthetic_backfill
+100,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5059, 0.7986, 0.5801, 0.9325]",4,,synthetic_backfill
+101,none,No_Face_Present,[],[],0,,synthetic_backfill
+102,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7508, 0.8873, 0.7408]",3,,synthetic_backfill
+103,none,clean,"[[180, 120, 460, 580]]",[0.7516],1,,synthetic_backfill
+104,none,clean,"[[180, 120, 460, 580]]",[0.7839],1,,synthetic_backfill
+105,none,clean,"[[180, 120, 460, 580]]",[0.7868],1,,synthetic_backfill
+106,none,clean,"[[180, 120, 460, 580]]",[0.8112],1,,synthetic_backfill
+107,none,clean,"[[180, 120, 460, 580]]",[0.8195],1,,synthetic_backfill
+108,none,clean,"[[180, 120, 460, 580]]",[0.9239],1,,synthetic_backfill
+109,none,No_Face_Present,[],[],0,,synthetic_backfill
+110,none,clean,"[[180, 120, 460, 580]]",[0.7978],1,,synthetic_backfill
+111,none,clean,"[[180, 120, 460, 580]]",[0.8311],1,,synthetic_backfill
+112,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8187, 0.7322]",1,,synthetic_backfill
+113,none,clean,"[[180, 120, 460, 580]]",[0.9342],1,,synthetic_backfill
+114,none,clean,"[[180, 120, 460, 580]]",[0.8645],1,,synthetic_backfill
+115,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.849, 0.704, 0.736]",3,,synthetic_backfill
+116,none,clean,"[[180, 120, 460, 580]]",[0.8234],1,,synthetic_backfill
+117,none,clean,"[[180, 120, 460, 580]]",[0.8122],1,,synthetic_backfill
+118,none,clean,"[[180, 120, 460, 580]]",[0.8567],1,,synthetic_backfill
+119,none,clean,"[[180, 120, 460, 580]]",[0.7435],1,,synthetic_backfill
+120,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6637, 0.9016]",1,,synthetic_backfill
+121,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.839, 0.6225, 0.9038, 0.737, 0.8603]",5,,synthetic_backfill
+122,none,No_Face_Present,[],[],0,,synthetic_backfill
+123,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9426, 0.8939]",1,,synthetic_backfill
+124,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7965, 0.5122, 0.5999, 0.604, 0.8024]",5,,synthetic_backfill
+125,none,clean,"[[180, 120, 460, 580]]",[0.7055],1,,synthetic_backfill
+126,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6364, 0.88]",1,,synthetic_backfill
+127,none,clean,"[[180, 120, 460, 580]]",[0.75],1,,synthetic_backfill
+128,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7505, 0.8244, 0.8624]",3,,synthetic_backfill
+129,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9461, 0.8111]",1,,synthetic_backfill
+130,none,clean,"[[180, 120, 460, 580]]",[0.9259],1,,synthetic_backfill
+131,none,clean,"[[180, 120, 460, 580]]",[0.9695],1,,synthetic_backfill
+132,none,clean,"[[180, 120, 460, 580]]",[0.9644],1,,synthetic_backfill
+133,none,clean,"[[180, 120, 460, 580]]",[0.7395],1,,synthetic_backfill
+134,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6319, 0.9034, 0.5059, 0.5385]",4,,synthetic_backfill
+135,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6728, 0.6093]",1,,synthetic_backfill
+136,none,clean,"[[180, 120, 460, 580]]",[0.7508],1,,synthetic_backfill
+137,none,clean,"[[180, 120, 460, 580]]",[0.8633],1,,synthetic_backfill
+138,none,clean,"[[180, 120, 460, 580]]",[0.818],1,,synthetic_backfill
+139,none,clean,"[[180, 120, 460, 580]]",[0.9499],1,,synthetic_backfill
+140,none,clean,"[[180, 120, 460, 580]]",[0.9289],1,,synthetic_backfill
+141,none,clean,"[[180, 120, 460, 580]]",[0.7957],1,,synthetic_backfill
+142,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6908, 0.7329]",1,,synthetic_backfill
+143,none,clean,"[[180, 120, 460, 580]]",[0.8653],1,,synthetic_backfill
+144,none,clean,"[[180, 120, 460, 580]]",[0.7751],1,,synthetic_backfill
+145,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6553, 0.8482, 0.6632]",3,,synthetic_backfill
+146,none,clean,"[[180, 120, 460, 580]]",[0.9411],1,,synthetic_backfill
+147,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6768, 0.9411]",1,,synthetic_backfill
+148,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8729, 0.64]",1,,synthetic_backfill
+149,none,clean,"[[180, 120, 460, 580]]",[0.8584],1,,synthetic_backfill
+150,none,clean,"[[180, 120, 460, 580]]",[0.9759],1,,synthetic_backfill
+151,none,clean,"[[180, 120, 460, 580]]",[0.8319],1,,synthetic_backfill
+152,none,clean,"[[180, 120, 460, 580]]",[0.751],1,,synthetic_backfill
+153,none,clean,"[[180, 120, 460, 580]]",[0.8357],1,,synthetic_backfill
+154,none,No_Face_Present,[],[],0,,synthetic_backfill
+155,none,clean,"[[180, 120, 460, 580]]",[0.8435],1,,synthetic_backfill
+156,none,clean,"[[180, 120, 460, 580]]",[0.9077],1,,synthetic_backfill
+157,none,clean,"[[180, 120, 460, 580]]",[0.8957],1,,synthetic_backfill
+158,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7409, 0.6763]",1,,synthetic_backfill
+159,none,clean,"[[180, 120, 460, 580]]",[0.8806],1,,synthetic_backfill
+160,none,clean,"[[180, 120, 460, 580]]",[0.8181],1,,synthetic_backfill
+161,none,clean,"[[180, 120, 460, 580]]",[0.737],1,,synthetic_backfill
+162,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9152, 0.8419]",1,,synthetic_backfill
+163,none,clean,"[[180, 120, 460, 580]]",[0.8913],1,,synthetic_backfill
+164,none,No_Face_Present,[],[],0,,synthetic_backfill
+165,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9114, 0.553, 0.7594, 0.6233]",4,,synthetic_backfill
+166,none,clean,"[[180, 120, 460, 580]]",[0.8552],1,,synthetic_backfill
+167,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7239, 0.8241, 0.548]",3,,synthetic_backfill
+168,none,clean,"[[180, 120, 460, 580]]",[0.7392],1,,synthetic_backfill
+169,none,No_Face_Present,[],[],0,,synthetic_backfill
+170,none,No_Face_Present,[],[],0,,synthetic_backfill
+171,none,clean,"[[180, 120, 460, 580]]",[0.7738],1,,synthetic_backfill
+172,none,clean,"[[180, 120, 460, 580]]",[0.7746],1,,synthetic_backfill
+173,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7688, 0.7702, 0.7993, 0.5789, 0.9115]",5,,synthetic_backfill
+174,none,clean,"[[180, 120, 460, 580]]",[0.8173],1,,synthetic_backfill
+175,none,clean,"[[180, 120, 460, 580]]",[0.8073],1,,synthetic_backfill
+176,none,clean,"[[180, 120, 460, 580]]",[0.8453],1,,synthetic_backfill
+177,none,No_Face_Present,[],[],0,,synthetic_backfill
+178,none,No_Face_Present,[],[],0,,synthetic_backfill
+179,none,clean,"[[180, 120, 460, 580]]",[0.7132],1,,synthetic_backfill
+180,none,clean,"[[180, 120, 460, 580]]",[0.7466],1,,synthetic_backfill
+181,none,clean,"[[180, 120, 460, 580]]",[0.9066],1,,synthetic_backfill
+182,none,No_Face_Present,[],[],0,,synthetic_backfill
+183,none,clean,"[[180, 120, 460, 580]]",[0.7232],1,,synthetic_backfill
+184,none,No_Face_Present,[],[],0,,synthetic_backfill
+185,none,clean,"[[180, 120, 460, 580]]",[0.8689],1,,synthetic_backfill
+186,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6859, 0.7363]",1,,synthetic_backfill
+187,none,clean,"[[180, 120, 460, 580]]",[0.7808],1,,synthetic_backfill
+188,none,clean,"[[180, 120, 460, 580]]",[0.7996],1,,synthetic_backfill
+189,none,clean,"[[180, 120, 460, 580]]",[0.9013],1,,synthetic_backfill
+190,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.704, 0.7982]",1,,synthetic_backfill
+191,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7666, 0.8323]",1,,synthetic_backfill
+192,none,clean,"[[180, 120, 460, 580]]",[0.9623],1,,synthetic_backfill
+193,none,No_Face_Present,[],[],0,,synthetic_backfill
+194,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7177, 0.6215, 0.7429]",3,,synthetic_backfill
+195,none,No_Face_Present,[],[],0,,synthetic_backfill
+196,none,clean,"[[180, 120, 460, 580]]",[0.7454],1,,synthetic_backfill
+197,none,clean,"[[180, 120, 460, 580]]",[0.9356],1,,synthetic_backfill
+198,none,clean,"[[180, 120, 460, 580]]",[0.937],1,,synthetic_backfill
+199,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9343, 0.6541]",1,,synthetic_backfill
+200,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8182, 0.766]",1,,synthetic_backfill
+201,none,No_Face_Present,[],[],0,,synthetic_backfill
+202,none,clean,"[[180, 120, 460, 580]]",[0.7964],1,,synthetic_backfill
+203,none,clean,"[[180, 120, 460, 580]]",[0.7984],1,,synthetic_backfill
+204,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.723, 0.8098, 0.6957]",3,,synthetic_backfill
+205,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6862, 0.8867]",1,,synthetic_backfill
+206,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8798, 0.8431]",1,,synthetic_backfill
+207,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5024, 0.5464, 0.6416, 0.8633]",4,,synthetic_backfill
+208,none,No_Face_Present,[],[],0,,synthetic_backfill
+209,none,clean,"[[180, 120, 460, 580]]",[0.9694],1,,synthetic_backfill
+210,none,clean,"[[180, 120, 460, 580]]",[0.9212],1,,synthetic_backfill
+211,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8417, 0.7825]",1,,synthetic_backfill
+212,none,No_Face_Present,[],[],0,,synthetic_backfill
+213,none,clean,"[[180, 120, 460, 580]]",[0.7243],1,,synthetic_backfill
+214,none,clean,"[[180, 120, 460, 580]]",[0.9683],1,,synthetic_backfill
+215,none,No_Face_Present,[],[],0,,synthetic_backfill
+216,none,clean,"[[180, 120, 460, 580]]",[0.9123],1,,synthetic_backfill
+217,none,clean,"[[180, 120, 460, 580]]",[0.8789],1,,synthetic_backfill
+218,none,clean,"[[180, 120, 460, 580]]",[0.9125],1,,synthetic_backfill
+219,none,No_Face_Present,[],[],0,,synthetic_backfill
+220,none,No_Face_Present,[],[],0,,synthetic_backfill
+221,none,clean,"[[180, 120, 460, 580]]",[0.9027],1,,synthetic_backfill
+222,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9413, 0.9065, 0.791, 0.8119]",4,,synthetic_backfill
+223,none,clean,"[[180, 120, 460, 580]]",[0.7144],1,,synthetic_backfill
+224,none,clean,"[[180, 120, 460, 580]]",[0.8876],1,,synthetic_backfill
+225,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7647, 0.9497, 0.7501, 0.7129]",4,,synthetic_backfill
+226,none,No_Face_Present,[],[],0,,synthetic_backfill
+227,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5153, 0.8138, 0.6338, 0.916, 0.937]",5,,synthetic_backfill
+228,none,No_Face_Present,[],[],0,,synthetic_backfill
+229,none,No_Face_Present,[],[],0,,synthetic_backfill
+230,none,clean,"[[180, 120, 460, 580]]",[0.9644],1,,synthetic_backfill
+231,none,clean,"[[180, 120, 460, 580]]",[0.8328],1,,synthetic_backfill
+232,none,clean,"[[180, 120, 460, 580]]",[0.9414],1,,synthetic_backfill
+233,none,clean,"[[180, 120, 460, 580]]",[0.9365],1,,synthetic_backfill
+234,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7117, 0.8901]",1,,synthetic_backfill
+235,none,clean,"[[180, 120, 460, 580]]",[0.7104],1,,synthetic_backfill
+236,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8087, 0.6805]",1,,synthetic_backfill
+237,none,No_Face_Present,[],[],0,,synthetic_backfill
+238,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5346, 0.8133, 0.6529]",3,,synthetic_backfill
+239,none,clean,"[[180, 120, 460, 580]]",[0.9029],1,,synthetic_backfill
+240,none,No_Face_Present,[],[],0,,synthetic_backfill
+241,none,clean,"[[180, 120, 460, 580]]",[0.7183],1,,synthetic_backfill
+242,none,clean,"[[180, 120, 460, 580]]",[0.7883],1,,synthetic_backfill
+243,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7423, 0.7977, 0.832]",3,,synthetic_backfill
+244,none,clean,"[[180, 120, 460, 580]]",[0.8456],1,,synthetic_backfill
+245,none,clean,"[[180, 120, 460, 580]]",[0.8195],1,,synthetic_backfill
+246,none,No_Face_Present,[],[],0,,synthetic_backfill
+247,none,clean,"[[180, 120, 460, 580]]",[0.9455],1,,synthetic_backfill
+248,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7461, 0.7617]",1,,synthetic_backfill
+249,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9466, 0.6001]",1,,synthetic_backfill
+250,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6649, 0.7344]",1,,synthetic_backfill
+251,none,clean,"[[180, 120, 460, 580]]",[0.9611],1,,synthetic_backfill
+252,none,clean,"[[180, 120, 460, 580]]",[0.7196],1,,synthetic_backfill
+253,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6033, 0.6184]",1,,synthetic_backfill
+254,none,clean,"[[180, 120, 460, 580]]",[0.7248],1,,synthetic_backfill
+255,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6132, 0.7679]",1,,synthetic_backfill
+256,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8033, 0.6951]",1,,synthetic_backfill
+257,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7394, 0.6321]",1,,synthetic_backfill
+258,none,clean,"[[180, 120, 460, 580]]",[0.7942],1,,synthetic_backfill
+259,none,clean,"[[180, 120, 460, 580]]",[0.8463],1,,synthetic_backfill
+260,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8563, 0.6012]",1,,synthetic_backfill
+261,none,clean,"[[180, 120, 460, 580]]",[0.8308],1,,synthetic_backfill
+262,none,clean,"[[180, 120, 460, 580]]",[0.7832],1,,synthetic_backfill
+263,none,No_Face_Present,[],[],0,,synthetic_backfill
+264,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8985, 0.8504]",1,,synthetic_backfill
+265,none,No_Face_Present,[],[],0,,synthetic_backfill
+266,none,No_Face_Present,[],[],0,,synthetic_backfill
+267,none,clean,"[[180, 120, 460, 580]]",[0.865],1,,synthetic_backfill
+268,none,No_Face_Present,[],[],0,,synthetic_backfill
+269,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.697, 0.9186]",1,,synthetic_backfill
+270,none,clean,"[[180, 120, 460, 580]]",[0.7126],1,,synthetic_backfill
+271,none,clean,"[[180, 120, 460, 580]]",[0.7307],1,,synthetic_backfill
+272,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7371, 0.6436]",1,,synthetic_backfill
+273,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9275, 0.8539, 0.5402, 0.6879, 0.8956]",5,,synthetic_backfill
+274,none,No_Face_Present,[],[],0,,synthetic_backfill
+275,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7704, 0.9067, 0.9451, 0.8345]",4,,synthetic_backfill
+276,none,clean,"[[180, 120, 460, 580]]",[0.7182],1,,synthetic_backfill
+277,none,clean,"[[180, 120, 460, 580]]",[0.8124],1,,synthetic_backfill
+278,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7923, 0.7735, 0.7307]",3,,synthetic_backfill
+279,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5211, 0.6728, 0.5165, 0.9308]",4,,synthetic_backfill
+280,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8892, 0.8803]",1,,synthetic_backfill
+281,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8204, 0.6757]",1,,synthetic_backfill
+282,none,clean,"[[180, 120, 460, 580]]",[0.8451],1,,synthetic_backfill
+283,none,clean,"[[180, 120, 460, 580]]",[0.8672],1,,synthetic_backfill
+284,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5783, 0.6783, 0.8412]",3,,synthetic_backfill
+285,none,No_Face_Present,[],[],0,,synthetic_backfill
+286,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9484, 0.9038, 0.7085, 0.7803]",4,,synthetic_backfill
+287,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7416, 0.7668, 0.761]",3,,synthetic_backfill
+288,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.632, 0.9071]",1,,synthetic_backfill
+289,none,clean,"[[180, 120, 460, 580]]",[0.7744],1,,synthetic_backfill
+290,none,clean,"[[180, 120, 460, 580]]",[0.7363],1,,synthetic_backfill
+291,none,clean,"[[180, 120, 460, 580]]",[0.9488],1,,synthetic_backfill
+292,none,No_Face_Present,[],[],0,,synthetic_backfill
+293,none,clean,"[[180, 120, 460, 580]]",[0.9676],1,,synthetic_backfill
+294,none,clean,"[[180, 120, 460, 580]]",[0.9414],1,,synthetic_backfill
+295,none,clean,"[[180, 120, 460, 580]]",[0.9267],1,,synthetic_backfill
+296,none,clean,"[[180, 120, 460, 580]]",[0.8835],1,,synthetic_backfill
+297,none,No_Face_Present,[],[],0,,synthetic_backfill
+298,none,clean,"[[180, 120, 460, 580]]",[0.8542],1,,synthetic_backfill
+299,none,clean,"[[180, 120, 460, 580]]",[0.7244],1,,synthetic_backfill
+300,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5023, 0.8131, 0.522, 0.7397, 0.933]",5,,synthetic_backfill
+301,none,clean,"[[180, 120, 460, 580]]",[0.7307],1,,synthetic_backfill
+302,none,clean,"[[180, 120, 460, 580]]",[0.9505],1,,synthetic_backfill
+303,none,clean,"[[180, 120, 460, 580]]",[0.9776],1,,synthetic_backfill
+304,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7228, 0.7163, 0.7666, 0.8711]",4,,synthetic_backfill
+305,none,clean,"[[180, 120, 460, 580]]",[0.7974],1,,synthetic_backfill
+306,none,No_Face_Present,[],[],0,,synthetic_backfill
+307,none,clean,"[[180, 120, 460, 580]]",[0.8898],1,,synthetic_backfill
+308,none,clean,"[[180, 120, 460, 580]]",[0.8584],1,,synthetic_backfill
+309,none,clean,"[[180, 120, 460, 580]]",[0.7748],1,,synthetic_backfill
+310,none,clean,"[[180, 120, 460, 580]]",[0.946],1,,synthetic_backfill
+311,none,No_Face_Present,[],[],0,,synthetic_backfill
+312,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8907, 0.6104, 0.5708, 0.5722, 0.6503]",5,,synthetic_backfill
+313,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6835, 0.9255]",1,,synthetic_backfill
+314,none,clean,"[[180, 120, 460, 580]]",[0.7296],1,,synthetic_backfill
+315,none,clean,"[[180, 120, 460, 580]]",[0.8957],1,,synthetic_backfill
+316,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8967, 0.9326, 0.7095, 0.8956, 0.5023]",5,,synthetic_backfill
+317,none,clean,"[[180, 120, 460, 580]]",[0.9296],1,,synthetic_backfill
+318,none,clean,"[[180, 120, 460, 580]]",[0.764],1,,synthetic_backfill
+319,none,clean,"[[180, 120, 460, 580]]",[0.9544],1,,synthetic_backfill
+320,none,clean,"[[180, 120, 460, 580]]",[0.7003],1,,synthetic_backfill
+321,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7947, 0.8648]",1,,synthetic_backfill
+322,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5869, 0.5378, 0.6469, 0.7519, 0.5521]",5,,synthetic_backfill
+323,none,No_Face_Present,[],[],0,,synthetic_backfill
+324,none,clean,"[[180, 120, 460, 580]]",[0.8055],1,,synthetic_backfill
+325,none,clean,"[[180, 120, 460, 580]]",[0.7025],1,,synthetic_backfill
+326,none,clean,"[[180, 120, 460, 580]]",[0.9292],1,,synthetic_backfill
+327,none,clean,"[[180, 120, 460, 580]]",[0.736],1,,synthetic_backfill
+328,none,clean,"[[180, 120, 460, 580]]",[0.7793],1,,synthetic_backfill
+329,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7436, 0.9333, 0.6538, 0.7847, 0.9194]",5,,synthetic_backfill
+330,none,No_Face_Present,[],[],0,,synthetic_backfill
+331,none,clean,"[[180, 120, 460, 580]]",[0.7287],1,,synthetic_backfill
+332,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.928, 0.8408]",1,,synthetic_backfill
+333,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9263, 0.5749, 0.8469, 0.8189]",4,,synthetic_backfill
+334,none,No_Face_Present,[],[],0,,synthetic_backfill
+335,none,No_Face_Present,[],[],0,,synthetic_backfill
+336,none,clean,"[[180, 120, 460, 580]]",[0.8326],1,,synthetic_backfill
+337,none,clean,"[[180, 120, 460, 580]]",[0.7162],1,,synthetic_backfill
+338,none,clean,"[[180, 120, 460, 580]]",[0.7209],1,,synthetic_backfill
+339,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8922, 0.9381, 0.936, 0.8373]",4,,synthetic_backfill
+340,none,clean,"[[180, 120, 460, 580]]",[0.7364],1,,synthetic_backfill
+341,none,clean,"[[180, 120, 460, 580]]",[0.9123],1,,synthetic_backfill
+342,none,clean,"[[180, 120, 460, 580]]",[0.7069],1,,synthetic_backfill
+343,none,clean,"[[180, 120, 460, 580]]",[0.7062],1,,synthetic_backfill
+344,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7133, 0.771]",1,,synthetic_backfill
+345,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6136, 0.5005, 0.5715, 0.7108, 0.9249]",5,,synthetic_backfill
+346,none,clean,"[[180, 120, 460, 580]]",[0.7286],1,,synthetic_backfill
+347,none,clean,"[[180, 120, 460, 580]]",[0.9392],1,,synthetic_backfill
+348,none,clean,"[[180, 120, 460, 580]]",[0.8476],1,,synthetic_backfill
+349,none,clean,"[[180, 120, 460, 580]]",[0.9313],1,,synthetic_backfill
+350,none,clean,"[[180, 120, 460, 580]]",[0.7835],1,,synthetic_backfill
+351,none,clean,"[[180, 120, 460, 580]]",[0.9352],1,,synthetic_backfill
+352,none,clean,"[[180, 120, 460, 580]]",[0.9164],1,,synthetic_backfill
+353,none,No_Face_Present,[],[],0,,synthetic_backfill
+354,none,No_Face_Present,[],[],0,,synthetic_backfill
+355,none,clean,"[[180, 120, 460, 580]]",[0.7644],1,,synthetic_backfill
+356,none,clean,"[[180, 120, 460, 580]]",[0.7368],1,,synthetic_backfill
+357,none,No_Face_Present,[],[],0,,synthetic_backfill
+358,none,clean,"[[180, 120, 460, 580]]",[0.9431],1,,synthetic_backfill
+359,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9371, 0.611]",1,,synthetic_backfill
+360,none,No_Face_Present,[],[],0,,synthetic_backfill
+361,none,clean,"[[180, 120, 460, 580]]",[0.9048],1,,synthetic_backfill
+362,none,clean,"[[180, 120, 460, 580]]",[0.9547],1,,synthetic_backfill
+363,none,No_Face_Present,[],[],0,,synthetic_backfill
+364,none,clean,"[[180, 120, 460, 580]]",[0.9401],1,,synthetic_backfill
+365,none,No_Face_Present,[],[],0,,synthetic_backfill
+366,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9376, 0.866]",1,,synthetic_backfill
+367,none,No_Face_Present,[],[],0,,synthetic_backfill
+368,none,clean,"[[180, 120, 460, 580]]",[0.8238],1,,synthetic_backfill
+369,none,No_Face_Present,[],[],0,,synthetic_backfill
+370,none,clean,"[[180, 120, 460, 580]]",[0.7873],1,,synthetic_backfill
+371,none,clean,"[[180, 120, 460, 580]]",[0.7898],1,,synthetic_backfill
+372,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8535, 0.861]",1,,synthetic_backfill
+373,none,clean,"[[180, 120, 460, 580]]",[0.7561],1,,synthetic_backfill
+374,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9038, 0.8502]",1,,synthetic_backfill
+375,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.797, 0.765]",1,,synthetic_backfill
+376,none,clean,"[[180, 120, 460, 580]]",[0.8521],1,,synthetic_backfill
+377,none,clean,"[[180, 120, 460, 580]]",[0.7446],1,,synthetic_backfill
+378,none,clean,"[[180, 120, 460, 580]]",[0.757],1,,synthetic_backfill
+379,none,clean,"[[180, 120, 460, 580]]",[0.7255],1,,synthetic_backfill
+380,none,clean,"[[180, 120, 460, 580]]",[0.743],1,,synthetic_backfill
+381,none,No_Face_Present,[],[],0,,synthetic_backfill
+382,none,clean,"[[180, 120, 460, 580]]",[0.827],1,,synthetic_backfill
+383,none,clean,"[[180, 120, 460, 580]]",[0.8485],1,,synthetic_backfill
+384,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7818, 0.5591, 0.5146, 0.9144, 0.7775]",5,,synthetic_backfill
+385,none,clean,"[[180, 120, 460, 580]]",[0.923],1,,synthetic_backfill
+386,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5006, 0.7692, 0.7733]",3,,synthetic_backfill
+387,none,clean,"[[180, 120, 460, 580]]",[0.7693],1,,synthetic_backfill
+388,none,clean,"[[180, 120, 460, 580]]",[0.8564],1,,synthetic_backfill
+389,none,No_Face_Present,[],[],0,,synthetic_backfill
+390,none,No_Face_Present,[],[],0,,synthetic_backfill
+391,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6789, 0.6563]",1,,synthetic_backfill
+392,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7619, 0.621, 0.8589, 0.6397]",4,,synthetic_backfill
+393,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5673, 0.7091, 0.8062]",3,,synthetic_backfill
+394,none,clean,"[[180, 120, 460, 580]]",[0.8108],1,,synthetic_backfill
+395,none,clean,"[[180, 120, 460, 580]]",[0.9729],1,,synthetic_backfill
+396,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6312, 0.8127, 0.8871, 0.8509]",4,,synthetic_backfill
+397,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7162, 0.5472, 0.6089, 0.944, 0.5641]",5,,synthetic_backfill
+398,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7746, 0.8164]",1,,synthetic_backfill
+399,none,clean,"[[180, 120, 460, 580]]",[0.8967],1,,synthetic_backfill
+400,none,clean,"[[180, 120, 460, 580]]",[0.8567],1,,synthetic_backfill
+401,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6469, 0.733, 0.5395, 0.6578]",4,,synthetic_backfill
+402,none,clean,"[[180, 120, 460, 580]]",[0.7093],1,,synthetic_backfill
+403,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6275, 0.7389]",1,,synthetic_backfill
+404,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6465, 0.7986]",1,,synthetic_backfill
+405,none,clean,"[[180, 120, 460, 580]]",[0.8931],1,,synthetic_backfill
+406,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8696, 0.5185, 0.8017, 0.9282]",4,,synthetic_backfill
+407,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8179, 0.5142, 0.9213]",3,,synthetic_backfill
+408,none,clean,"[[180, 120, 460, 580]]",[0.7146],1,,synthetic_backfill
+409,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7895, 0.8482]",1,,synthetic_backfill
+410,none,clean,"[[180, 120, 460, 580]]",[0.9439],1,,synthetic_backfill
+411,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7814, 0.8525, 0.7755, 0.718]",4,,synthetic_backfill
+412,none,clean,"[[180, 120, 460, 580]]",[0.885],1,,synthetic_backfill
+413,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7936, 0.8091]",1,,synthetic_backfill
+414,none,clean,"[[180, 120, 460, 580]]",[0.9195],1,,synthetic_backfill
+415,none,clean,"[[180, 120, 460, 580]]",[0.8347],1,,synthetic_backfill
+416,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6143, 0.6574]",1,,synthetic_backfill
+417,none,clean,"[[180, 120, 460, 580]]",[0.8228],1,,synthetic_backfill
+418,none,clean,"[[180, 120, 460, 580]]",[0.903],1,,synthetic_backfill
+419,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8076, 0.8276]",1,,synthetic_backfill
+420,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7677, 0.8155]",1,,synthetic_backfill
+421,none,No_Face_Present,[],[],0,,synthetic_backfill
+422,none,No_Face_Present,[],[],0,,synthetic_backfill
+423,none,clean,"[[180, 120, 460, 580]]",[0.7921],1,,synthetic_backfill
+424,none,clean,"[[180, 120, 460, 580]]",[0.8317],1,,synthetic_backfill
+425,none,clean,"[[180, 120, 460, 580]]",[0.9084],1,,synthetic_backfill
+426,none,No_Face_Present,[],[],0,,synthetic_backfill
+427,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8554, 0.7964, 0.7242]",3,,synthetic_backfill
+428,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5094, 0.794, 0.6495, 0.7441]",4,,synthetic_backfill
+429,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7926, 0.5898, 0.8061, 0.5325, 0.5138]",5,,synthetic_backfill
+430,none,clean,"[[180, 120, 460, 580]]",[0.7722],1,,synthetic_backfill
+431,none,clean,"[[180, 120, 460, 580]]",[0.8295],1,,synthetic_backfill
+432,none,clean,"[[180, 120, 460, 580]]",[0.9431],1,,synthetic_backfill
+433,none,clean,"[[180, 120, 460, 580]]",[0.9036],1,,synthetic_backfill
+434,none,clean,"[[180, 120, 460, 580]]",[0.908],1,,synthetic_backfill
+435,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7489, 0.7211]",1,,synthetic_backfill
+436,none,clean,"[[180, 120, 460, 580]]",[0.8039],1,,synthetic_backfill
+437,none,clean,"[[180, 120, 460, 580]]",[0.9765],1,,synthetic_backfill
+438,none,clean,"[[180, 120, 460, 580]]",[0.7112],1,,synthetic_backfill
+439,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7313, 0.7646, 0.5132]",3,,synthetic_backfill
+440,none,No_Face_Present,[],[],0,,synthetic_backfill
+441,none,clean,"[[180, 120, 460, 580]]",[0.8107],1,,synthetic_backfill
+442,none,clean,"[[180, 120, 460, 580]]",[0.8697],1,,synthetic_backfill
+443,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9053, 0.6898, 0.6246, 0.7666, 0.9106]",5,,synthetic_backfill
+444,none,clean,"[[180, 120, 460, 580]]",[0.759],1,,synthetic_backfill
+445,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7096, 0.8762, 0.6061]",3,,synthetic_backfill
+446,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8221, 0.9091, 0.5809, 0.6069]",4,,synthetic_backfill
+447,none,clean,"[[180, 120, 460, 580]]",[0.972],1,,synthetic_backfill
+448,none,clean,"[[180, 120, 460, 580]]",[0.7507],1,,synthetic_backfill
+449,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.899, 0.7723]",1,,synthetic_backfill
+450,none,clean,"[[180, 120, 460, 580]]",[0.7692],1,,synthetic_backfill
+451,none,clean,"[[180, 120, 460, 580]]",[0.9438],1,,synthetic_backfill
+452,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7668, 0.7607, 0.7982, 0.5429, 0.7935]",5,,synthetic_backfill
+453,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7093, 0.7397]",1,,synthetic_backfill
+454,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9003, 0.6032]",1,,synthetic_backfill
+455,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8481, 0.5589, 0.9364]",3,,synthetic_backfill
+456,none,clean,"[[180, 120, 460, 580]]",[0.8271],1,,synthetic_backfill
+457,none,clean,"[[180, 120, 460, 580]]",[0.7661],1,,synthetic_backfill
+458,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6989, 0.6489, 0.7019, 0.8012, 0.5656]",5,,synthetic_backfill
+459,none,No_Face_Present,[],[],0,,synthetic_backfill
+460,none,clean,"[[180, 120, 460, 580]]",[0.8258],1,,synthetic_backfill
+461,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8058, 0.932]",1,,synthetic_backfill
+462,none,clean,"[[180, 120, 460, 580]]",[0.7707],1,,synthetic_backfill
+463,none,clean,"[[180, 120, 460, 580]]",[0.8006],1,,synthetic_backfill
+464,none,clean,"[[180, 120, 460, 580]]",[0.8062],1,,synthetic_backfill
+465,none,clean,"[[180, 120, 460, 580]]",[0.8696],1,,synthetic_backfill
+466,none,clean,"[[180, 120, 460, 580]]",[0.7999],1,,synthetic_backfill
+467,none,clean,"[[180, 120, 460, 580]]",[0.8494],1,,synthetic_backfill
+468,none,clean,"[[180, 120, 460, 580]]",[0.9189],1,,synthetic_backfill
+469,none,No_Face_Present,[],[],0,,synthetic_backfill
+470,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8907, 0.5926, 0.5504, 0.6214, 0.5257]",5,,synthetic_backfill
+471,none,No_Face_Present,[],[],0,,synthetic_backfill
+472,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7859, 0.9278]",1,,synthetic_backfill
+473,none,clean,"[[180, 120, 460, 580]]",[0.711],1,,synthetic_backfill
+474,none,clean,"[[180, 120, 460, 580]]",[0.7342],1,,synthetic_backfill
+475,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7583, 0.9269]",1,,synthetic_backfill
+476,none,clean,"[[180, 120, 460, 580]]",[0.7885],1,,synthetic_backfill
+477,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7775, 0.6146]",1,,synthetic_backfill
+478,none,clean,"[[180, 120, 460, 580]]",[0.7415],1,,synthetic_backfill
+479,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9453, 0.9378]",1,,synthetic_backfill
+480,none,clean,"[[180, 120, 460, 580]]",[0.7014],1,,synthetic_backfill
+481,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9331, 0.8237]",1,,synthetic_backfill
+482,none,clean,"[[180, 120, 460, 580]]",[0.943],1,,synthetic_backfill
+483,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7592, 0.7805]",1,,synthetic_backfill
+484,none,clean,"[[180, 120, 460, 580]]",[0.8369],1,,synthetic_backfill
+485,none,No_Face_Present,[],[],0,,synthetic_backfill
+486,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8334, 0.6489]",1,,synthetic_backfill
+487,none,clean,"[[180, 120, 460, 580]]",[0.7084],1,,synthetic_backfill
+488,none,No_Face_Present,[],[],0,,synthetic_backfill
+489,none,No_Face_Present,[],[],0,,synthetic_backfill
+490,none,clean,"[[180, 120, 460, 580]]",[0.7862],1,,synthetic_backfill
+491,none,No_Face_Present,[],[],0,,synthetic_backfill
+492,none,No_Face_Present,[],[],0,,synthetic_backfill
+493,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8466, 0.6706]",1,,synthetic_backfill
+494,none,clean,"[[180, 120, 460, 580]]",[0.8886],1,,synthetic_backfill
+495,none,clean,"[[180, 120, 460, 580]]",[0.9716],1,,synthetic_backfill
+496,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6329, 0.8354]",1,,synthetic_backfill
+497,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7553, 0.9038]",1,,synthetic_backfill
+498,none,clean,"[[180, 120, 460, 580]]",[0.7496],1,,synthetic_backfill
+499,none,No_Face_Present,[],[],0,,synthetic_backfill
+500,none,clean,"[[180, 120, 460, 580]]",[0.8939],1,,synthetic_backfill
+501,none,clean,"[[180, 120, 460, 580]]",[0.9347],1,,synthetic_backfill
+502,none,clean,"[[180, 120, 460, 580]]",[0.9645],1,,synthetic_backfill
+503,none,clean,"[[180, 120, 460, 580]]",[0.8913],1,,synthetic_backfill
+504,none,No_Face_Present,[],[],0,,synthetic_backfill
+505,none,clean,"[[180, 120, 460, 580]]",[0.8392],1,,synthetic_backfill
+506,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8162, 0.9041]",1,,synthetic_backfill
+507,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7997, 0.6106]",1,,synthetic_backfill
+508,none,No_Face_Present,[],[],0,,synthetic_backfill
+509,none,clean,"[[180, 120, 460, 580]]",[0.9607],1,,synthetic_backfill
+510,none,clean,"[[180, 120, 460, 580]]",[0.8931],1,,synthetic_backfill
+511,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7703, 0.9234, 0.8721]",3,,synthetic_backfill
+512,none,No_Face_Present,[],[],0,,synthetic_backfill
+513,none,clean,"[[180, 120, 460, 580]]",[0.8868],1,,synthetic_backfill
+514,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.802, 0.722]",1,,synthetic_backfill
+515,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.9497, 0.5217, 0.9397, 0.6831]",4,,synthetic_backfill
+516,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9048, 0.8738]",1,,synthetic_backfill
+517,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6299, 0.5491, 0.7927]",3,,synthetic_backfill
+518,none,No_Face_Present,[],[],0,,synthetic_backfill
+519,none,clean,"[[180, 120, 460, 580]]",[0.9143],1,,synthetic_backfill
+520,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.924, 0.7534]",1,,synthetic_backfill
+521,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9155, 0.9073]",1,,synthetic_backfill
+522,none,clean,"[[180, 120, 460, 580]]",[0.7888],1,,synthetic_backfill
+523,none,clean,"[[180, 120, 460, 580]]",[0.9433],1,,synthetic_backfill
+524,none,clean,"[[180, 120, 460, 580]]",[0.8052],1,,synthetic_backfill
+525,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.745, 0.5026, 0.6461, 0.6649]",4,,synthetic_backfill
+526,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7387, 0.8434]",1,,synthetic_backfill
+527,none,clean,"[[180, 120, 460, 580]]",[0.8088],1,,synthetic_backfill
+528,none,No_Face_Present,[],[],0,,synthetic_backfill
+529,none,clean,"[[180, 120, 460, 580]]",[0.8256],1,,synthetic_backfill
+530,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6831, 0.7306]",1,,synthetic_backfill
+531,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5329, 0.7716, 0.8007, 0.7788]",4,,synthetic_backfill
+532,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7252, 0.7441, 0.9282, 0.8812]",4,,synthetic_backfill
+533,none,clean,"[[180, 120, 460, 580]]",[0.956],1,,synthetic_backfill
+534,none,clean,"[[180, 120, 460, 580]]",[0.9279],1,,synthetic_backfill
+535,none,clean,"[[180, 120, 460, 580]]",[0.7305],1,,synthetic_backfill
+536,none,clean,"[[180, 120, 460, 580]]",[0.7417],1,,synthetic_backfill
+537,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7843, 0.6861]",1,,synthetic_backfill
+538,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6775, 0.7472, 0.8361, 0.822, 0.7346]",5,,synthetic_backfill
+539,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8878, 0.7508]",1,,synthetic_backfill
+540,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9139, 0.6249]",1,,synthetic_backfill
+541,none,No_Face_Present,[],[],0,,synthetic_backfill
+542,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6096, 0.9172, 0.5271, 0.9205, 0.6582]",5,,synthetic_backfill
+543,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6355, 0.7701]",1,,synthetic_backfill
+544,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6282, 0.6383, 0.8614]",3,,synthetic_backfill
+545,none,clean,"[[180, 120, 460, 580]]",[0.851],1,,synthetic_backfill
+546,none,clean,"[[180, 120, 460, 580]]",[0.7872],1,,synthetic_backfill
+547,none,clean,"[[180, 120, 460, 580]]",[0.8709],1,,synthetic_backfill
+548,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8507, 0.6954]",1,,synthetic_backfill
+549,none,No_Face_Present,[],[],0,,synthetic_backfill
+550,none,clean,"[[180, 120, 460, 580]]",[0.8158],1,,synthetic_backfill
+551,none,No_Face_Present,[],[],0,,synthetic_backfill
+552,none,No_Face_Present,[],[],0,,synthetic_backfill
+553,none,clean,"[[180, 120, 460, 580]]",[0.7341],1,,synthetic_backfill
+554,none,clean,"[[180, 120, 460, 580]]",[0.7507],1,,synthetic_backfill
+555,none,No_Face_Present,[],[],0,,synthetic_backfill
+556,none,clean,"[[180, 120, 460, 580]]",[0.8907],1,,synthetic_backfill
+557,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8599, 0.5831, 0.6329, 0.857]",4,,synthetic_backfill
+558,none,clean,"[[180, 120, 460, 580]]",[0.7519],1,,synthetic_backfill
+559,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9212, 0.7486]",1,,synthetic_backfill
+560,none,No_Face_Present,[],[],0,,synthetic_backfill
+561,none,No_Face_Present,[],[],0,,synthetic_backfill
+562,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6305, 0.8855]",1,,synthetic_backfill
+563,none,clean,"[[180, 120, 460, 580]]",[0.8046],1,,synthetic_backfill
+564,none,clean,"[[180, 120, 460, 580]]",[0.8474],1,,synthetic_backfill
+565,none,clean,"[[180, 120, 460, 580]]",[0.7314],1,,synthetic_backfill
+566,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7707, 0.8686, 0.8979]",3,,synthetic_backfill
+567,none,No_Face_Present,[],[],0,,synthetic_backfill
+568,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8572, 0.791, 0.5786]",3,,synthetic_backfill
+569,none,clean,"[[180, 120, 460, 580]]",[0.801],1,,synthetic_backfill
+570,none,clean,"[[180, 120, 460, 580]]",[0.9536],1,,synthetic_backfill
+571,none,clean,"[[180, 120, 460, 580]]",[0.9156],1,,synthetic_backfill
+572,none,clean,"[[180, 120, 460, 580]]",[0.8559],1,,synthetic_backfill
+573,none,No_Face_Present,[],[],0,,synthetic_backfill
+574,none,clean,"[[180, 120, 460, 580]]",[0.7716],1,,synthetic_backfill
+575,none,clean,"[[180, 120, 460, 580]]",[0.7846],1,,synthetic_backfill
+576,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8562, 0.8979]",1,,synthetic_backfill
+577,none,clean,"[[180, 120, 460, 580]]",[0.888],1,,synthetic_backfill
+578,none,clean,"[[180, 120, 460, 580]]",[0.9267],1,,synthetic_backfill
+579,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.7807, 0.7033, 0.764, 0.5756, 0.8316]",5,,synthetic_backfill
+580,none,clean,"[[180, 120, 460, 580]]",[0.9416],1,,synthetic_backfill
+581,none,No_Face_Present,[],[],0,,synthetic_backfill
+582,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6759, 0.6335]",1,,synthetic_backfill
+583,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.6083, 0.8247]",1,,synthetic_backfill
+584,none,clean,"[[180, 120, 460, 580]]",[0.87],1,,synthetic_backfill
+585,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7913, 0.6812]",1,,synthetic_backfill
+586,none,clean,"[[180, 120, 460, 580]]",[0.8095],1,,synthetic_backfill
+587,none,clean,"[[180, 120, 460, 580]]",[0.8665],1,,synthetic_backfill
+588,none,clean,"[[180, 120, 460, 580]]",[0.8391],1,,synthetic_backfill
+589,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9457, 0.6478]",1,,synthetic_backfill
+590,none,clean,"[[180, 120, 460, 580]]",[0.8946],1,,synthetic_backfill
+591,none,clean,"[[180, 120, 460, 580]]",[0.8132],1,,synthetic_backfill
+592,none,No_Face_Present,[],[],0,,synthetic_backfill
+593,none,clean,"[[180, 120, 460, 580]]",[0.8199],1,,synthetic_backfill
+594,none,clean,"[[180, 120, 460, 580]]",[0.9009],1,,synthetic_backfill
+595,none,clean,"[[180, 120, 460, 580]]",[0.8939],1,,synthetic_backfill
+596,none,clean,"[[180, 120, 460, 580]]",[0.9776],1,,synthetic_backfill
+597,none,clean,"[[180, 120, 460, 580]]",[0.736],1,,synthetic_backfill
+598,none,clean,"[[180, 120, 460, 580]]",[0.7292],1,,synthetic_backfill
+599,none,No_Face_Present,[],[],0,,synthetic_backfill
+600,none,clean,"[[180, 120, 460, 580]]",[0.9028],1,,synthetic_backfill
+601,none,clean,"[[180, 120, 460, 580]]",[0.8619],1,,synthetic_backfill
+602,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.696, 0.6278]",1,,synthetic_backfill
+603,none,clean,"[[180, 120, 460, 580]]",[0.724],1,,synthetic_backfill
+604,none,No_Face_Present,[],[],0,,synthetic_backfill
+605,none,clean,"[[180, 120, 460, 580]]",[0.9504],1,,synthetic_backfill
+606,none,clean,"[[180, 120, 460, 580]]",[0.7537],1,,synthetic_backfill
+607,none,clean,"[[180, 120, 460, 580]]",[0.7905],1,,synthetic_backfill
+608,none,clean,"[[180, 120, 460, 580]]",[0.7635],1,,synthetic_backfill
+609,none,clean,"[[180, 120, 460, 580]]",[0.7994],1,,synthetic_backfill
+610,none,clean,"[[180, 120, 460, 580]]",[0.7194],1,,synthetic_backfill
+611,none,clean,"[[180, 120, 460, 580]]",[0.8453],1,,synthetic_backfill
+612,none,clean,"[[180, 120, 460, 580]]",[0.7189],1,,synthetic_backfill
+613,none,clean,"[[180, 120, 460, 580]]",[0.9241],1,,synthetic_backfill
+614,none,clean,"[[180, 120, 460, 580]]",[0.7654],1,,synthetic_backfill
+615,none,clean,"[[180, 120, 460, 580]]",[0.8512],1,,synthetic_backfill
+616,none,clean,"[[180, 120, 460, 580]]",[0.9464],1,,synthetic_backfill
+617,none,No_Face_Present,[],[],0,,synthetic_backfill
+618,none,clean,"[[180, 120, 460, 580]]",[0.8822],1,,synthetic_backfill
+619,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.6039, 0.7056, 0.5856, 0.5236]",4,,synthetic_backfill
+620,none,No_Face_Present,[],[],0,,synthetic_backfill
+621,none,clean,"[[180, 120, 460, 580]]",[0.806],1,,synthetic_backfill
+622,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.727, 0.9484]",1,,synthetic_backfill
+623,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7562, 0.7167]",1,,synthetic_backfill
+624,none,clean,"[[180, 120, 460, 580]]",[0.8625],1,,synthetic_backfill
+625,none,clean,"[[180, 120, 460, 580]]",[0.7249],1,,synthetic_backfill
+626,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5789, 0.8105, 0.5904]",3,,synthetic_backfill
+627,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5435, 0.7027, 0.8403, 0.6564]",4,,synthetic_backfill
+628,none,clean,"[[180, 120, 460, 580]]",[0.8862],1,,synthetic_backfill
+629,none,clean,"[[180, 120, 460, 580]]",[0.9227],1,,synthetic_backfill
+630,none,clean,"[[180, 120, 460, 580]]",[0.9596],1,,synthetic_backfill
+631,none,clean,"[[180, 120, 460, 580]]",[0.7657],1,,synthetic_backfill
+632,none,No_Face_Present,[],[],0,,synthetic_backfill
+633,none,clean,"[[180, 120, 460, 580]]",[0.8118],1,,synthetic_backfill
+634,none,clean,"[[180, 120, 460, 580]]",[0.7427],1,,synthetic_backfill
+635,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8317, 0.8459, 0.6096]",3,,synthetic_backfill
+636,none,clean,"[[180, 120, 460, 580]]",[0.888],1,,synthetic_backfill
+637,none,clean,"[[180, 120, 460, 580]]",[0.726],1,,synthetic_backfill
+638,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5401, 0.8399, 0.5575, 0.8717]",4,,synthetic_backfill
+639,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.8737, 0.8481]",1,,synthetic_backfill
+640,none,clean,"[[180, 120, 460, 580]]",[0.7101],1,,synthetic_backfill
+641,none,clean,"[[180, 120, 460, 580]]",[0.7849],1,,synthetic_backfill
+642,none,clean,"[[180, 120, 460, 580]]",[0.7737],1,,synthetic_backfill
+643,none,clean,"[[180, 120, 460, 580]]",[0.8008],1,,synthetic_backfill
+644,none,clean,"[[180, 120, 460, 580]]",[0.7245],1,,synthetic_backfill
+645,none,clean,"[[180, 120, 460, 580]]",[0.9623],1,,synthetic_backfill
+646,none,clean,"[[180, 120, 460, 580]]",[0.8551],1,,synthetic_backfill
+647,none,clean,"[[180, 120, 460, 580]]",[0.7855],1,,synthetic_backfill
+648,none,clean,"[[180, 120, 460, 580]]",[0.8112],1,,synthetic_backfill
+649,none,clean,"[[180, 120, 460, 580]]",[0.8252],1,,synthetic_backfill
+650,none,clean,"[[180, 120, 460, 580]]",[0.8682],1,,synthetic_backfill
+651,none,clean,"[[180, 120, 460, 580]]",[0.8444],1,,synthetic_backfill
+652,none,clean,"[[180, 120, 460, 580]]",[0.9574],1,,synthetic_backfill
+653,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7739, 0.9473]",1,,synthetic_backfill
+654,none,No_Face_Present,[],[],0,,synthetic_backfill
+655,none,No_Face_Present,[],[],0,,synthetic_backfill
+656,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.676, 0.7255, 0.6787]",3,,synthetic_backfill
+657,none,clean,"[[180, 120, 460, 580]]",[0.8511],1,,synthetic_backfill
+658,none,clean,"[[180, 120, 460, 580]]",[0.8758],1,,synthetic_backfill
+659,none,clean,"[[180, 120, 460, 580]]",[0.8888],1,,synthetic_backfill
+660,none,No_Face_Present,[],[],0,,synthetic_backfill
+661,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.8906, 0.8627, 0.8555, 0.6371]",4,,synthetic_backfill
+662,none,clean,"[[180, 120, 460, 580]]",[0.7227],1,,synthetic_backfill
+663,none,clean,"[[180, 120, 460, 580]]",[0.8128],1,,synthetic_backfill
+664,none,clean,"[[180, 120, 460, 580]]",[0.7486],1,,synthetic_backfill
+665,none,clean,"[[180, 120, 460, 580]]",[0.8946],1,,synthetic_backfill
+666,none,No_Face_Present,[],[],0,,synthetic_backfill
+667,none,No_Face_Present,[],[],0,,synthetic_backfill
+668,none,clean,"[[180, 120, 460, 580]]",[0.7969],1,,synthetic_backfill
+669,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.9415, 0.8243]",1,,synthetic_backfill
+670,none,No_Face_Present,[],[],0,,synthetic_backfill
+671,none,clean,"[[180, 120, 460, 580]]",[0.9303],1,,synthetic_backfill
+672,none,clean,"[[180, 120, 460, 580]]",[0.7371],1,,synthetic_backfill
+673,none,clean,"[[180, 120, 460, 580]]",[0.9414],1,,synthetic_backfill
+674,none,clean,"[[180, 120, 460, 580]]",[0.9584],1,,synthetic_backfill
+675,none,clean,"[[180, 120, 460, 580]]",[0.8364],1,,synthetic_backfill
+676,none,clean,"[[180, 120, 460, 580]]",[0.8698],1,,synthetic_backfill
+677,none,clean,"[[180, 120, 460, 580]]",[0.9141],1,,synthetic_backfill
+678,none,clean,"[[180, 120, 460, 580]]",[0.749],1,,synthetic_backfill
+679,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7759, 0.7395]",1,,synthetic_backfill
+680,none,clean,"[[180, 120, 460, 580]]",[0.741],1,,synthetic_backfill
+681,none,clean,"[[180, 120, 460, 580]]",[0.8029],1,,synthetic_backfill
+682,none,clean,"[[180, 120, 460, 580]]",[0.7191],1,,synthetic_backfill
+683,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.609, 0.6473]",1,,synthetic_backfill
+684,none,clean,"[[180, 120, 460, 580]]",[0.9697],1,,synthetic_backfill
+685,none,clean,"[[180, 120, 460, 580]]",[0.8539],1,,synthetic_backfill
+686,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.938, 0.7514]",1,,synthetic_backfill
+687,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7091, 0.7771]",1,,synthetic_backfill
+688,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.625, 0.8832, 0.5001, 0.508]",4,,synthetic_backfill
+689,none,clean,"[[180, 120, 460, 580]]",[0.8687],1,,synthetic_backfill
+690,none,clean,"[[180, 120, 460, 580]]",[0.8021],1,,synthetic_backfill
+691,none,No_Face_Present,[],[],0,,synthetic_backfill
+692,none,Face_Obscured,"[[150, 150, 450, 550], [200, 200, 350, 350]]","[0.7353, 0.7976]",1,,synthetic_backfill
+693,none,No_Face_Present,[],[],0,,synthetic_backfill
+694,none,No_Face_Present,[],[],0,,synthetic_backfill
+695,none,clean,"[[180, 120, 460, 580]]",[0.7537],1,,synthetic_backfill
+696,none,Group_Photo_Ambiguity,"[[100, 100, 300, 400], [100, 100, 300, 400], [100, 100, 300, 400]]","[0.5262, 0.9477, 0.526]",3,,synthetic_backfill
+697,none,clean,"[[180, 120, 460, 580]]",[0.8946],1,,synthetic_backfill
+698,none,clean,"[[180, 120, 460, 580]]",[0.9754],1,,synthetic_backfill
+699,none,clean,"[[180, 120, 460, 580]]",[0.767],1,,synthetic_backfill
