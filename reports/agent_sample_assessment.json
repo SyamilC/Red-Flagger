@@ -1,0 +1,358 @@
+{
+  "profile_id": 0,
+  "profile_summary": {
+    "age": 26,
+    "status": "single",
+    "sex": "m",
+    "orientation": "straight",
+    "body_type": "average",
+    "diet": "anything",
+    "drinks": "socially",
+    "drugs": "never",
+    "education": "graduated from high school",
+    "job": "other",
+    "offspring": NaN,
+    "pets": NaN,
+    "religion": NaN,
+    "smokes": "no"
+  },
+  "bio_excerpt": "i am really obsessed with music and would love to do something with it. my music idol is tom delonge. my friends always make fun of me because i buy anything he does. i am supervisor and i am really bored of it. i really need to get back into school. guitar i like to think i am alright. i am always trying to improve at it. well used to be my hair. had to get rid of the blonde mohawk. so now i would say my plugs. i usually get somekind of comment to my earrings. to many movies to just pick one and same with tv shows. but some of the best are scott pilgrim and the office. music is the best thing ever and i surround myself with it everyday. pizza is the best food i could eat it when ever. my brother my guitars my friends my phone my ps3 and oxygen obviously  trying to have fun in what ever is fun to do that night.  want to be friends. to see whats up? or what ever reason you can think of. lets talk",
+  "overall_risk_score": 26.95,
+  "overall_risk_level": "Low-to-Moderate",
+  "detected_text_tabular_flags": [
+    "sarcasm_cynicism"
+  ],
+  "detected_visual_flags": [
+    "clean"
+  ],
+  "combined_label_scores": {
+    "aggressive_tone": {
+      "mean_probability": 0.2148,
+      "max_probability": 0.353,
+      "ensemble_predicted": 0,
+      "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+    },
+    "hookup_focus": {
+      "mean_probability": 0.1422,
+      "max_probability": 0.3117,
+      "ensemble_predicted": 0,
+      "description": "Strong focus on casual hookups or non-committal dating intent."
+    },
+    "negativity": {
+      "mean_probability": 0.2237,
+      "max_probability": 0.3941,
+      "ensemble_predicted": 0,
+      "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+    },
+    "sarcasm_cynicism": {
+      "mean_probability": 0.598,
+      "max_probability": 0.77,
+      "ensemble_predicted": 1,
+      "description": "Sarcastic or dismissive tone that may need careful interpretation."
+    },
+    "substance_risk": {
+      "mean_probability": 0.3315,
+      "max_probability": 0.4685,
+      "ensemble_predicted": 0,
+      "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+    },
+    "incomplete_profile": {
+      "mean_probability": 0.2257,
+      "max_probability": 0.4149,
+      "ensemble_predicted": 0,
+      "description": "Low-effort profile with limited useful self-description."
+    }
+  },
+  "module_outputs": {
+    "nlp_tfidf_logreg": {
+      "module": "TF-IDF Logistic Regression NLP model",
+      "detected_flags": [
+        "sarcasm_cynicism"
+      ],
+      "label_scores": {
+        "aggressive_tone": {
+          "probability": 0.2765,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+        },
+        "hookup_focus": {
+          "probability": 0.1149,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Strong focus on casual hookups or non-committal dating intent."
+        },
+        "negativity": {
+          "probability": 0.2769,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+        },
+        "sarcasm_cynicism": {
+          "probability": 0.6323,
+          "threshold": 0.45,
+          "predicted": 1,
+          "description": "Sarcastic or dismissive tone that may need careful interpretation."
+        },
+        "substance_risk": {
+          "probability": 0.411,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+        },
+        "incomplete_profile": {
+          "probability": 0.2422,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Low-effort profile with limited useful self-description."
+        }
+      }
+    },
+    "nlp_transformer": {
+      "available": true,
+      "module": "DistilBERT Transformer NLP model",
+      "detected_flags": [],
+      "label_scores": {
+        "aggressive_tone": {
+          "probability": 0.353,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+        },
+        "hookup_focus": {
+          "probability": 0.3117,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Strong focus on casual hookups or non-committal dating intent."
+        },
+        "negativity": {
+          "probability": 0.3941,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+        },
+        "sarcasm_cynicism": {
+          "probability": 0.3917,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Sarcastic or dismissive tone that may need careful interpretation."
+        },
+        "substance_risk": {
+          "probability": 0.4685,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+        },
+        "incomplete_profile": {
+          "probability": 0.4149,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Low-effort profile with limited useful self-description."
+        }
+      }
+    },
+    "tabular_smote_random_forest": {
+      "module": "SMOTE Random Forest tabular model",
+      "detected_flags": [
+        "sarcasm_cynicism"
+      ],
+      "label_scores": {
+        "aggressive_tone": {
+          "probability": 0.015,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+        },
+        "hookup_focus": {
+          "probability": 0.0,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Strong focus on casual hookups or non-committal dating intent."
+        },
+        "negativity": {
+          "probability": 0.0,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+        },
+        "sarcasm_cynicism": {
+          "probability": 0.77,
+          "threshold": 0.5,
+          "predicted": 1,
+          "description": "Sarcastic or dismissive tone that may need careful interpretation."
+        },
+        "substance_risk": {
+          "probability": 0.115,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+        },
+        "incomplete_profile": {
+          "probability": 0.02,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Low-effort profile with limited useful self-description."
+        }
+      }
+    },
+    "visual_yolo": {
+      "available": true,
+      "module": "YOLOv8 visual heuristic module",
+      "detected_visual_flags": [
+        "clean"
+      ],
+      "visual_risk_score": 0.0,
+      "visual_flag_explanations": {
+        "clean": "No major visual presentation issue detected."
+      },
+      "bounding_boxes": [
+        [
+          111.97471618652344,
+          136.3017120361328,
+          511.6243591308594,
+          898.0409545898438
+        ]
+      ],
+      "confidence_scores": [
+        0.8986852169036865
+      ],
+      "num_persons_detected": 1,
+      "iou_metric": 0.4372,
+      "visual_flag_source": "yolo_live",
+      "image_path": "data/test_images/profile_000.jpg"
+    }
+  },
+  "previous_model_performance": {
+    "nlp_tfidf_logreg_overall": [
+      {
+        "Metric": "Micro Precision",
+        "Score": 0.4897959183673469
+      },
+      {
+        "Metric": "Micro Recall",
+        "Score": 0.4102564102564102
+      },
+      {
+        "Metric": "Micro F1",
+        "Score": 0.4465116279069767
+      },
+      {
+        "Metric": "Macro Precision",
+        "Score": 0.3467505241090147
+      },
+      {
+        "Metric": "Macro Recall",
+        "Score": 0.3267665130568356
+      },
+      {
+        "Metric": "Macro F1",
+        "Score": 0.3091999403705411
+      },
+      {
+        "Metric": "Hamming Loss",
+        "Score": 0.1416666666666666
+      }
+    ],
+    "tabular_smote_random_forest_overall": [
+      {
+        "Metric": "Micro Precision",
+        "Score": 0.86
+      },
+      {
+        "Metric": "Micro Recall",
+        "Score": 0.3675213675213675
+      },
+      {
+        "Metric": "Micro F1",
+        "Score": 0.5149700598802395
+      },
+      {
+        "Metric": "Macro Precision",
+        "Score": 0.1592592592592592
+      },
+      {
+        "Metric": "Macro Recall",
+        "Score": 0.1155913978494623
+      },
+      {
+        "Metric": "Macro F1",
+        "Score": 0.1339563862928348
+      },
+      {
+        "Metric": "Hamming Loss",
+        "Score": 0.0964285714285714
+      }
+    ],
+    "yolo_visual_subset": {
+      "mean_precision": 0.75,
+      "mean_recall": 0.75,
+      "mean_iou": 0.4073,
+      "rows": [
+        {
+          "image_id": "profile_000.jpg",
+          "gt_flags": "clean",
+          "predicted_flags": "clean",
+          "mean_iou": 0.4372236820925388,
+          "precision": 0.75,
+          "recall": 0.75
+        },
+        {
+          "image_id": "profile_001.jpg",
+          "gt_flags": "clean",
+          "predicted_flags": "clean",
+          "mean_iou": 0.576962549456754,
+          "precision": 0.75,
+          "recall": 0.75
+        },
+        {
+          "image_id": "profile_002.jpg",
+          "gt_flags": "Group_Photo_Ambiguity",
+          "predicted_flags": "Group_Photo_Ambiguity",
+          "mean_iou": 0.0991575488473007,
+          "precision": 0.75,
+          "recall": 0.75
+        },
+        {
+          "image_id": "profile_003.jpg",
+          "gt_flags": "Group_Photo_Ambiguity",
+          "predicted_flags": "Group_Photo_Ambiguity",
+          "mean_iou": 0.1450285367562657,
+          "precision": 0.75,
+          "recall": 0.75
+        },
+        {
+          "image_id": "profile_004.jpg",
+          "gt_flags": "Face_Obscured",
+          "predicted_flags": "No_Face_Present",
+          "mean_iou": 0.0,
+          "precision": 0.75,
+          "recall": 0.75
+        },
+        {
+          "image_id": "profile_005.jpg",
+          "gt_flags": "Face_Obscured",
+          "predicted_flags": "No_Face_Present",
+          "mean_iou": 0.0,
+          "precision": 0.75,
+          "recall": 0.75
+        },
+        {
+          "image_id": "profile_006.jpg",
+          "gt_flags": "No_Face_Present",
+          "predicted_flags": "No_Face_Present",
+          "mean_iou": 1.0,
+          "precision": 0.75,
+          "recall": 0.75
+        },
+        {
+          "image_id": "profile_007.jpg",
+          "gt_flags": "No_Face_Present",
+          "predicted_flags": "No_Face_Present",
+          "mean_iou": 1.0,
+          "precision": 0.75,
+          "recall": 0.75
+        }
+      ]
+    }
+  }
+}
