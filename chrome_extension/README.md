@@ -2,6 +2,8 @@
 
 This is the bonus client-side browser demo. It runs inside Chrome without calling the FastAPI server.
 
+For the main assignment walkthrough, use the FastAPI mobile auditor UI from the project root README. Use this extension when demonstrating the extra browser-side component.
+
 ## What Works Now
 
 - Manifest V3 extension.
@@ -17,9 +19,16 @@ The current extension uses a DOM visual heuristic fallback. Real YOLO TFJS can r
 
 ## Build
 
-From this folder:
+Open a terminal in this folder:
+
+```text
+Red-Flagger/chrome_extension/
+```
+
+Install dependencies and build:
 
 ```powershell
+npm install
 npm run check
 npm run build
 ```
@@ -35,12 +44,7 @@ dist/popup.bundle.js
 1. Open `chrome://extensions`.
 2. Enable Developer mode.
 3. Click Load unpacked.
-4. Select:
-
-```text
-C:\Users\LENOVO\anaconda3\Red-Flagger\chrome_extension
-```
-
+4. Select the `chrome_extension/` folder inside this project.
 5. Open a profile-like webpage, or any page with a sample dating bio.
 6. Click the Red Flagger extension icon.
 7. Choose one mode:
