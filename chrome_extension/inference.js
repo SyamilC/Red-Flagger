@@ -112,7 +112,7 @@ function tokenize(text) {
 
 function scoreToRisk(score) {
   if (score >= 70) return 'High';
-  if (score >= 40) return 'Moderate';
+  if (score >= 45) return 'Moderate';
   if (score >= 20) return 'Low-to-Moderate';
   return 'Low';
 }
@@ -129,6 +129,44 @@ function emptyLabelScores(labels) {
     };
   });
   return scores;
+}
+
+function applyBioOnlySanityFilters(combined, text) {
+  const wordCount = tokenize(text).length;
+  const lower = String(text || '').toLowerCase();
+  const substanceEvidence = /\b(drink|drunk|alcohol|sober|drug|weed|cannabis|smok|party|420)\b/.test(lower);
+
+  if (combined.substance_risk && !substanceEvidence && combined.substance_risk.source !== 'keyword_rules') {
+    combined.substance_risk = {
+      ...combined.substance_risk,
+      probability: combined.substance_risk.probability * 0.25,
+      predicted: 0,
+      evidence: []
+    };
+  }
+
+  if (combined.incomplete_profile && wordCount >= 16 && combined.incomplete_profile.source !== 'keyword_rules') {
+    combined.incomplete_profile = {
+      ...combined.incomplete_profile,
+      probability: combined.incomplete_profile.probability * 0.35,
+      predicted: 0,
+      evidence: []
+    };
+  }
+}
+
+function applyPageAuditSanityFilters(combined, text, tabular) {
+  const lower = String(text || '').toLowerCase();
+  const metadata = `${tabular?.drinks || ''} ${tabular?.drugs || ''} ${tabular?.smokes || ''}`.toLowerCase();
+  const substanceEvidence = /\b(drink|drunk|alcohol|sober|drug|weed|cannabis|smok|party|420)\b/.test(`${lower} ${metadata}`);
+  if (combined.substance_risk && !substanceEvidence && combined.substance_risk.source === 'tfjs_tfidf_logreg') {
+    combined.substance_risk = {
+      ...combined.substance_risk,
+      probability: combined.substance_risk.probability * 0.35,
+      predicted: 0,
+      evidence: []
+    };
+  }
 }
 
 export class ProfileAnalyzer {
@@ -263,10 +301,10 @@ export class ProfileAnalyzer {
       };
     }
 
-    if (textLength > 0 && textLength < 20) {
+    if (textLength > 0 && textLength < 12) {
       scores.incomplete_profile = {
         ...scores.incomplete_profile,
-        probability: 0.72,
+        probability: 0.58,
         threshold: 0.5,
         predicted: 1,
         source: 'tabular_rules',
@@ -328,7 +366,7 @@ export class ProfileAnalyzer {
     }
 
     const detected = flags.length ? [...new Set(flags)] : ['clean'];
-    const visualRisk = detected.includes('No_Face_Present') ? 0.55
+    const visualRisk = detected.includes('No_Face_Present') ? 0.32
       : detected.includes('Face_Obscured') ? 0.5
         : detected.includes('Group_Photo_Ambiguity') ? 0.35
           : 0;
@@ -345,12 +383,34 @@ export class ProfileAnalyzer {
     };
   }
 
-  aggregate(profileData) {
+  aggregate(profileData, options = {}) {
+    const auditMode = options.mode || profileData?.analysis_mode || 'page_audit';
+    const includeTabular = auditMode !== 'bio_only';
+    const includeVisual = auditMode !== 'bio_only';
     const text = profileData?.text || '';
     const nlp = this.analyzeNLP(text);
     const keyword = this.analyzeKeywordRules(text);
-    const tabular = this.analyzeTabular({ ...(profileData?.tabular || {}), bioLength: tokenize(text).length });
-    const visual = this.analyzeVisual(profileData);
+    const tabular = includeTabular
+      ? this.analyzeTabular({ ...(profileData?.tabular || {}), bioLength: tokenize(text).length })
+      : {
+        available: false,
+        module: 'Client-side tabular metadata scorer',
+        mode: 'disabled_for_bio_only',
+        detected_flags: [],
+        label_scores: {}
+      };
+    const visual = includeVisual
+      ? this.analyzeVisual(profileData)
+      : {
+        available: false,
+        module: 'Browser DOM visual presentation scorer',
+        mode: 'disabled_for_bio_only',
+        detected_visual_flags: ['not_evaluated'],
+        visual_risk_score: 0,
+        images_checked: [],
+        evidence: [],
+        note: 'Bio Only mode evaluates only the pasted bio text.'
+      };
     const combined = emptyLabelScores(this.labels);
 
     [nlp, keyword, tabular].forEach((moduleResult) => {
@@ -370,21 +430,64 @@ export class ProfileAnalyzer {
       }
     });
 
+    if (auditMode === 'bio_only') {
+      applyBioOnlySanityFilters(combined, text);
+    } else {
+      applyPageAuditSanityFilters(combined, text, profileData?.tabular || {});
+    }
+
     const detectedTextFlags = Object.entries(combined)
       .filter(([, info]) => info.predicted || info.probability >= 0.5)
       .sort((a, b) => b[1].probability - a[1].probability)
       .map(([label]) => label);
-    const topScores = Object.values(combined).map((info) => info.probability).sort((a, b) => b - a).slice(0, 3);
-    const textRisk = topScores.length ? topScores.reduce((sum, value) => sum + value, 0) / topScores.length : 0;
+    const normalizedSignals = Object.entries(combined)
+      .filter(([, info]) => info.predicted || info.evidence?.length)
+      .map(([label, info]) => {
+        const probability = Number(info.probability || 0);
+        const threshold = Number(info.threshold || 0.5);
+        const margin = probability >= threshold ? (probability - threshold) / Math.max(0.001, 1 - threshold) : 0;
+        const evidenceBoost = info.evidence?.length ? 0.18 : 0;
+        const severeBoost = ['controlling_behavior', 'emotional_manipulation', 'entitlement_superiority', 'poor_conflict_resolution'].includes(label) ? 0.08 : 0;
+        const incompletePenalty = label === 'incomplete_profile' ? -0.18 : 0;
+        return {
+          label,
+          value: clamp(0.24 + margin * 0.52 + evidenceBoost + severeBoost + incompletePenalty)
+        };
+      })
+      .sort((a, b) => b.value - a.value);
+    const topSignals = normalizedSignals.slice(0, 3).map((item) => item.value);
+    const topRawFallback = Object.values(combined).map((info) => Number(info.probability || 0)).sort((a, b) => b - a).slice(0, 3);
+    const textRisk = topSignals.length
+      ? topSignals.reduce((sum, value) => sum + value, 0) / topSignals.length
+      : (topRawFallback.reduce((sum, value) => sum + value, 0) / Math.max(1, topRawFallback.length)) * 0.18;
     const visualRisk = Number(visual.visual_risk_score || 0);
-    const overallRiskScore = Math.round(clamp((0.78 * textRisk) + (0.22 * visualRisk)) * 1000) / 10;
+    const severeCount = detectedTextFlags.filter((label) => ['controlling_behavior', 'emotional_manipulation', 'entitlement_superiority', 'poor_conflict_resolution'].includes(label)).length;
+    const keywordCount = Object.values(combined).filter((info) => info.source === 'keyword_rules' && info.predicted).length;
+    let overallRiskScore = (textRisk * 66) + (includeVisual ? visualRisk * 14 : 0) + severeCount * 5 + keywordCount * 2;
+    const onlyIncomplete = detectedTextFlags.length === 1 && detectedTextFlags[0] === 'incomplete_profile';
+    if (onlyIncomplete) {
+      overallRiskScore = Math.min(overallRiskScore, 24);
+    }
+    if (!detectedTextFlags.length && (!includeVisual || visual.detected_visual_flags?.includes('clean') || visual.detected_visual_flags?.includes('not_evaluated'))) {
+      overallRiskScore = Math.min(overallRiskScore, 18);
+    }
+    if (detectedTextFlags.length >= 3 && severeCount >= 1) {
+      overallRiskScore = Math.max(overallRiskScore, 62);
+    }
+    if (detectedTextFlags.length >= 3 && severeCount >= 2) {
+      overallRiskScore = Math.max(overallRiskScore, 72);
+    }
+    overallRiskScore = Math.round(clamp(overallRiskScore, 0, 100) * 10) / 10;
 
     return {
       profile_summary: {
+        audit_mode: auditMode,
         source_url: profileData?.url || '',
         title: profileData?.title || '',
         bio_word_count: tokenize(text).length,
-        images_found: profileData?.images?.length || 0
+        images_found: profileData?.images?.length || 0,
+        extraction_mode: profileData?.extraction_mode || 'unknown',
+        extraction_note: profileData?.extraction_note || ''
       },
       overall_risk_score: overallRiskScore,
       overall_risk_level: scoreToRisk(overallRiskScore),

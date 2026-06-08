@@ -41,6 +41,7 @@ MODELS_DIR = ROOT / "models"
 REPORTS_DIR = ROOT / "reports"
 API_DIR = ROOT / "api"
 MOBILE_UI = API_DIR / "mobile_interface.html"
+EXTENSION_TEST_UI = API_DIR / "extension_test_profile.html"
 UPLOAD_DIR = API_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -818,6 +819,13 @@ def mobile_ui() -> HTMLResponse:
     if not MOBILE_UI.exists():
         raise HTTPException(status_code=404, detail="mobile_interface.html not found")
     return HTMLResponse(MOBILE_UI.read_text(encoding="utf-8"))
+
+
+@app.get("/extension-test", response_class=HTMLResponse)
+def extension_test_page() -> HTMLResponse:
+    if not EXTENSION_TEST_UI.exists():
+        raise HTTPException(status_code=404, detail="extension_test_profile.html not found")
+    return HTMLResponse(EXTENSION_TEST_UI.read_text(encoding="utf-8"))
 
 
 @app.get("/health")

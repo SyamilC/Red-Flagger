@@ -8,7 +8,8 @@ This is the bonus client-side browser demo. It runs inside Chrome without callin
 - Popup UI bundled with esbuild.
 - TensorFlow.js bundled into `dist/popup.bundle.js`.
 - Client-side TF-IDF logistic regression scoring from `models/nlp_model.json`.
-- Browser DOM extraction for profile bio text, metadata, and images.
+- Browser DOM extraction for selected text or profile-like bio blocks.
+- Manual paste box for clean testing when public pages are noisy.
 - Client-side keyword, tabular metadata, and visual presentation heuristics.
 - No crash when tabular or YOLO TensorFlow.js model folders are missing.
 
@@ -40,9 +41,12 @@ dist/popup.bundle.js
 C:\Users\LENOVO\anaconda3\Red-Flagger\chrome_extension
 ```
 
-5. Open a profile-like webpage.
+5. Open a profile-like webpage, or any page with a sample dating bio.
 6. Click the Red Flagger extension icon.
-7. Press `Run DOM Audit`.
+7. Choose one mode:
+   - `Bio Only`: paste one bio into the text box. The extension evaluates only that text.
+   - `Page Audit`: leave the text box alone and let the extension find the page bio, nearby metadata, and profile image.
+8. Press the audit button.
 
 ## After Code Changes
 
@@ -65,6 +69,14 @@ The popup should show:
 - Text and metadata flags
 - Visual evidence
 - Extracted profile summary
+
+If the page is an article full of navigation/header text, do not audit the whole page. Highlight only the dating bio text first, or paste that bio into the popup.
+
+## Audit Modes
+
+`Bio Only` is the cleanest way to test scoring. It ignores page metadata and image checks, so missing profile photos will not affect the result.
+
+`Page Audit` is the bonus extension workflow. It tries to find the best profile-like bio block, then reads metadata and images from the nearest profile card/container.
 
 ## Known Limitation
 

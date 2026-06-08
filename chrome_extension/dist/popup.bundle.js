@@ -52463,7 +52463,7 @@ function tokenize(text) {
 }
 function scoreToRisk(score) {
   if (score >= 70) return "High";
-  if (score >= 40) return "Moderate";
+  if (score >= 45) return "Moderate";
   if (score >= 20) return "Low-to-Moderate";
   return "Low";
 }
@@ -52479,6 +52479,40 @@ function emptyLabelScores(labels) {
     };
   });
   return scores;
+}
+function applyBioOnlySanityFilters(combined, text) {
+  const wordCount = tokenize(text).length;
+  const lower = String(text || "").toLowerCase();
+  const substanceEvidence = /\b(drink|drunk|alcohol|sober|drug|weed|cannabis|smok|party|420)\b/.test(lower);
+  if (combined.substance_risk && !substanceEvidence && combined.substance_risk.source !== "keyword_rules") {
+    combined.substance_risk = {
+      ...combined.substance_risk,
+      probability: combined.substance_risk.probability * 0.25,
+      predicted: 0,
+      evidence: []
+    };
+  }
+  if (combined.incomplete_profile && wordCount >= 16 && combined.incomplete_profile.source !== "keyword_rules") {
+    combined.incomplete_profile = {
+      ...combined.incomplete_profile,
+      probability: combined.incomplete_profile.probability * 0.35,
+      predicted: 0,
+      evidence: []
+    };
+  }
+}
+function applyPageAuditSanityFilters(combined, text, tabular) {
+  const lower = String(text || "").toLowerCase();
+  const metadata = `${tabular?.drinks || ""} ${tabular?.drugs || ""} ${tabular?.smokes || ""}`.toLowerCase();
+  const substanceEvidence = /\b(drink|drunk|alcohol|sober|drug|weed|cannabis|smok|party|420)\b/.test(`${lower} ${metadata}`);
+  if (combined.substance_risk && !substanceEvidence && combined.substance_risk.source === "tfjs_tfidf_logreg") {
+    combined.substance_risk = {
+      ...combined.substance_risk,
+      probability: combined.substance_risk.probability * 0.35,
+      predicted: 0,
+      evidence: []
+    };
+  }
 }
 var ProfileAnalyzer = class {
   constructor() {
@@ -52597,10 +52631,10 @@ var ProfileAnalyzer = class {
         evidence: ["drinks/drugs/smokes metadata"]
       };
     }
-    if (textLength > 0 && textLength < 20) {
+    if (textLength > 0 && textLength < 12) {
       scores.incomplete_profile = {
         ...scores.incomplete_profile,
-        probability: 0.72,
+        probability: 0.58,
         threshold: 0.5,
         predicted: 1,
         source: "tabular_rules",
@@ -52655,7 +52689,7 @@ var ProfileAnalyzer = class {
       evidence.push("Only small avatar-sized images were found.");
     }
     const detected = flags.length ? [...new Set(flags)] : ["clean"];
-    const visualRisk = detected.includes("No_Face_Present") ? 0.55 : detected.includes("Face_Obscured") ? 0.5 : detected.includes("Group_Photo_Ambiguity") ? 0.35 : 0;
+    const visualRisk = detected.includes("No_Face_Present") ? 0.32 : detected.includes("Face_Obscured") ? 0.5 : detected.includes("Group_Photo_Ambiguity") ? 0.35 : 0;
     return {
       available: true,
       module: "Browser DOM visual presentation scorer",
@@ -52667,12 +52701,30 @@ var ProfileAnalyzer = class {
       note: "The extension is fully client-side. Real YOLO TFJS inference can replace this fallback when models/yolo_model_tfjs/model.json is exported."
     };
   }
-  aggregate(profileData) {
+  aggregate(profileData, options = {}) {
+    const auditMode = options.mode || profileData?.analysis_mode || "page_audit";
+    const includeTabular = auditMode !== "bio_only";
+    const includeVisual = auditMode !== "bio_only";
     const text = profileData?.text || "";
     const nlp = this.analyzeNLP(text);
     const keyword = this.analyzeKeywordRules(text);
-    const tabular = this.analyzeTabular({ ...profileData?.tabular || {}, bioLength: tokenize(text).length });
-    const visual = this.analyzeVisual(profileData);
+    const tabular = includeTabular ? this.analyzeTabular({ ...profileData?.tabular || {}, bioLength: tokenize(text).length }) : {
+      available: false,
+      module: "Client-side tabular metadata scorer",
+      mode: "disabled_for_bio_only",
+      detected_flags: [],
+      label_scores: {}
+    };
+    const visual = includeVisual ? this.analyzeVisual(profileData) : {
+      available: false,
+      module: "Browser DOM visual presentation scorer",
+      mode: "disabled_for_bio_only",
+      detected_visual_flags: ["not_evaluated"],
+      visual_risk_score: 0,
+      images_checked: [],
+      evidence: [],
+      note: "Bio Only mode evaluates only the pasted bio text."
+    };
     const combined = emptyLabelScores(this.labels);
     [nlp, keyword, tabular].forEach((moduleResult) => {
       for (const [label, info] of Object.entries(moduleResult.label_scores || {})) {
@@ -52690,17 +52742,54 @@ var ProfileAnalyzer = class {
         }
       }
     });
+    if (auditMode === "bio_only") {
+      applyBioOnlySanityFilters(combined, text);
+    } else {
+      applyPageAuditSanityFilters(combined, text, profileData?.tabular || {});
+    }
     const detectedTextFlags = Object.entries(combined).filter(([, info]) => info.predicted || info.probability >= 0.5).sort((a, b) => b[1].probability - a[1].probability).map(([label]) => label);
-    const topScores = Object.values(combined).map((info) => info.probability).sort((a, b) => b - a).slice(0, 3);
-    const textRisk = topScores.length ? topScores.reduce((sum5, value) => sum5 + value, 0) / topScores.length : 0;
+    const normalizedSignals = Object.entries(combined).filter(([, info]) => info.predicted || info.evidence?.length).map(([label, info]) => {
+      const probability = Number(info.probability || 0);
+      const threshold3 = Number(info.threshold || 0.5);
+      const margin = probability >= threshold3 ? (probability - threshold3) / Math.max(1e-3, 1 - threshold3) : 0;
+      const evidenceBoost = info.evidence?.length ? 0.18 : 0;
+      const severeBoost = ["controlling_behavior", "emotional_manipulation", "entitlement_superiority", "poor_conflict_resolution"].includes(label) ? 0.08 : 0;
+      const incompletePenalty = label === "incomplete_profile" ? -0.18 : 0;
+      return {
+        label,
+        value: clamp2(0.24 + margin * 0.52 + evidenceBoost + severeBoost + incompletePenalty)
+      };
+    }).sort((a, b) => b.value - a.value);
+    const topSignals = normalizedSignals.slice(0, 3).map((item) => item.value);
+    const topRawFallback = Object.values(combined).map((info) => Number(info.probability || 0)).sort((a, b) => b - a).slice(0, 3);
+    const textRisk = topSignals.length ? topSignals.reduce((sum5, value) => sum5 + value, 0) / topSignals.length : topRawFallback.reduce((sum5, value) => sum5 + value, 0) / Math.max(1, topRawFallback.length) * 0.18;
     const visualRisk = Number(visual.visual_risk_score || 0);
-    const overallRiskScore = Math.round(clamp2(0.78 * textRisk + 0.22 * visualRisk) * 1e3) / 10;
+    const severeCount = detectedTextFlags.filter((label) => ["controlling_behavior", "emotional_manipulation", "entitlement_superiority", "poor_conflict_resolution"].includes(label)).length;
+    const keywordCount = Object.values(combined).filter((info) => info.source === "keyword_rules" && info.predicted).length;
+    let overallRiskScore = textRisk * 66 + (includeVisual ? visualRisk * 14 : 0) + severeCount * 5 + keywordCount * 2;
+    const onlyIncomplete = detectedTextFlags.length === 1 && detectedTextFlags[0] === "incomplete_profile";
+    if (onlyIncomplete) {
+      overallRiskScore = Math.min(overallRiskScore, 24);
+    }
+    if (!detectedTextFlags.length && (!includeVisual || visual.detected_visual_flags?.includes("clean") || visual.detected_visual_flags?.includes("not_evaluated"))) {
+      overallRiskScore = Math.min(overallRiskScore, 18);
+    }
+    if (detectedTextFlags.length >= 3 && severeCount >= 1) {
+      overallRiskScore = Math.max(overallRiskScore, 62);
+    }
+    if (detectedTextFlags.length >= 3 && severeCount >= 2) {
+      overallRiskScore = Math.max(overallRiskScore, 72);
+    }
+    overallRiskScore = Math.round(clamp2(overallRiskScore, 0, 100) * 10) / 10;
     return {
       profile_summary: {
+        audit_mode: auditMode,
         source_url: profileData?.url || "",
         title: profileData?.title || "",
         bio_word_count: tokenize(text).length,
-        images_found: profileData?.images?.length || 0
+        images_found: profileData?.images?.length || 0,
+        extraction_mode: profileData?.extraction_mode || "unknown",
+        extraction_note: profileData?.extraction_note || ""
       },
       overall_risk_score: overallRiskScore,
       overall_risk_level: scoreToRisk(overallRiskScore),
@@ -52725,6 +52814,11 @@ var statusEl = document.getElementById("status");
 var resultsEl = document.getElementById("results");
 var analyzeBtn = document.getElementById("analyzeBtn");
 var moduleEl = document.getElementById("moduleStatus");
+var manualBioEl = document.getElementById("manualBio");
+var auditModeInputs = Array.from(document.querySelectorAll('input[name="auditMode"]'));
+function cleanText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
 function escapeHtml(value) {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
@@ -52737,13 +52831,21 @@ function riskClass(level) {
   if (text.includes("moderate")) return "warn";
   return "ok";
 }
+function currentMode() {
+  return auditModeInputs.find((input2) => input2.checked)?.value || "bio_only";
+}
 function extractProfileDataInPage() {
   const localCleanText = (value) => String(value || "").replace(/\s+/g, " ").trim();
-  const localVisibleTextOf = (selector) => Array.from(document.querySelectorAll(selector)).filter((element) => {
-    const style = window.getComputedStyle(element);
-    const rect = element.getBoundingClientRect();
-    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
-  }).map((element) => localCleanText(element.innerText || element.textContent || "")).filter(Boolean);
+  const selectedText = localCleanText(window.getSelection?.().toString() || "");
+  const isVisible = (element) => {
+    try {
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+    } catch {
+      return false;
+    }
+  };
   const localFirstMatch = (regex, text2, fallback = "") => {
     const match = String(text2 || "").match(regex);
     return match ? localCleanText(match[1] || match[0]) : fallback;
@@ -52755,27 +52857,54 @@ function extractProfileDataInPage() {
     }
     return fallback;
   };
+  const scoreBioElement = (element) => {
+    const text2 = localCleanText(element.innerText || element.textContent || "");
+    if (text2.length < 35 || text2.length > 1800) return null;
+    const marker = `${element.className || ""} ${element.id || ""} ${element.getAttribute("data-test") || ""} ${element.getAttribute("data-testid") || ""}`;
+    let score = Math.min(120, text2.length / 8);
+    if (/bio|about|profile|essay|summary/i.test(marker)) score += 90;
+    if (/nav|menu|footer|header|cookie|modal|comment|article-body/i.test(marker)) score -= 80;
+    if (text2.split(/\s+/).length < 8) score -= 35;
+    return { element, text: text2, score };
+  };
+  const findBestBioCandidate = () => {
+    const selectors = [
+      '[data-test*="bio" i]',
+      '[data-testid*="bio" i]',
+      '[class*="bio" i]',
+      '[class*="about" i]',
+      '[id*="bio" i]',
+      '[id*="about" i]',
+      '[class*="profile" i]',
+      "article",
+      "section",
+      "main"
+    ];
+    const seen = /* @__PURE__ */ new Set();
+    const candidates = [];
+    for (const selector of selectors) {
+      for (const element of document.querySelectorAll(selector)) {
+        if (seen.has(element) || !isVisible(element)) continue;
+        seen.add(element);
+        const candidate = scoreBioElement(element);
+        if (candidate) candidates.push(candidate);
+      }
+    }
+    return candidates.sort((a, b) => b.score - a.score)[0] || null;
+  };
   const localExtractAge = (text2) => {
     const direct = localFirstMatch(/\b(?:age[:\s]*)?([1-9][0-9])\b/i, text2, "");
     const age = Number(direct);
     return age >= 18 && age <= 90 ? age : 27;
   };
-  const prioritySelectors = [
-    '[data-test*="bio" i]',
-    '[data-testid*="bio" i]',
-    '[class*="bio" i]',
-    '[class*="about" i]',
-    '[id*="bio" i]',
-    '[id*="about" i]',
-    "main",
-    "article",
-    "section"
-  ];
-  const profileText = prioritySelectors.flatMap(localVisibleTextOf).join(" ");
+  const bestBio = findBestBioCandidate();
+  const root = bestBio?.element?.closest('article, section, main, [class*="profile" i], [class*="card" i], [class*="user" i]') || document.body;
   const fallbackText = localCleanText(document.body?.innerText || "");
-  const text = localCleanText(profileText || fallbackText).slice(0, 6e3);
-  const fullText = localCleanText(`${document.title || ""} ${fallbackText}`);
-  const imageElements = Array.from(document.images || []);
+  const scopedText = localCleanText(root?.innerText || "");
+  const text = localCleanText(selectedText.length >= 20 ? selectedText : bestBio?.text || "").slice(0, 2400);
+  const fullText = localCleanText(`${document.title || ""} ${scopedText || fallbackText}`);
+  const scopedImages = root ? Array.from(root.querySelectorAll("img")) : [];
+  const imageElements = scopedImages.length ? scopedImages : Array.from(document.images || []);
   const metaImage = document.querySelector('meta[property="og:image"], meta[name="twitter:image"]')?.content;
   const images = imageElements.map((img) => ({
     src: img.currentSrc || img.src || "",
@@ -52810,6 +52939,8 @@ function extractProfileDataInPage() {
   const missingFieldCount = Object.keys(tabular).filter((field) => tabular[field] === "not specified" || tabular[field] === "").length;
   return {
     text,
+    extraction_mode: selectedText.length >= 20 ? "selected_text" : bestBio ? "best_profile_block" : "no_clean_profile_text",
+    extraction_note: text ? "Page Audit used selected text or the best profile-like block, then read metadata and images from the nearest profile container." : "No clean profile text was found. Select a bio paragraph on the page or paste text into the popup.",
     tabular: { ...tabular, missingFieldCount },
     images: images.slice(0, 8),
     title: document.title || "",
@@ -52829,6 +52960,40 @@ async function getProfileFromActiveTab() {
     if (!result?.result) throw messageError;
     return result.result;
   }
+}
+function profileFromManualInput(mode = "bio_only") {
+  const text = cleanText(manualBioEl?.value || "");
+  if (!text) return null;
+  return {
+    text,
+    analysis_mode: mode,
+    extraction_mode: mode === "bio_only" ? "bio_only_manual_text" : "manual_popup_text",
+    extraction_note: mode === "bio_only" ? "Bio Only mode used only the text pasted into the popup. Metadata and image checks were disabled." : "The audit used text pasted directly into the extension popup.",
+    tabular: {
+      age: 27,
+      height: 170,
+      income: -1,
+      drinks: "socially",
+      drugs: "never",
+      smokes: "no",
+      status: "single",
+      sex: "m",
+      orientation: "straight",
+      body_type: "average",
+      diet: "mostly anything",
+      education: "graduated from college/university",
+      ethnicity: "not specified",
+      job: "other",
+      offspring: "doesn't have kids",
+      pets: "likes dogs",
+      religion: "agnosticism",
+      sign: "leo",
+      missingFieldCount: 1
+    },
+    images: [],
+    title: "Manual popup input",
+    url: "extension://manual-input"
+  };
 }
 function renderModuleStatus() {
   const status = analyzer.getStatus();
@@ -52885,6 +53050,9 @@ function renderResults(audit) {
       <p><b>Words:</b> ${escapeHtml(profile.bio_word_count)}</p>
       <p><b>Images:</b> ${escapeHtml(profile.images_found)}</p>
       <p><b>Page:</b> ${escapeHtml(profile.title || "current tab")}</p>
+      <p><b>Audit:</b> ${escapeHtml(profile.audit_mode || "unknown")}</p>
+      <p><b>Mode:</b> ${escapeHtml(profile.extraction_mode || "unknown")}</p>
+      <p class="muted">${escapeHtml(profile.extraction_note || "")}</p>
     </section>
 
     <details class="panel">
@@ -52903,8 +53071,8 @@ async function boot() {
   try {
     await analyzer.loadModels();
     renderModuleStatus();
-    statusEl.textContent = "Ready. Open a profile-like page and run the audit.";
     analyzeBtn.disabled = false;
+    updateModeUi();
   } catch (error) {
     statusEl.textContent = "Model load failed. Check extension/models/nlp_model.json.";
     moduleEl.innerHTML = `<div class="module-pill high">${escapeHtml(error.message)}</div>`;
@@ -52913,11 +53081,18 @@ async function boot() {
 }
 analyzeBtn.addEventListener("click", async () => {
   analyzeBtn.disabled = true;
-  statusEl.textContent = "Reading page DOM and running client-side audit...";
+  const mode = currentMode();
+  statusEl.textContent = mode === "bio_only" ? "Running pasted-bio audit..." : "Reading page DOM and running full page audit...";
   resultsEl.innerHTML = "";
   try {
-    const profileData = await getProfileFromActiveTab();
-    const audit = analyzer.aggregate(profileData);
+    const profileData = mode === "bio_only" ? profileFromManualInput(mode) : await getProfileFromActiveTab();
+    if (!profileData) {
+      throw new Error(mode === "bio_only" ? "Paste a bio into the Bio text box before running Bio Only mode." : "No profile data was extracted from this page.");
+    }
+    if (!cleanText(profileData.text)) {
+      throw new Error(profileData.extraction_note || "No clean profile text found. Select a bio paragraph or paste a bio into the popup.");
+    }
+    const audit = analyzer.aggregate(profileData, { mode });
     statusEl.textContent = "Analysis complete.";
     renderResults(audit);
   } catch (error) {
@@ -52928,6 +53103,13 @@ analyzeBtn.addEventListener("click", async () => {
     analyzeBtn.disabled = false;
   }
 });
+function updateModeUi() {
+  const mode = currentMode();
+  analyzeBtn.textContent = mode === "bio_only" ? "Run Bio Audit" : "Run Page Audit";
+  manualBioEl.placeholder = mode === "bio_only" ? "Paste one dating bio here. This mode ignores page metadata and images." : "Optional notes only. Page Audit reads bio, metadata, and image from the current page.";
+  statusEl.textContent = mode === "bio_only" ? "Bio Only mode: paste a bio, then run the audit." : "Page Audit mode: open a profile-like page, then run the audit.";
+}
+auditModeInputs.forEach((input2) => input2.addEventListener("change", updateModeUi));
 boot();
 /*! Bundled license information:
 

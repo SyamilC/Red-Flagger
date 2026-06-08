@@ -19,7 +19,23 @@
     <div class="module-pill warn">Loading</div>
   </div>
 
-  <button id="analyzeBtn" type="button" disabled>Run DOM Audit</button>
+  <div class="mode-switch" role="radiogroup" aria-label="Audit mode">
+    <label>
+      <input type="radio" name="auditMode" value="bio_only" checked>
+      <span>Bio Only</span>
+    </label>
+    <label>
+      <input type="radio" name="auditMode" value="page_audit">
+      <span>Page Audit</span>
+    </label>
+  </div>
+
+  <label class="manual-input">
+    Bio text
+    <textarea id="manualBio" placeholder="Bio Only: paste a dating bio here. Page Audit: leave blank and let the extension find bio, metadata, and image from the page."></textarea>
+  </label>
+
+  <button id="analyzeBtn" type="button" disabled>Run Bio Audit</button>
 
   <div id="status" class="status">Loading client-side models...</div>
   <div id="results"></div>

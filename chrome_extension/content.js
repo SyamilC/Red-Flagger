@@ -2,6 +2,10 @@ function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
+function selectedPageText() {
+  return cleanText(window.getSelection?.().toString() || '');
+}
+
 function visibleTextOf(selector) {
   return Array.from(document.querySelectorAll(selector))
     .filter((element) => {
@@ -11,6 +15,43 @@ function visibleTextOf(selector) {
     })
     .map((element) => cleanText(element.innerText || element.textContent || ''))
     .filter(Boolean);
+}
+
+function scoreBioElement(element) {
+  const text = cleanText(element.innerText || element.textContent || '');
+  if (text.length < 35 || text.length > 1800) return null;
+  const marker = `${element.className || ''} ${element.id || ''} ${element.getAttribute('data-test') || ''} ${element.getAttribute('data-testid') || ''}`;
+  let score = Math.min(120, text.length / 8);
+  if (/bio|about|profile|essay|summary/i.test(marker)) score += 90;
+  if (/nav|menu|footer|header|cookie|modal|comment|article-body/i.test(marker)) score -= 80;
+  if (text.split(/\s+/).length < 8) score -= 35;
+  return { element, text, score };
+}
+
+function findBestBioCandidate() {
+  const selectors = [
+    '[data-test*="bio" i]',
+    '[data-testid*="bio" i]',
+    '[class*="bio" i]',
+    '[class*="about" i]',
+    '[id*="bio" i]',
+    '[id*="about" i]',
+    '[class*="profile" i]',
+    'article',
+    'section',
+    'main'
+  ];
+  const seen = new Set();
+  const candidates = [];
+  for (const selector of selectors) {
+    for (const element of document.querySelectorAll(selector)) {
+      if (seen.has(element)) continue;
+      seen.add(element);
+      const candidate = scoreBioElement(element);
+      if (candidate) candidates.push(candidate);
+    }
+  }
+  return candidates.sort((a, b) => b.score - a.score)[0] || null;
 }
 
 function firstMatch(regex, text, fallback = '') {
@@ -32,8 +73,9 @@ function extractAge(text) {
   return age >= 18 && age <= 90 ? age : 27;
 }
 
-function extractImages() {
-  const imageElements = Array.from(document.images || []);
+function extractImages(root = document) {
+  const scopedImages = root ? Array.from(root.querySelectorAll?.('img') || []) : [];
+  const imageElements = scopedImages.length ? scopedImages : Array.from(document.images || []);
   const metaImage = document.querySelector('meta[property="og:image"], meta[name="twitter:image"]')?.content;
   const images = imageElements
     .map((img) => ({
@@ -53,21 +95,13 @@ function extractImages() {
 }
 
 function extractProfileData() {
-  const prioritySelectors = [
-    '[data-test*="bio" i]',
-    '[data-testid*="bio" i]',
-    '[class*="bio" i]',
-    '[class*="about" i]',
-    '[id*="bio" i]',
-    '[id*="about" i]',
-    'main',
-    'article',
-    'section'
-  ];
-  const profileText = prioritySelectors.flatMap(visibleTextOf).join(' ');
+  const selectedText = selectedPageText();
+  const bestBio = findBestBioCandidate();
+  const root = bestBio?.element?.closest('article, section, main, [class*="profile" i], [class*="card" i], [class*="user" i]') || document.body;
   const fallbackText = cleanText(document.body?.innerText || '');
-  const text = cleanText(profileText || fallbackText).slice(0, 6000);
-  const fullText = cleanText(`${document.title || ''} ${fallbackText}`);
+  const scopedText = cleanText(root?.innerText || '');
+  const text = cleanText(selectedText.length >= 20 ? selectedText : (bestBio?.text || '')).slice(0, 2400);
+  const fullText = cleanText(`${document.title || ''} ${scopedText || fallbackText}`);
 
   const tabular = {
     age: extractAge(fullText),
@@ -141,8 +175,12 @@ function extractProfileData() {
 
   return {
     text,
+    extraction_mode: selectedText.length >= 20 ? 'selected_text' : (bestBio ? 'best_profile_block' : 'no_clean_profile_text'),
+    extraction_note: text
+      ? 'Page Audit used selected text or the best profile-like block, then read metadata and images from the nearest profile container.'
+      : 'No clean profile text was found. Select a bio paragraph on the page or paste text into the popup.',
     tabular: { ...tabular, missingFieldCount },
-    images: extractImages(),
+    images: extractImages(root),
     title: document.title || '',
     url: location.href
   };

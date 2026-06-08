@@ -5,6 +5,8 @@ const statusEl = document.getElementById('status');
 const resultsEl = document.getElementById('results');
 const analyzeBtn = document.getElementById('analyzeBtn');
 const moduleEl = document.getElementById('moduleStatus');
+const manualBioEl = document.getElementById('manualBio');
+const auditModeInputs = Array.from(document.querySelectorAll('input[name="auditMode"]'));
 
 function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -30,46 +32,22 @@ function riskClass(level) {
   return 'ok';
 }
 
-function visibleTextOf(selector) {
-  return Array.from(document.querySelectorAll(selector))
-    .filter((element) => {
-      const style = window.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
-    })
-    .map((element) => cleanText(element.innerText || element.textContent || ''))
-    .filter(Boolean);
-}
-
-function firstMatch(regex, text, fallback = '') {
-  const match = String(text || '').match(regex);
-  return match ? cleanText(match[1] || match[0]) : fallback;
-}
-
-function inferChoice(text, rules, fallback) {
-  const lower = String(text || '').toLowerCase();
-  for (const [value, patterns] of Object.entries(rules)) {
-    if (patterns.some((pattern) => pattern.test(lower))) return value;
-  }
-  return fallback;
-}
-
-function extractAge(text) {
-  const direct = firstMatch(/\b(?:age[:\s]*)?([1-9][0-9])\b/i, text, '');
-  const age = Number(direct);
-  return age >= 18 && age <= 90 ? age : 27;
+function currentMode() {
+  return auditModeInputs.find((input) => input.checked)?.value || 'bio_only';
 }
 
 function extractProfileDataInPage() {
   const localCleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
-  const localVisibleTextOf = (selector) => Array.from(document.querySelectorAll(selector))
-    .filter((element) => {
+  const selectedText = localCleanText(window.getSelection?.().toString() || '');
+  const isVisible = (element) => {
+    try {
       const style = window.getComputedStyle(element);
       const rect = element.getBoundingClientRect();
       return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
-    })
-    .map((element) => localCleanText(element.innerText || element.textContent || ''))
-    .filter(Boolean);
+    } catch {
+      return false;
+    }
+  };
   const localFirstMatch = (regex, text, fallback = '') => {
     const match = String(text || '').match(regex);
     return match ? localCleanText(match[1] || match[0]) : fallback;
@@ -81,27 +59,54 @@ function extractProfileDataInPage() {
     }
     return fallback;
   };
+  const scoreBioElement = (element) => {
+    const text = localCleanText(element.innerText || element.textContent || '');
+    if (text.length < 35 || text.length > 1800) return null;
+    const marker = `${element.className || ''} ${element.id || ''} ${element.getAttribute('data-test') || ''} ${element.getAttribute('data-testid') || ''}`;
+    let score = Math.min(120, text.length / 8);
+    if (/bio|about|profile|essay|summary/i.test(marker)) score += 90;
+    if (/nav|menu|footer|header|cookie|modal|comment|article-body/i.test(marker)) score -= 80;
+    if (text.split(/\s+/).length < 8) score -= 35;
+    return { element, text, score };
+  };
+  const findBestBioCandidate = () => {
+    const selectors = [
+      '[data-test*="bio" i]',
+      '[data-testid*="bio" i]',
+      '[class*="bio" i]',
+      '[class*="about" i]',
+      '[id*="bio" i]',
+      '[id*="about" i]',
+      '[class*="profile" i]',
+      'article',
+      'section',
+      'main'
+    ];
+    const seen = new Set();
+    const candidates = [];
+    for (const selector of selectors) {
+      for (const element of document.querySelectorAll(selector)) {
+        if (seen.has(element) || !isVisible(element)) continue;
+        seen.add(element);
+        const candidate = scoreBioElement(element);
+        if (candidate) candidates.push(candidate);
+      }
+    }
+    return candidates.sort((a, b) => b.score - a.score)[0] || null;
+  };
   const localExtractAge = (text) => {
     const direct = localFirstMatch(/\b(?:age[:\s]*)?([1-9][0-9])\b/i, text, '');
     const age = Number(direct);
     return age >= 18 && age <= 90 ? age : 27;
   };
-  const prioritySelectors = [
-    '[data-test*="bio" i]',
-    '[data-testid*="bio" i]',
-    '[class*="bio" i]',
-    '[class*="about" i]',
-    '[id*="bio" i]',
-    '[id*="about" i]',
-    'main',
-    'article',
-    'section'
-  ];
-  const profileText = prioritySelectors.flatMap(localVisibleTextOf).join(' ');
+  const bestBio = findBestBioCandidate();
+  const root = bestBio?.element?.closest('article, section, main, [class*="profile" i], [class*="card" i], [class*="user" i]') || document.body;
   const fallbackText = localCleanText(document.body?.innerText || '');
-  const text = localCleanText(profileText || fallbackText).slice(0, 6000);
-  const fullText = localCleanText(`${document.title || ''} ${fallbackText}`);
-  const imageElements = Array.from(document.images || []);
+  const scopedText = localCleanText(root?.innerText || '');
+  const text = localCleanText(selectedText.length >= 20 ? selectedText : (bestBio?.text || '')).slice(0, 2400);
+  const fullText = localCleanText(`${document.title || ''} ${scopedText || fallbackText}`);
+  const scopedImages = root ? Array.from(root.querySelectorAll('img')) : [];
+  const imageElements = scopedImages.length ? scopedImages : Array.from(document.images || []);
   const metaImage = document.querySelector('meta[property="og:image"], meta[name="twitter:image"]')?.content;
   const images = imageElements
     .map((img) => ({
@@ -139,6 +144,10 @@ function extractProfileDataInPage() {
   const missingFieldCount = Object.keys(tabular).filter((field) => tabular[field] === 'not specified' || tabular[field] === '').length;
   return {
     text,
+    extraction_mode: selectedText.length >= 20 ? 'selected_text' : (bestBio ? 'best_profile_block' : 'no_clean_profile_text'),
+    extraction_note: text
+      ? 'Page Audit used selected text or the best profile-like block, then read metadata and images from the nearest profile container.'
+      : 'No clean profile text was found. Select a bio paragraph on the page or paste text into the popup.',
     tabular: { ...tabular, missingFieldCount },
     images: images.slice(0, 8),
     title: document.title || '',
@@ -160,6 +169,43 @@ async function getProfileFromActiveTab() {
     if (!result?.result) throw messageError;
     return result.result;
   }
+}
+
+function profileFromManualInput(mode = 'bio_only') {
+  const text = cleanText(manualBioEl?.value || '');
+  if (!text) return null;
+  return {
+    text,
+    analysis_mode: mode,
+    extraction_mode: mode === 'bio_only' ? 'bio_only_manual_text' : 'manual_popup_text',
+    extraction_note: mode === 'bio_only'
+      ? 'Bio Only mode used only the text pasted into the popup. Metadata and image checks were disabled.'
+      : 'The audit used text pasted directly into the extension popup.',
+    tabular: {
+      age: 27,
+      height: 170,
+      income: -1,
+      drinks: 'socially',
+      drugs: 'never',
+      smokes: 'no',
+      status: 'single',
+      sex: 'm',
+      orientation: 'straight',
+      body_type: 'average',
+      diet: 'mostly anything',
+      education: 'graduated from college/university',
+      ethnicity: 'not specified',
+      job: 'other',
+      offspring: "doesn't have kids",
+      pets: 'likes dogs',
+      religion: 'agnosticism',
+      sign: 'leo',
+      missingFieldCount: 1
+    },
+    images: [],
+    title: 'Manual popup input',
+    url: 'extension://manual-input'
+  };
 }
 
 function renderModuleStatus() {
@@ -220,6 +266,9 @@ function renderResults(audit) {
       <p><b>Words:</b> ${escapeHtml(profile.bio_word_count)}</p>
       <p><b>Images:</b> ${escapeHtml(profile.images_found)}</p>
       <p><b>Page:</b> ${escapeHtml(profile.title || 'current tab')}</p>
+      <p><b>Audit:</b> ${escapeHtml(profile.audit_mode || 'unknown')}</p>
+      <p><b>Mode:</b> ${escapeHtml(profile.extraction_mode || 'unknown')}</p>
+      <p class="muted">${escapeHtml(profile.extraction_note || '')}</p>
     </section>
 
     <details class="panel">
@@ -239,8 +288,8 @@ async function boot() {
   try {
     await analyzer.loadModels();
     renderModuleStatus();
-    statusEl.textContent = 'Ready. Open a profile-like page and run the audit.';
     analyzeBtn.disabled = false;
+    updateModeUi();
   } catch (error) {
     statusEl.textContent = 'Model load failed. Check extension/models/nlp_model.json.';
     moduleEl.innerHTML = `<div class="module-pill high">${escapeHtml(error.message)}</div>`;
@@ -250,12 +299,25 @@ async function boot() {
 
 analyzeBtn.addEventListener('click', async () => {
   analyzeBtn.disabled = true;
-  statusEl.textContent = 'Reading page DOM and running client-side audit...';
+  const mode = currentMode();
+  statusEl.textContent = mode === 'bio_only'
+    ? 'Running pasted-bio audit...'
+    : 'Reading page DOM and running full page audit...';
   resultsEl.innerHTML = '';
 
   try {
-    const profileData = await getProfileFromActiveTab();
-    const audit = analyzer.aggregate(profileData);
+    const profileData = mode === 'bio_only'
+      ? profileFromManualInput(mode)
+      : await getProfileFromActiveTab();
+    if (!profileData) {
+      throw new Error(mode === 'bio_only'
+        ? 'Paste a bio into the Bio text box before running Bio Only mode.'
+        : 'No profile data was extracted from this page.');
+    }
+    if (!cleanText(profileData.text)) {
+      throw new Error(profileData.extraction_note || 'No clean profile text found. Select a bio paragraph or paste a bio into the popup.');
+    }
+    const audit = analyzer.aggregate(profileData, { mode });
     statusEl.textContent = 'Analysis complete.';
     renderResults(audit);
   } catch (error) {
@@ -267,4 +329,16 @@ analyzeBtn.addEventListener('click', async () => {
   }
 });
 
+function updateModeUi() {
+  const mode = currentMode();
+  analyzeBtn.textContent = mode === 'bio_only' ? 'Run Bio Audit' : 'Run Page Audit';
+  manualBioEl.placeholder = mode === 'bio_only'
+    ? 'Paste one dating bio here. This mode ignores page metadata and images.'
+    : 'Optional notes only. Page Audit reads bio, metadata, and image from the current page.';
+  statusEl.textContent = mode === 'bio_only'
+    ? 'Bio Only mode: paste a bio, then run the audit.'
+    : 'Page Audit mode: open a profile-like page, then run the audit.';
+}
+
+auditModeInputs.forEach((input) => input.addEventListener('change', updateModeUi));
 boot();
