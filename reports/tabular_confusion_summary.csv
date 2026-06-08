@@ -1,7 +1,13 @@
 label,true_negative,false_positive,false_negative,true_positive
-aggressive_tone,130,0,10,0
+aggressive_tone,128,0,12,0
 hookup_focus,139,0,1,0
 negativity,130,1,9,0
-sarcasm_cynicism,108,4,28,0
+sarcasm_cynicism,63,18,45,14
 substance_risk,76,2,19,43
 incomplete_profile,133,0,7,0
+controlling_behavior,139,0,1,0
+emotional_manipulation,140,0,0,0
+entitlement_superiority,139,0,1,0
+poor_conflict_resolution,139,0,1,0
+main_character_syndrome,139,0,1,0
+dismissive,126,0,14,0

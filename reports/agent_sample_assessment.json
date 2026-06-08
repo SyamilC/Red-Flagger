@@ -17,8 +17,14 @@
     "smokes": "no"
   },
   "bio_excerpt": "i am really obsessed with music and would love to do something with it. my music idol is tom delonge. my friends always make fun of me because i buy anything he does. i am supervisor and i am really bored of it. i really need to get back into school. guitar i like to think i am alright. i am always trying to improve at it. well used to be my hair. had to get rid of the blonde mohawk. so now i would say my plugs. i usually get somekind of comment to my earrings. to many movies to just pick one and same with tv shows. but some of the best are scott pilgrim and the office. music is the best thing ever and i surround myself with it everyday. pizza is the best food i could eat it when ever. my brother my guitars my friends my phone my ps3 and oxygen obviously  trying to have fun in what ever is fun to do that night.  want to be friends. to see whats up? or what ever reason you can think of. lets talk",
-  "overall_risk_score": 26.95,
-  "overall_risk_level": "Low-to-Moderate",
+  "overall_risk_score": 45.06,
+  "overall_risk_level": "Moderate",
+  "scoring_breakdown": {
+    "top_label_risk": 0.6008,
+    "visual_risk": 0.0,
+    "severe_detected": [],
+    "severe_boost": 0.0
+  },
   "detected_text_tabular_flags": [
     "sarcasm_cynicism"
   ],
@@ -27,84 +33,275 @@
   ],
   "combined_label_scores": {
     "aggressive_tone": {
-      "mean_probability": 0.2148,
+      "mean_probability": 0.1003,
       "max_probability": 0.353,
       "ensemble_predicted": 0,
-      "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Harsh, hostile, demanding, or insulting wording."
     },
     "hookup_focus": {
-      "mean_probability": 0.1422,
+      "mean_probability": 0.0782,
       "max_probability": 0.3117,
       "ensemble_predicted": 0,
-      "description": "Strong focus on casual hookups or non-committal dating intent."
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Strong focus on casual hookups or non-committal intent."
     },
     "negativity": {
-      "mean_probability": 0.2237,
+      "mean_probability": 0.103,
       "max_probability": 0.3941,
       "ensemble_predicted": 0,
-      "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Pessimistic, bitter, cynical, or emotionally negative statements."
     },
     "sarcasm_cynicism": {
-      "mean_probability": 0.598,
-      "max_probability": 0.77,
+      "mean_probability": 0.5277,
+      "max_probability": 0.9191,
       "ensemble_predicted": 1,
-      "description": "Sarcastic or dismissive tone that may need careful interpretation."
+      "sources": [
+        "nlp",
+        "tabular"
+      ],
+      "matched_phrases": [],
+      "description": "Sarcastic, dismissive, or cynical tone."
     },
     "substance_risk": {
-      "mean_probability": 0.3315,
+      "mean_probability": 0.1533,
       "max_probability": 0.4685,
       "ensemble_predicted": 0,
-      "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Heavy drinking, smoking, drugs, or party-heavy lifestyle."
     },
     "incomplete_profile": {
-      "mean_probability": 0.2257,
+      "mean_probability": 0.1106,
       "max_probability": 0.4149,
       "ensemble_predicted": 0,
-      "description": "Low-effort profile with limited useful self-description."
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Low-effort profile with very little useful information."
+    },
+    "controlling_behavior": {
+      "mean_probability": 0.0227,
+      "max_probability": 0.065,
+      "ensemble_predicted": 0,
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Language suggesting control, obedience, punishment, or dominance over a partner."
+    },
+    "emotional_manipulation": {
+      "mean_probability": 0.0009,
+      "max_probability": 0.0026,
+      "ensemble_predicted": 0,
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Silent treatment, guilt, emotional punishment, testing, or conditional affection."
+    },
+    "entitlement_superiority": {
+      "mean_probability": 0.0009,
+      "max_probability": 0.0027,
+      "ensemble_predicted": 0,
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Self-important, superior, dismissive, or 'people must impress me' framing."
+    },
+    "poor_conflict_resolution": {
+      "mean_probability": 0.0044,
+      "max_probability": 0.01,
+      "ensemble_predicted": 0,
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Cutting people off, refusing communication, revenge, blame, or inability to resolve conflict maturely."
+    },
+    "main_character_syndrome": {
+      "mean_probability": 0.0021,
+      "max_probability": 0.005,
+      "ensemble_predicted": 0,
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Self-centred profile framing where the person treats others as background characters or expects special attention."
+    },
+    "dismissive": {
+      "mean_probability": 0.0178,
+      "max_probability": 0.045,
+      "ensemble_predicted": 0,
+      "sources": [],
+      "matched_phrases": [],
+      "description": "Invalidating, belittling, or contemptuous wording toward other people's feelings, interests, or boundaries."
     }
   },
   "module_outputs": {
     "nlp_tfidf_logreg": {
       "module": "TF-IDF Logistic Regression NLP model",
+      "available": true,
       "detected_flags": [
         "sarcasm_cynicism"
       ],
       "label_scores": {
         "aggressive_tone": {
-          "probability": 0.2765,
-          "threshold": 0.5,
+          "probability": 0.0082,
+          "threshold": 0.1,
           "predicted": 0,
-          "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+          "description": "Harsh, hostile, demanding, or insulting wording."
         },
         "hookup_focus": {
-          "probability": 0.1149,
+          "probability": 0.001,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Strong focus on casual hookups or non-committal dating intent."
+          "description": "Strong focus on casual hookups or non-committal intent."
         },
         "negativity": {
-          "probability": 0.2769,
-          "threshold": 0.5,
+          "probability": 0.008,
+          "threshold": 0.1,
           "predicted": 0,
-          "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+          "description": "Pessimistic, bitter, cynical, or emotionally negative statements."
         },
         "sarcasm_cynicism": {
-          "probability": 0.6323,
-          "threshold": 0.45,
+          "probability": 0.9191,
+          "threshold": 0.15,
           "predicted": 1,
-          "description": "Sarcastic or dismissive tone that may need careful interpretation."
+          "description": "Sarcastic, dismissive, or cynical tone."
         },
         "substance_risk": {
-          "probability": 0.411,
-          "threshold": 0.5,
+          "probability": 0.0496,
+          "threshold": 0.1,
           "predicted": 0,
-          "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+          "description": "Heavy drinking, smoking, drugs, or party-heavy lifestyle."
         },
         "incomplete_profile": {
-          "probability": 0.2422,
-          "threshold": 0.5,
+          "probability": 0.0075,
+          "threshold": 0.45,
           "predicted": 0,
-          "description": "Low-effort profile with limited useful self-description."
+          "description": "Low-effort profile with very little useful information."
+        },
+        "controlling_behavior": {
+          "probability": 0.0032,
+          "threshold": 0.1,
+          "predicted": 0,
+          "description": "Language suggesting control, obedience, punishment, or dominance over a partner."
+        },
+        "emotional_manipulation": {
+          "probability": 0.0026,
+          "threshold": 0.25,
+          "predicted": 0,
+          "description": "Silent treatment, guilt, emotional punishment, testing, or conditional affection."
+        },
+        "entitlement_superiority": {
+          "probability": 0.0027,
+          "threshold": 0.3,
+          "predicted": 0,
+          "description": "Self-important, superior, dismissive, or 'people must impress me' framing."
+        },
+        "poor_conflict_resolution": {
+          "probability": 0.0033,
+          "threshold": 0.1,
+          "predicted": 0,
+          "description": "Cutting people off, refusing communication, revenge, blame, or inability to resolve conflict maturely."
+        },
+        "main_character_syndrome": {
+          "probability": 0.0013,
+          "threshold": 0.35,
+          "predicted": 0,
+          "description": "Self-centred profile framing where the person treats others as background characters or expects special attention."
+        },
+        "dismissive": {
+          "probability": 0.0083,
+          "threshold": 0.1,
+          "predicted": 0,
+          "description": "Invalidating, belittling, or contemptuous wording toward other people's feelings, interests, or boundaries."
+        }
+      }
+    },
+    "nlp_keyword_rules": {
+      "module": "Transparent keyword/rule safety layer",
+      "available": true,
+      "detected_flags": [],
+      "label_scores": {
+        "aggressive_tone": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Harsh, hostile, demanding, or insulting wording.",
+          "matched_phrases": []
+        },
+        "hookup_focus": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Strong focus on casual hookups or non-committal intent.",
+          "matched_phrases": []
+        },
+        "negativity": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Pessimistic, bitter, cynical, or emotionally negative statements.",
+          "matched_phrases": []
+        },
+        "sarcasm_cynicism": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Sarcastic, dismissive, or cynical tone.",
+          "matched_phrases": []
+        },
+        "substance_risk": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Heavy drinking, smoking, drugs, or party-heavy lifestyle.",
+          "matched_phrases": []
+        },
+        "incomplete_profile": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Low-effort profile with very little useful information.",
+          "matched_phrases": []
+        },
+        "controlling_behavior": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Language suggesting control, obedience, punishment, or dominance over a partner.",
+          "matched_phrases": []
+        },
+        "emotional_manipulation": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Silent treatment, guilt, emotional punishment, testing, or conditional affection.",
+          "matched_phrases": []
+        },
+        "entitlement_superiority": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Self-important, superior, dismissive, or 'people must impress me' framing.",
+          "matched_phrases": []
+        },
+        "poor_conflict_resolution": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Cutting people off, refusing communication, revenge, blame, or inability to resolve conflict maturely.",
+          "matched_phrases": []
+        },
+        "main_character_syndrome": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Self-centred profile framing where the person treats others as background characters or expects special attention.",
+          "matched_phrases": []
+        },
+        "dismissive": {
+          "probability": 0.0,
+          "threshold": 0.55,
+          "predicted": 0,
+          "description": "Invalidating, belittling, or contemptuous wording toward other people's feelings, interests, or boundaries.",
+          "matched_phrases": []
         }
       }
     },
@@ -117,81 +314,118 @@
           "probability": 0.353,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+          "description": "Harsh, hostile, demanding, or insulting wording."
         },
         "hookup_focus": {
           "probability": 0.3117,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Strong focus on casual hookups or non-committal dating intent."
+          "description": "Strong focus on casual hookups or non-committal intent."
         },
         "negativity": {
           "probability": 0.3941,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+          "description": "Pessimistic, bitter, cynical, or emotionally negative statements."
         },
         "sarcasm_cynicism": {
           "probability": 0.3917,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Sarcastic or dismissive tone that may need careful interpretation."
+          "description": "Sarcastic, dismissive, or cynical tone."
         },
         "substance_risk": {
           "probability": 0.4685,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+          "description": "Heavy drinking, smoking, drugs, or party-heavy lifestyle."
         },
         "incomplete_profile": {
           "probability": 0.4149,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Low-effort profile with limited useful self-description."
+          "description": "Low-effort profile with very little useful information."
         }
       }
     },
     "tabular_smote_random_forest": {
+      "available": true,
       "module": "SMOTE Random Forest tabular model",
       "detected_flags": [
         "sarcasm_cynicism"
       ],
       "label_scores": {
         "aggressive_tone": {
-          "probability": 0.015,
+          "probability": 0.04,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Harsh, hostile, demanding, or insulting wording in the bio."
+          "description": "Harsh, hostile, demanding, or insulting wording."
         },
         "hookup_focus": {
           "probability": 0.0,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Strong focus on casual hookups or non-committal dating intent."
+          "description": "Strong focus on casual hookups or non-committal intent."
         },
         "negativity": {
-          "probability": 0.0,
+          "probability": 0.01,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Frequent pessimistic, cynical, or emotionally negative statements."
+          "description": "Pessimistic, bitter, cynical, or emotionally negative statements."
         },
         "sarcasm_cynicism": {
-          "probability": 0.77,
+          "probability": 0.8,
           "threshold": 0.5,
           "predicted": 1,
-          "description": "Sarcastic or dismissive tone that may need careful interpretation."
+          "description": "Sarcastic, dismissive, or cynical tone."
         },
         "substance_risk": {
-          "probability": 0.115,
+          "probability": 0.095,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Signals of heavy drinking, smoking, drugs, or party-heavy lifestyle."
+          "description": "Heavy drinking, smoking, drugs, or party-heavy lifestyle."
         },
         "incomplete_profile": {
           "probability": 0.02,
           "threshold": 0.5,
           "predicted": 0,
-          "description": "Low-effort profile with limited useful self-description."
+          "description": "Low-effort profile with very little useful information."
+        },
+        "controlling_behavior": {
+          "probability": 0.065,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Language suggesting control, obedience, punishment, or dominance over a partner."
+        },
+        "emotional_manipulation": {
+          "probability": 0.0,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Silent treatment, guilt, emotional punishment, testing, or conditional affection."
+        },
+        "entitlement_superiority": {
+          "probability": 0.0,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Self-important, superior, dismissive, or 'people must impress me' framing."
+        },
+        "poor_conflict_resolution": {
+          "probability": 0.01,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Cutting people off, refusing communication, revenge, blame, or inability to resolve conflict maturely."
+        },
+        "main_character_syndrome": {
+          "probability": 0.005,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Self-centred profile framing where the person treats others as background characters or expects special attention."
+        },
+        "dismissive": {
+          "probability": 0.045,
+          "threshold": 0.5,
+          "predicted": 0,
+          "description": "Invalidating, belittling, or contemptuous wording toward other people's feelings, interests, or boundaries."
         }
       }
     },
@@ -226,61 +460,61 @@
     "nlp_tfidf_logreg_overall": [
       {
         "Metric": "Micro Precision",
-        "Score": 0.4897959183673469
+        "Score": 0.4779874213836478
       },
       {
         "Metric": "Micro Recall",
-        "Score": 0.4102564102564102
+        "Score": 0.794425087108014
       },
       {
         "Metric": "Micro F1",
-        "Score": 0.4465116279069767
+        "Score": 0.5968586387434555
       },
       {
         "Metric": "Macro Precision",
-        "Score": 0.3467505241090147
+        "Score": 0.4423777219550993
       },
       {
         "Metric": "Macro Recall",
-        "Score": 0.3267665130568356
+        "Score": 0.6585501686415891
       },
       {
         "Metric": "Macro F1",
-        "Score": 0.3091999403705411
+        "Score": 0.498825640531663
       },
       {
         "Metric": "Hamming Loss",
-        "Score": 0.1416666666666666
+        "Score": 0.1316239316239316
       }
     ],
     "tabular_smote_random_forest_overall": [
       {
         "Metric": "Micro Precision",
-        "Score": 0.86
+        "Score": 0.7307692307692307
       },
       {
         "Metric": "Micro Recall",
-        "Score": 0.3675213675213675
+        "Score": 0.3392857142857143
       },
       {
         "Metric": "Micro F1",
-        "Score": 0.5149700598802395
+        "Score": 0.4634146341463415
       },
       {
         "Metric": "Macro Precision",
-        "Score": 0.1592592592592592
+        "Score": 0.1160879629629629
       },
       {
         "Metric": "Macro Recall",
-        "Score": 0.1155913978494623
+        "Score": 0.0775697102241662
       },
       {
         "Metric": "Macro F1",
-        "Score": 0.1339563862928348
+        "Score": 0.0926192187874431
       },
       {
         "Metric": "Hamming Loss",
-        "Score": 0.0964285714285714
+        "Score": 0.0785714285714285
       }
     ],
     "yolo_visual_subset": {
