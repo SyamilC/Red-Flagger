@@ -4886,6 +4886,9 @@ function dispose(container) {
 function keep(result) {
   return ENGINE.keep(result);
 }
+function ready() {
+  return ENGINE.ready();
+}
 function getBackend() {
   return ENGINE.backendName;
 }
@@ -6135,27 +6138,6 @@ function acosh_(x) {
 }
 var acosh = /* @__PURE__ */ op({ acosh_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/add_n.js
-function addN_(tensors) {
-  assert(Array.isArray(tensors), () => "The argument passed to tf.addN() must be a list of tensors");
-  assert(tensors.length >= 1, () => `Must pass at least one tensor to tf.addN(), but got ${tensors.length}`);
-  const $tensors = tensors.map((t, i) => convertToTensor(t, `tensors${i}`, "addN"));
-  const firstTensor = $tensors[0];
-  $tensors.forEach((t) => {
-    if (t.dtype !== firstTensor.dtype) {
-      throw new Error("All tensors passed to tf.addN() must have the same dtype");
-    }
-  });
-  $tensors.forEach((t) => {
-    if (!arraysEqual(t.shape, firstTensor.shape)) {
-      throw new Error("All tensors passed to tf.addN() must have the same shape");
-    }
-  });
-  const inputs = $tensors;
-  return ENGINE.runKernel(AddN, inputs);
-}
-var addN = /* @__PURE__ */ op({ addN_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/all.js
 function all_(x, axis = null, keepDims = false) {
   const $x = convertToTensor(x, "x", "all", "bool");
@@ -6658,30 +6640,6 @@ function tanh_(x) {
 }
 var tanh2 = /* @__PURE__ */ op({ tanh_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/basic_lstm_cell.js
-function basicLSTMCell_(forgetBias, lstmKernel, lstmBias, data, c, h) {
-  const $forgetBias = convertToTensor(forgetBias, "forgetBias", "basicLSTMCell");
-  const $lstmKernel = convertToTensor(lstmKernel, "lstmKernel", "basicLSTMCell");
-  const $lstmBias = convertToTensor(lstmBias, "lstmBias", "basicLSTMCell");
-  const $data = convertToTensor(data, "data", "basicLSTMCell");
-  const $c = convertToTensor(c, "c", "basicLSTMCell");
-  const $h = convertToTensor(h, "h", "basicLSTMCell");
-  const combined = concat([$data, $h], 1);
-  const weighted = matMul(combined, $lstmKernel);
-  const res = add2(weighted, $lstmBias);
-  const batchSize = res.shape[0];
-  const sliceCols = res.shape[1] / 4;
-  const sliceSize = [batchSize, sliceCols];
-  const i = slice(res, [0, 0], sliceSize);
-  const j = slice(res, [0, sliceCols], sliceSize);
-  const f = slice(res, [0, sliceCols * 2], sliceSize);
-  const o = slice(res, [0, sliceCols * 3], sliceSize);
-  const newC = add2(mul(sigmoid(i), tanh2(j)), mul($c, sigmoid(add2($forgetBias, f))));
-  const newH = mul(tanh2(newC), sigmoid(o));
-  return [newC, newH];
-}
-var basicLSTMCell = /* @__PURE__ */ op({ basicLSTMCell_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/batch_to_space_nd.js
 function batchToSpaceND_(x, blockShape, crops) {
   const $x = convertToTensor(x, "x", "batchToSpaceND");
@@ -6833,36 +6791,6 @@ function bincount_(x, weights, size) {
   return ENGINE.runKernel(Bincount, inputs, attrs);
 }
 var bincount = /* @__PURE__ */ op({ bincount_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/bitwise_and.js
-function bitwiseAnd_(x, y) {
-  const $x = convertToTensor(x, "x", "bitwiseAnd");
-  const $y = convertToTensor(y, "y", "bitwiseAnd");
-  if (!arraysEqual($x.shape, $y.shape)) {
-    throw new Error(`BitwiseAnd: Tensors must have the same shape. x: ${$x.shape}, y: ${$y.shape}`);
-  }
-  if ($x.dtype !== "int32" || $y.dtype !== "int32") {
-    throw new Error(`BitwiseAnd: Only supports 'int32' values in tensor, found type of x: ${$x.dtype} and type of y: ${$y.dtype}`);
-  }
-  const inputs = { a: $x, b: $y };
-  return ENGINE.runKernel(BitwiseAnd, inputs);
-}
-var bitwiseAnd = /* @__PURE__ */ op({ bitwiseAnd_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/broadcast_args.js
-function broadcastArgs_(s0, s1) {
-  const shape1Input = convertToTensor(s0, "s0", "broadcastArgs", "int32");
-  const shape2Input = convertToTensor(s1, "s1", "broadcastArgs", "int32");
-  if (shape1Input.rank !== 1) {
-    throw new Error(`broadcastArgs(): first input must be a vector (rank=1). Has rank ${shape1Input.rank}`);
-  }
-  if (shape2Input.rank !== 1) {
-    throw new Error(`broadcastArgs(): second input must be a vector (rank=1). Has rank ${shape2Input.rank}`);
-  }
-  const inputs = { s0: shape1Input, s1: shape2Input };
-  return ENGINE.runKernel(BroadcastArgs, inputs);
-}
-var broadcastArgs = /* @__PURE__ */ op({ broadcastArgs_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/broadcast_to.js
 function broadcastTo_(x, shape) {
@@ -7207,14 +7135,6 @@ function depthwiseConv2d_(x, filter, strides, pad2, dataFormat = "NHWC", dilatio
 }
 var depthwiseConv2d = /* @__PURE__ */ op({ depthwiseConv2d_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/diag.js
-function diag_(x) {
-  const $x = convertToTensor(x, "x", "diag");
-  const inputs = { x: $x };
-  return ENGINE.runKernel(Diag, inputs);
-}
-var diag = /* @__PURE__ */ op({ diag_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/dilation2d.js
 function dilation2d_(x, filter, strides, pad2, dilations = [1, 1], dataFormat = "NHWC") {
   const $x = convertToTensor(x, "x", "dilation2d");
@@ -7391,16 +7311,6 @@ function elu_(x) {
   return ENGINE.runKernel(Elu, inputs);
 }
 var elu = /* @__PURE__ */ op({ elu_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/ensure_shape.js
-function ensureShape_(x, shape) {
-  const $x = convertToTensor(x, "x", "ensureShape", "string_or_numeric");
-  if (!arraysEqualWithNull($x.shape, shape)) {
-    throw new Error(`EnsureShape: Shape of tensor ${$x.shape} is not compatible with expected shape ${shape}`);
-  }
-  return x;
-}
-var ensureShape = /* @__PURE__ */ op({ ensureShape_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/erf.js
 function erf_(x) {
@@ -7778,15 +7688,6 @@ function lessEqual_(a, b) {
 }
 var lessEqual = /* @__PURE__ */ op({ lessEqual_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/linspace.js
-function linspace(start, stop, num) {
-  if (num <= 0) {
-    throw new Error("The number of values should be positive.");
-  }
-  const attrs = { start, stop, num };
-  return ENGINE.runKernel(LinSpace, {}, attrs);
-}
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/local_response_normalization.js
 function localResponseNormalization_(x, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5) {
   const $x = convertToTensor(x, "x", "localResponseNormalization");
@@ -7988,41 +7889,6 @@ function logicalXor_(a, b) {
 }
 var logicalXor = /* @__PURE__ */ op({ logicalXor_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/search_sorted.js
-var INT32_MAX = 2147483648;
-function searchSorted_(sortedSequence, values, side = "left") {
-  const $sortedSequence = convertToTensor(sortedSequence, "sortedSequence", "searchSorted");
-  const $values = convertToTensor(values, "values", "searchSorted");
-  const sequenceSize = $sortedSequence.shape[$sortedSequence.shape.length - 1];
-  const valuesSize = $values.shape[$values.shape.length - 1];
-  const $sortedSequence2D = reshape($sortedSequence, [-1, sequenceSize]);
-  const $values2D = reshape($values, [-1, valuesSize]);
-  if ($sortedSequence2D.rank < 2) {
-    throw new Error(`Sorted input argument must be at least 2-dimensional`);
-  }
-  if ($sortedSequence2D.shape[0] !== $values2D.shape[0]) {
-    throw new Error(`Leading dimension of 'sortedSequence' and 'values' must match.`);
-  }
-  if (sizeFromShape($values2D.shape) >= INT32_MAX) {
-    throw new Error(`values tensor size must less than ${INT32_MAX}`);
-  }
-  if ($sortedSequence2D.shape[1] >= INT32_MAX) {
-    throw new Error(`trailing dim_size must less than ${INT32_MAX} for int32 output type, was ${$sortedSequence2D.shape[1]}`);
-  }
-  const inputs = {
-    sortedSequence: $sortedSequence2D,
-    values: $values2D
-  };
-  const attrs = { side };
-  return ENGINE.runKernel(SearchSorted, inputs, attrs);
-}
-var searchSorted = /* @__PURE__ */ op({ searchSorted_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/lower_bound.js
-function lowerBound(sortedSequence, values) {
-  return searchSorted(sortedSequence, values, "left");
-}
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/max_pool.js
 function maxPool_(x, filterSize, strides, pad2, dimRoundingMode) {
   const $x = convertToTensor(x, "x", "maxPool");
@@ -8067,16 +7933,6 @@ function maxPool3d_(x, filterSize = [1, 1, 1], strides, pad2, dimRoundingMode, d
   return res;
 }
 var maxPool3d = /* @__PURE__ */ op({ maxPool3d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/max_pool_with_argmax.js
-function maxPoolWithArgmax_(x, filterSize, strides, pad2, includeBatchInIndex = false) {
-  const $x = convertToTensor(x, "x", "maxPoolWithArgmax");
-  const inputs = { x: $x };
-  const attrs = { filterSize, strides, pad: pad2, includeBatchInIndex };
-  const result = ENGINE.runKernel(MaxPoolWithArgmax, inputs, attrs);
-  return { result: result[0], indexes: result[1] };
-}
-var maxPoolWithArgmax = /* @__PURE__ */ op({ maxPoolWithArgmax_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/maximum.js
 function maximum_(a, b) {
@@ -8124,37 +7980,6 @@ function ones2(shape, dtype = "float32") {
   }
   const values = makeOnesTypedArray(sizeFromShape(shape), dtype);
   return ENGINE.makeTensor(values, shape, dtype);
-}
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/meshgrid.js
-function meshgrid(x, y, { indexing = "xy" } = {}) {
-  if (indexing !== "xy" && indexing !== "ij") {
-    throw new TypeError(`${indexing} is not a valid third argument to meshgrid`);
-  }
-  if (x === void 0) {
-    return [];
-  }
-  let $x = convertToTensor(x, "x", "meshgrid", x instanceof Tensor ? x.dtype : "float32");
-  if (y === void 0) {
-    return [$x];
-  }
-  let $y = convertToTensor(y, "y", "meshgrid", y instanceof Tensor ? y.dtype : "float32");
-  const w = sizeFromShape($x.shape);
-  const h = sizeFromShape($y.shape);
-  if (indexing === "xy") {
-    $x = reshape($x, [1, -1]);
-    $y = reshape($y, [-1, 1]);
-    return [
-      matMul(ones2([h, 1], $x.dtype), $x),
-      matMul($y, ones2([1, w], $y.dtype))
-    ];
-  }
-  $x = reshape($x, [-1, 1]);
-  $y = reshape($y, [1, -1]);
-  return [
-    matMul($x, ones2([1, h], $x.dtype)),
-    matMul(ones2([w, 1], $y.dtype), $y)
-  ];
 }
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/minimum.js
@@ -8216,49 +8041,6 @@ function moments_(x, axis = null, keepDims = false) {
 }
 var moments = /* @__PURE__ */ op({ moments_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/multi_rnn_cell.js
-function multiRNNCell_(lstmCells, data, c, h) {
-  const $data = convertToTensor(data, "data", "multiRNNCell");
-  const $c = convertToTensorArray(c, "c", "multiRNNCell");
-  const $h = convertToTensorArray(h, "h", "multiRNNCell");
-  let input2 = $data;
-  const newStates = [];
-  for (let i = 0; i < lstmCells.length; i++) {
-    const output = lstmCells[i](input2, $c[i], $h[i]);
-    newStates.push(output[0]);
-    newStates.push(output[1]);
-    input2 = output[1];
-  }
-  const newC = [];
-  const newH = [];
-  for (let i = 0; i < newStates.length; i += 2) {
-    newC.push(newStates[i]);
-    newH.push(newStates[i + 1]);
-  }
-  return [newC, newH];
-}
-var multiRNNCell = /* @__PURE__ */ op({ multiRNNCell_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/multinomial.js
-function multinomial_(logits, numSamples, seed, normalized = false) {
-  const $logits = convertToTensor(logits, "logits", "multinomial");
-  const numOutcomes = $logits.size;
-  const origRank = $logits.rank;
-  if (numOutcomes < 2) {
-    throw new Error(`Error in multinomial: you need at least 2 outcomes, but got ${numOutcomes}.`);
-  }
-  if (origRank > 2) {
-    throw new Error(`Rank of probabilities must be 1 or 2, but is ${origRank}`);
-  }
-  seed = seed || Math.random();
-  const logits2D = origRank === 1 ? reshape($logits, [1, -1]) : $logits;
-  const inputs = { logits: logits2D };
-  const attrs = { numSamples, seed, normalized };
-  const res = ENGINE.runKernel(Multinomial, inputs, attrs);
-  return origRank === 1 ? reshape(res, [res.size]) : res;
-}
-var multinomial = /* @__PURE__ */ op({ multinomial_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/not_equal.js
 function notEqual_(a, b) {
   let $a = convertToTensor(a, "a", "notEqual", "string_or_numeric");
@@ -8290,17 +8072,6 @@ function onesLike_(x) {
 }
 var onesLike = /* @__PURE__ */ op({ onesLike_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/outer_product.js
-function outerProduct_(v1, v2) {
-  const $v1 = convertToTensor(v1, "v1", "outerProduct");
-  const $v2 = convertToTensor(v2, "v2", "outerProduct");
-  assert($v1.rank === 1 && $v2.rank === 1, () => `Error in outerProduct: inputs must be rank 1, but got ranks ${$v1.rank} and ${$v2.rank}.`);
-  const v12D = reshape($v1, [-1, 1]);
-  const v22D = reshape($v2, [1, -1]);
-  return matMul(v12D, v22D);
-}
-var outerProduct = /* @__PURE__ */ op({ outerProduct_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/pad.js
 function pad_(x, paddings, constantValue = 0) {
   const $x = convertToTensor(x, "x", "pad");
@@ -8312,34 +8083,6 @@ function pad_(x, paddings, constantValue = 0) {
   return ENGINE.runKernel(PadV2, inputs, attrs);
 }
 var pad = /* @__PURE__ */ op({ pad_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/pad1d.js
-function pad1d_(x, paddings, constantValue = 0) {
-  assert(paddings.length === 2, () => "Invalid number of paddings. Must be length of 2.");
-  return pad(x, [paddings], constantValue);
-}
-var pad1d = /* @__PURE__ */ op({ pad1d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/pad2d.js
-function pad2d_(x, paddings, constantValue = 0) {
-  assert(paddings.length === 2 && paddings[0].length === 2 && paddings[1].length === 2, () => "Invalid number of paddings. Must be length of 2 each.");
-  return pad(x, paddings, constantValue);
-}
-var pad2d = /* @__PURE__ */ op({ pad2d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/pad3d.js
-function pad3d_(x, paddings, constantValue = 0) {
-  assert(paddings.length === 3 && paddings[0].length === 2 && paddings[1].length === 2 && paddings[2].length === 2, () => "Invalid number of paddings. Must be length of 2 each.");
-  return pad(x, paddings, constantValue);
-}
-var pad3d = /* @__PURE__ */ op({ pad3d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/pad4d.js
-function pad4d_(x, paddings, constantValue = 0) {
-  assert(paddings.length === 4 && paddings[0].length === 2 && paddings[1].length === 2 && paddings[2].length === 2 && paddings[3].length === 2, () => "Invalid number of paddings. Must be length of 2 each.");
-  return pad(x, paddings, constantValue);
-}
-var pad4d = /* @__PURE__ */ op({ pad4d_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/space_to_batch_nd.js
 function spaceToBatchND_(x, blockShape, paddings) {
@@ -8441,81 +8184,6 @@ function prod_(x, axis = null, keepDims = false) {
 }
 var prod = /* @__PURE__ */ op({ prod_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/ragged_gather.js
-function raggedGather_(paramsNestedSplits, paramsDenseValues, indices, outputRaggedRank) {
-  const $paramsNestedSplits = paramsNestedSplits.map((t, i) => convertToTensor(t, `tensors${i}`, "raggedGather", "int32"));
-  const $paramsDenseValues = convertToTensor(paramsDenseValues, "paramsDenseValues", "raggedGather");
-  const $indices = convertToTensor(indices, "indices", "raggedGather", "int32");
-  const inputs = {
-    paramsNestedSplits: $paramsNestedSplits,
-    paramsDenseValues: $paramsDenseValues,
-    indices: $indices
-  };
-  const attrs = { outputRaggedRank };
-  const result = ENGINE.runKernel(RaggedGather, inputs, attrs);
-  return {
-    outputNestedSplits: result.slice(0, result.length - 1),
-    outputDenseValues: result[result.length - 1]
-  };
-}
-var raggedGather = /* @__PURE__ */ op({ raggedGather_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/ragged_range.js
-function raggedRange_(starts, limits, deltas) {
-  const $starts = convertToTensor(starts, "starts", "raggedRange");
-  const $limits = convertToTensor(limits, "limits", "raggedRange", $starts.dtype);
-  const $deltas = convertToTensor(deltas, "deltas", "raggedRange", $starts.dtype);
-  const inputs = {
-    starts: $starts,
-    limits: $limits,
-    deltas: $deltas
-  };
-  const result = ENGINE.runKernel(RaggedRange, inputs);
-  return {
-    rtNestedSplits: result[0],
-    rtDenseValues: result[1]
-  };
-}
-var raggedRange = /* @__PURE__ */ op({ raggedRange_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/ragged_tensor_to_tensor.js
-function raggedTensorToTensor_(shape, values, defaultValue, rowPartitionTensors, rowPartitionTypes) {
-  const $shape = convertToTensor(shape, "shape", "raggedTensorToTensor", "int32");
-  const $values = convertToTensor(values, "values", "raggedTensorToTensor");
-  const $defaultValue = convertToTensor(defaultValue, "defaultValue", "raggedTensorToTensor", $values.dtype);
-  const $rowPartitionTensors = rowPartitionTensors.map((t, i) => convertToTensor(t, `tensors${i}`, "raggedTensorToTensor", "int32"));
-  const inputs = {
-    shape: $shape,
-    values: $values,
-    defaultValue: $defaultValue,
-    rowPartitionTensors: $rowPartitionTensors
-  };
-  const attrs = { rowPartitionTypes };
-  return ENGINE.runKernel(RaggedTensorToTensor, inputs, attrs);
-}
-var raggedTensorToTensor = /* @__PURE__ */ op({ raggedTensorToTensor_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/rand.js
-function rand_(shape, randFunction, dtype) {
-  assertNonNegativeIntegerDimensions(shape);
-  const size = sizeFromShape(shape);
-  let values = null;
-  if (dtype == null || dtype === "float32") {
-    values = new Float32Array(size);
-  } else if (dtype === "int32") {
-    values = new Int32Array(size);
-  } else if (dtype === "bool") {
-    values = new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type ${dtype}`);
-  }
-  for (let i = 0; i < size; i++) {
-    values[i] = randFunction();
-  }
-  return ENGINE.makeTensor(values, shape, dtype);
-}
-var rand = /* @__PURE__ */ op({ rand_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/rand_util.js
 var seedrandom = __toESM(require_seedrandom2());
 var MPRandGauss = class {
@@ -8572,52 +8240,6 @@ var MPRandGauss = class {
     return value <= this.upper && value >= this.lower;
   }
 };
-var RandGamma = class {
-  constructor(alpha, beta, dtype, seed) {
-    this.alpha = alpha;
-    this.beta = 1 / beta;
-    this.dtype = dtype;
-    const seedValue = seed ? seed : Math.random();
-    this.randu = seedrandom.alea(seedValue.toString());
-    this.randn = new MPRandGauss(0, 1, dtype, false, this.randu());
-    if (alpha < 1) {
-      this.d = alpha + 2 / 3;
-    } else {
-      this.d = alpha - 1 / 3;
-    }
-    this.c = 1 / Math.sqrt(9 * this.d);
-  }
-  /** Returns next sample from a gamma distribution. */
-  nextValue() {
-    let x2, v0, v1, x, u, v;
-    while (true) {
-      do {
-        x = this.randn.nextValue();
-        v = 1 + this.c * x;
-      } while (v <= 0);
-      v *= v * v;
-      x2 = x * x;
-      v0 = 1 - 0.331 * x2 * x2;
-      v1 = 0.5 * x2 + this.d * (1 - v + Math.log(v));
-      u = this.randu();
-      if (u < v0 || Math.log(u) < v1) {
-        break;
-      }
-    }
-    v = 1 / this.beta * this.d * v;
-    if (this.alpha < 1) {
-      v *= Math.pow(this.randu(), 1 / this.alpha);
-    }
-    return this.convertValue(v);
-  }
-  /** Handles proper rounding for non-floating-point numbers. */
-  convertValue(value) {
-    if (this.dtype === "float32") {
-      return value;
-    }
-    return Math.round(value);
-  }
-};
 var UniformRandom = class {
   constructor(min5 = 0, max5 = 1, dtype, seed) {
     this.canReturnFloat = () => this.dtype == null || this.dtype === "float32";
@@ -8646,27 +8268,6 @@ var UniformRandom = class {
   }
 };
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/random_gamma.js
-function randomGamma_(shape, alpha, beta = 1, dtype = "float32", seed) {
-  assertNonNegativeIntegerDimensions(shape);
-  if (beta == null) {
-    beta = 1;
-  }
-  if (dtype == null) {
-    dtype = "float32";
-  }
-  if (dtype !== "float32" && dtype !== "int32") {
-    throw new Error(`Unsupported data type ${dtype}`);
-  }
-  const rgamma = new RandGamma(alpha, beta, dtype, seed);
-  const res = buffer(shape, dtype);
-  for (let i = 0; i < res.values.length; i++) {
-    res.values[i] = rgamma.nextValue();
-  }
-  return res.toTensor();
-}
-var randomGamma = /* @__PURE__ */ op({ randomGamma_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/random_normal.js
 function randomNormal_(shape, mean3 = 0, stdDev = 1, dtype, seed) {
   assertNonNegativeIntegerDimensions(shape);
@@ -8682,15 +8283,6 @@ function randomNormal_(shape, mean3 = 0, stdDev = 1, dtype, seed) {
 }
 var randomNormal = /* @__PURE__ */ op({ randomNormal_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/random_standard_normal.js
-function randomStandardNormal_(shape, dtype, seed) {
-  if (dtype != null && dtype === "bool") {
-    throw new Error(`Unsupported data type ${dtype}`);
-  }
-  return randomNormal(shape, 0, 1, dtype, seed);
-}
-var randomStandardNormal = /* @__PURE__ */ op({ randomStandardNormal_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/random_uniform.js
 function randomUniform_(shape, minval = 0, maxval = 1, dtype = "float32", seed) {
   assertNonNegativeIntegerDimensions(shape);
@@ -8702,12 +8294,6 @@ function randomUniform_(shape, minval = 0, maxval = 1, dtype = "float32", seed) 
   return res.toTensor();
 }
 var randomUniform = /* @__PURE__ */ op({ randomUniform_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/random_uniform_int.js
-function randomUniformInt_(shape, minval, maxval, seed) {
-  return randomUniform(shape, minval, maxval, "int32", seed);
-}
-var randomUniformInt = /* @__PURE__ */ op({ randomUniformInt_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/range.js
 function range(start, stop, step4 = 1, dtype = "float32") {
@@ -8758,38 +8344,6 @@ function reverse_(x, axis) {
   return ENGINE.runKernel(Reverse, inputs, attrs);
 }
 var reverse = /* @__PURE__ */ op({ reverse_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/reverse_1d.js
-function reverse1d_(x) {
-  const $x = convertToTensor(x, "x", "reverse");
-  assert($x.rank === 1, () => `Error in reverse1D: x must be rank 1 but got rank ${$x.rank}.`);
-  return reverse($x, 0);
-}
-var reverse1d = /* @__PURE__ */ op({ reverse1d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/reverse_2d.js
-function reverse2d_(x, axis) {
-  const $x = convertToTensor(x, "x", "reverse");
-  assert($x.rank === 2, () => `Error in reverse2D: x must be rank 2 but got rank ${$x.rank}.`);
-  return reverse($x, axis);
-}
-var reverse2d = /* @__PURE__ */ op({ reverse2d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/reverse_3d.js
-function reverse3d_(x, axis) {
-  const $x = convertToTensor(x, "x", "reverse");
-  assert($x.rank === 3, () => `Error in reverse3D: x must be rank 3 but got rank ${$x.rank}.`);
-  return reverse($x, axis);
-}
-var reverse3d = /* @__PURE__ */ op({ reverse3d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/reverse_4d.js
-function reverse4d_(x, axis) {
-  const $x = convertToTensor(x, "x", "reverse");
-  assert($x.rank === 4, () => `Error in reverse4D: x must be rank 4 but got rank ${$x.rank}.`);
-  return reverse($x, axis);
-}
-var reverse4d = /* @__PURE__ */ op({ reverse4d_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/round.js
 function round_(x) {
@@ -8846,35 +8400,6 @@ function separableConv2d_(x, depthwiseFilter, pointwiseFilter, strides, pad2, di
   return res;
 }
 var separableConv2d = /* @__PURE__ */ op({ separableConv2d_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/setdiff1d_async.js
-async function setdiff1dAsync_(x, y) {
-  const $x = convertToTensor(x, "x", "setdiff1d");
-  const $y = convertToTensor(y, "y", "setdiff1d");
-  assert($x.dtype === $y.dtype, () => `x and y should have the same dtype, but got x (${$x.dtype}) and y (${$y.dtype}).`);
-  assert($x.rank === 1, () => `x should be 1D tensor, but got x (${$x.shape}).`);
-  assert($y.rank === 1, () => `y should be 1D tensor, but got y (${$y.shape}).`);
-  const xVals = await $x.data();
-  const yVals = await $y.data();
-  const ySet = new Set(yVals);
-  let outputSize = 0;
-  for (let i = 0; i < xVals.length; i++) {
-    if (!ySet.has(xVals[i])) {
-      outputSize++;
-    }
-  }
-  const buffer2 = new TensorBuffer([outputSize], $x.dtype);
-  const indices = new TensorBuffer([outputSize], "int32");
-  for (let i = 0, p2 = 0; i < xVals.length; i++) {
-    if (!ySet.has(xVals[i])) {
-      buffer2.values[p2] = xVals[i];
-      indices.values[p2] = i;
-      p2++;
-    }
-  }
-  return [buffer2.toTensor(), indices.toTensor()];
-}
-var setdiff1dAsync = setdiff1dAsync_;
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/sign.js
 function sign_(x) {
@@ -9130,71 +8655,6 @@ function tensor2d(values, shape, dtype) {
   return makeTensor(values, shape, inferredShape, dtype);
 }
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/tensor3d.js
-function tensor3d(values, shape, dtype) {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 3) {
-    throw new Error("tensor3d() requires shape to have three numbers");
-  }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
-    throw new Error("tensor3d() requires values to be number[][][] or flat/TypedArray");
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error("tensor3d() requires shape to be provided when `values` are a flat array");
-  }
-  return makeTensor(values, shape, inferredShape, dtype);
-}
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/tensor4d.js
-function tensor4d(values, shape, dtype) {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 4) {
-    throw new Error("tensor4d() requires shape to have four numbers");
-  }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 4 && inferredShape.length !== 1) {
-    throw new Error("tensor4d() requires values to be number[][][][] or flat/TypedArray");
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error("tensor4d() requires shape to be provided when `values` are a flat array");
-  }
-  return makeTensor(values, shape, inferredShape, dtype);
-}
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/tensor5d.js
-function tensor5d(values, shape, dtype) {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 5) {
-    throw new Error("tensor5d() requires shape to have five numbers");
-  }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 5 && inferredShape.length !== 1) {
-    throw new Error("tensor5d() requires values to be number[][][][][] or flat/TypedArray");
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error("tensor5d() requires shape to be provided when `values` are a flat array");
-  }
-  return makeTensor(values, shape, inferredShape, dtype);
-}
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/tensor6d.js
-function tensor6d(values, shape, dtype) {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 6) {
-    throw new Error("tensor6d() requires shape to have six numbers");
-  }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 6 && inferredShape.length !== 1) {
-    throw new Error("tensor6d() requires values to be number[][][][][][] or flat/TypedArray");
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error("tensor6d() requires shape to be provided when `values` are a flat array");
-  }
-  shape = shape || inferredShape;
-  return makeTensor(values, shape, inferredShape, dtype);
-}
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/scatter_nd_util.js
 function validateUpdateShape(shape, indices, updates) {
   const sliceDim = indices.rank > 1 ? indices.shape[indices.rank - 1] : 1;
@@ -9257,25 +8717,6 @@ function calculateShapes(updates, indices, shape) {
   const outputSize = sizeFromShape(shape);
   return { sliceRank, numUpdates, sliceSize, strides, outputSize };
 }
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/tensor_scatter_update.js
-function tensorScatterUpdate_(tensor2, indices, updates) {
-  const $tensor = convertToTensor(tensor2, "tensor", "tensorScatterupdate");
-  const $indices = convertToTensor(indices, "indices", "tensorScatterupdate", "int32");
-  const $updates = convertToTensor(updates, "updates", "tensorScatterupdate");
-  validateInput($updates, $indices, $tensor.shape);
-  if ($tensor.dtype !== $updates.dtype) {
-    throw new Error(`tensor and updates must have the same dtype, instead they are ${$tensor.dtype} and ${$updates.dtype}.`);
-  }
-  const inputs = {
-    tensor: $tensor,
-    indices: $indices,
-    updates: $updates
-  };
-  const attrs = {};
-  return ENGINE.runKernel(TensorScatterUpdate, inputs, attrs);
-}
-var tensorScatterUpdate = op({ tensorScatterUpdate_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/topk.js
 function topk_(x, k = 1, sorted = true) {
@@ -9344,11 +8785,6 @@ function unstack_(x, axis = 0) {
 }
 var unstack = /* @__PURE__ */ op({ unstack_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/upper_bound.js
-function upperBound(sortedSequence, values) {
-  return searchSorted(sortedSequence, values, "right");
-}
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/variable.js
 function variable(initialValue, trainable = true, name, dtype) {
   return ENGINE.makeVariable(initialValue, trainable, name, dtype);
@@ -9371,51 +8807,6 @@ function whereImpl(condShape, condVals) {
   }
   return out.toTensor();
 }
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/where_async.js
-async function whereAsync_(condition) {
-  const $condition = convertToTensor(condition, "condition", "whereAsync", "bool");
-  const vals = await $condition.data();
-  const res = whereImpl($condition.shape, vals);
-  if (condition !== $condition) {
-    $condition.dispose();
-  }
-  return res;
-}
-var whereAsync = whereAsync_;
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/boolean_mask.js
-async function booleanMaskAsync_(tensor2, mask, axis) {
-  const $tensor = convertToTensor(tensor2, "tensor", "boolMask");
-  const $mask = convertToTensor(mask, "mask", "boolMask", "bool");
-  const axisFrom = axis == null ? 0 : axis;
-  const maskDim = $mask.rank;
-  const tensorShape = $tensor.shape;
-  assert(maskDim > 0, () => "mask cannot be scalar");
-  assertShapesMatch(tensorShape.slice(axisFrom, axisFrom + maskDim), $mask.shape, `mask's shape must match the first K dimensions of tensor's shape,`);
-  let leadingSize = 1;
-  for (let i = axisFrom; i < axisFrom + maskDim; i++) {
-    leadingSize *= tensorShape[i];
-  }
-  const targetTensorShape = tensorShape.slice(0, axisFrom).concat([leadingSize], tensorShape.slice(axisFrom + maskDim));
-  const reshapedTensor = reshape($tensor, targetTensorShape);
-  const reshapedMask = reshape($mask, [-1]);
-  const positivePositions = await whereAsync(reshapedMask);
-  const indices = squeeze(positivePositions, [1]);
-  const res = gather(reshapedTensor, indices, axisFrom);
-  if (tensor2 !== $tensor) {
-    $tensor.dispose();
-  }
-  if (mask !== $mask) {
-    $mask.dispose();
-  }
-  indices.dispose();
-  reshapedTensor.dispose();
-  reshapedMask.dispose();
-  positivePositions.dispose();
-  return res;
-}
-var booleanMaskAsync = booleanMaskAsync_;
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/transpose.js
 function transpose_(x, perm, conjugate) {
@@ -9447,85 +8838,6 @@ function transpose_(x, perm, conjugate) {
   return ENGINE.runKernel(Transpose, inputs, attrs);
 }
 var transpose = /* @__PURE__ */ op({ transpose_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/moving_average.js
-function movingAverage_(v, x, decay, step4, zeroDebias = true) {
-  const $v = convertToTensor(v, "v", "movingAverage");
-  const $x = convertToTensor(x, "x", "movingAverage");
-  const $decay = convertToTensor(decay, "decay", "movingAverage");
-  assertTypesMatch($v, $x);
-  assert(arraysEqual($v.shape, $x.shape), () => "Shape mismatch in v and x");
-  const one = scalar(1);
-  const oneMinusDecay = sub(one, $decay);
-  let update = mul(sub($x, $v), oneMinusDecay);
-  if (zeroDebias) {
-    assert(step4 != null, () => "When using zeroDebias: true, step is required.");
-    const $step = convertToTensor(step4, "step", "movingAverage");
-    update = div(update, sub(one, pow($decay, $step)));
-  }
-  return add2($v, update);
-}
-var movingAverage = /* @__PURE__ */ op({ movingAverage_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/scatter_nd.js
-function scatterND_(indices, updates, shape) {
-  assertNonNegativeIntegerDimensions(shape);
-  const $indices = convertToTensor(indices, "indices", "scatterND", "int32");
-  const $updates = convertToTensor(updates, "updates", "scatterND");
-  validateInput($updates, $indices, shape);
-  const inputs = { indices: $indices, updates: $updates };
-  const attrs = { shape };
-  return ENGINE.runKernel(ScatterNd, inputs, attrs);
-}
-var scatterND = /* @__PURE__ */ op({ scatterND_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/sparse_to_dense_util.js
-function validateInput2(sparseIndices, sparseValues, outputShape, defaultValues) {
-  if (sparseIndices.dtype !== "int32") {
-    throw new Error(`tf.sparseToDense() expects the indices to be int32 type, but the dtype was ${sparseIndices.dtype}.`);
-  }
-  if (sparseIndices.rank > 2) {
-    throw new Error(`sparseIndices should be a scalar, vector, or matrix, but got shape ${sparseIndices.shape}.`);
-  }
-  const numElems = sparseIndices.rank > 0 ? sparseIndices.shape[0] : 1;
-  const numDims = sparseIndices.rank > 1 ? sparseIndices.shape[1] : 1;
-  if (outputShape.length !== numDims) {
-    throw new Error(`outputShape has incorrect number of elements:, ${outputShape.length}, should be: ${numDims}.`);
-  }
-  const numValues = sparseValues.size;
-  if (!(sparseValues.rank === 0 || sparseValues.rank === 1 && numValues === numElems)) {
-    throw new Error(`sparseValues has incorrect shape ${sparseValues.shape}, should be [] or [${numElems}]`);
-  }
-  if (sparseValues.dtype !== defaultValues.dtype) {
-    throw new Error("sparseValues.dtype must match defaultValues.dtype");
-  }
-}
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/sparse_to_dense.js
-function sparseToDense_(sparseIndices, sparseValues, outputShape, defaultValue = 0) {
-  assertNonNegativeIntegerDimensions(outputShape);
-  const $sparseIndices = convertToTensor(sparseIndices, "sparseIndices", "sparseToDense", "int32");
-  const $sparseValues = convertToTensor(sparseValues, "sparseValues", "sparseToDense", "string_or_numeric");
-  const $defaultValue = convertToTensor(defaultValue, "defaultValue", "sparseToDense", $sparseValues.dtype);
-  validateInput2($sparseIndices, $sparseValues, outputShape, $defaultValue);
-  const inputs = {
-    sparseIndices: $sparseIndices,
-    sparseValues: $sparseValues,
-    defaultValue: $defaultValue
-  };
-  const attrs = { outputShape };
-  return ENGINE.runKernel(SparseToDense, inputs, attrs);
-}
-var sparseToDense = /* @__PURE__ */ op({ sparseToDense_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/gather_nd.js
-function gatherND_(x, indices) {
-  const $indices = convertToTensor(indices, "indices", "gatherND", "int32");
-  const $x = convertToTensor(x, "x", "gatherND", "string_or_numeric");
-  const inputs = { params: $x, indices: $indices };
-  return ENGINE.runKernel(GatherNd, inputs);
-}
-var gatherND = /* @__PURE__ */ op({ gatherND_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/dropout_util.js
 function getNoiseShape(x, noiseShape) {
@@ -9563,59 +8875,6 @@ function dropout_(x, rate, noiseShape, seed) {
   return mul($x, multiplier);
 }
 var dropout = /* @__PURE__ */ op({ dropout_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/signal_ops_util.js
-function enclosingPowerOfTwo(value) {
-  return Math.floor(Math.pow(2, Math.ceil(Math.log(value) / Math.log(2))));
-}
-function cosineWindow(windowLength, a, b) {
-  const even = 1 - windowLength % 2;
-  const newValues = new Float32Array(windowLength);
-  for (let i = 0; i < windowLength; ++i) {
-    const cosArg = 2 * Math.PI * i / (windowLength + even - 1);
-    newValues[i] = a - b * Math.cos(cosArg);
-  }
-  return tensor1d(newValues, "float32");
-}
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/in_top_k.js
-async function inTopKAsync_(predictions, targets, k = 1) {
-  const $predictions = convertToTensor(predictions, "predictions", "inTopK");
-  const $targets = convertToTensor(targets, "targets", "inTopK");
-  assert($predictions.rank > 1, () => `inTopK() expects the predictions to be of rank 2 or higher, but got ${$predictions.rank}`);
-  assert($predictions.rank - 1 === $targets.rank, () => `predictions rank should be 1 larger than targets rank, but got predictions rank ${$predictions.rank} and targets rank ${$targets.rank}`);
-  assertShapesMatch($predictions.shape.slice(0, $predictions.shape.length - 1), $targets.shape, `predictions's shape should be align with the targets' shape, except the last dimension.`);
-  const lastDim = $predictions.shape[$predictions.shape.length - 1];
-  assert(k > 0 && k <= lastDim, () => `'k' passed to inTopK() must be > 0 && <= the predictions last dimension (${lastDim}), but got ${k}`);
-  const predictionsVals = await $predictions.data();
-  const targetsVals = await $targets.data();
-  const [batch, size] = [predictionsVals.length / lastDim, lastDim];
-  const precision2 = getTypedArrayFromDType("bool", batch);
-  for (let b = 0; b < batch; b++) {
-    const offset = b * size;
-    const vals = predictionsVals.subarray(offset, offset + size);
-    const valAndInd = [];
-    for (let i = 0; i < vals.length; i++) {
-      valAndInd.push({ value: vals[i], index: i });
-    }
-    valAndInd.sort((a, b2) => b2.value - a.value);
-    precision2[b] = 0;
-    for (let i = 0; i < k; i++) {
-      if (valAndInd[i].index === targetsVals[b]) {
-        precision2[b] = 1;
-        break;
-      }
-    }
-  }
-  if (predictions !== $predictions) {
-    $predictions.dispose();
-  }
-  if (targets !== $targets) {
-    $targets.dispose();
-  }
-  return tensor(precision2, $targets.shape, "bool");
-}
-var inTopKAsync = inTopKAsync_;
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/fused_ops.js
 var fused_ops_exports = {};
@@ -10022,55 +9281,6 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
   }
 }
 var matMul2 = /* @__PURE__ */ op({ fusedMatMul_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/signal/hamming_window.js
-function hammingWindow_(windowLength) {
-  return cosineWindow(windowLength, 0.54, 0.46);
-}
-var hammingWindow = /* @__PURE__ */ op({ hammingWindow_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/signal/hann_window.js
-function hannWindow_(windowLength) {
-  return cosineWindow(windowLength, 0.5, 0.5);
-}
-var hannWindow = /* @__PURE__ */ op({ hannWindow_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/signal/frame.js
-function frame_(signal2, frameLength, frameStep, padEnd = false, padValue = 0) {
-  let start = 0;
-  const output = [];
-  while (start + frameLength <= signal2.size) {
-    output.push(slice(signal2, start, frameLength));
-    start += frameStep;
-  }
-  if (padEnd) {
-    while (start < signal2.size) {
-      const padLen = start + frameLength - signal2.size;
-      const pad2 = concat([
-        slice(signal2, start, frameLength - padLen),
-        fill([padLen], padValue)
-      ]);
-      output.push(pad2);
-      start += frameStep;
-    }
-  }
-  if (output.length === 0) {
-    return tensor2d([], [0, frameLength]);
-  }
-  return reshape(concat(output), [output.length, frameLength]);
-}
-var frame = /* @__PURE__ */ op({ frame_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/signal/stft.js
-function stft_(signal2, frameLength, frameStep, fftLength, windowFn = hannWindow) {
-  if (fftLength == null) {
-    fftLength = enclosingPowerOfTwo(frameLength);
-  }
-  const framedSignal = frame(signal2, frameLength, frameStep);
-  const windowedSignal = mul(framedSignal, windowFn(frameLength));
-  return rfft(windowedSignal, fftLength);
-}
-var stft = /* @__PURE__ */ op({ stft_ });
 
 // node_modules/@tensorflow/tfjs-core/dist/ops/image/crop_and_resize.js
 function cropAndResize_(image2, boxes, boxInd, cropSize, method = "bilinear", extrapolationValue = 0) {
@@ -10744,408 +9954,7 @@ function qr2d(x, fullMatrices = false) {
 }
 var qr = /* @__PURE__ */ op({ qr_ });
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/loss_ops_utils.js
-var Reduction;
-(function(Reduction2) {
-  Reduction2[Reduction2["NONE"] = 0] = "NONE";
-  Reduction2[Reduction2["MEAN"] = 1] = "MEAN";
-  Reduction2[Reduction2["SUM"] = 2] = "SUM";
-  Reduction2[Reduction2["SUM_BY_NONZERO_WEIGHTS"] = 3] = "SUM_BY_NONZERO_WEIGHTS";
-})(Reduction || (Reduction = {}));
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/compute_weighted_loss.js
-function computeWeightedLoss_(losses2, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  const $losses = convertToTensor(losses2, "losses", "computeWeightedLoss");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "computeWeightedLoss");
-  }
-  const weightedLoss = $weights == null ? $losses : mul($losses, $weights);
-  if (reduction === Reduction.NONE) {
-    return weightedLoss;
-  }
-  if (reduction === Reduction.SUM) {
-    return sum2(weightedLoss);
-  }
-  if (reduction === Reduction.MEAN) {
-    if ($weights == null) {
-      return mean(weightedLoss);
-    } else {
-      const broadcastFactor = $losses.size / $weights.size;
-      const result = div(sum2(weightedLoss), sum2($weights));
-      return broadcastFactor > 1 ? div(result, scalar(broadcastFactor)) : result;
-    }
-  }
-  if (reduction === Reduction.SUM_BY_NONZERO_WEIGHTS) {
-    if ($weights == null) {
-      return div(sum2(weightedLoss), scalar($losses.size));
-    } else {
-      const broadcastedWeights = mul($weights, ones2($losses.shape));
-      const numNonZeros = cast(sum2(notEqual(broadcastedWeights, scalar(0))), "float32");
-      return div(sum2(weightedLoss), numNonZeros);
-    }
-  }
-  throw Error(`Unknown reduction: ${reduction}`);
-}
-var computeWeightedLoss = /* @__PURE__ */ op({ computeWeightedLoss_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/absolute_difference.js
-function absoluteDifference_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  const $labels = convertToTensor(labels, "labels", "absoluteDifference");
-  const $predictions = convertToTensor(predictions, "predictions", "absoluteDifference");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "absoluteDifference");
-  }
-  assertShapesMatch($labels.shape, $predictions.shape, "Error in absoluteDifference: ");
-  const losses2 = abs(sub($labels, $predictions));
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var absoluteDifference = /* @__PURE__ */ op({ absoluteDifference_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/cosine_distance.js
-function cosineDistance_(labels, predictions, axis, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  const $labels = convertToTensor(labels, "labels", "cosineDistance");
-  const $predictions = convertToTensor(predictions, "predictions", "cosineDistance");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "cosineDistance");
-  }
-  assertShapesMatch($labels.shape, $predictions.shape, "Error in cosineDistance: ");
-  const one = scalar(1);
-  const losses2 = sub(one, sum2(mul($labels, $predictions), axis, true));
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var cosineDistance = /* @__PURE__ */ op({ cosineDistance_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/hinge_loss.js
-function hingeLoss_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  let $labels = convertToTensor(labels, "labels", "hingeLoss");
-  const $predictions = convertToTensor(predictions, "predictions", "hingeLoss");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "hingeLoss");
-  }
-  assertShapesMatch($labels.shape, $predictions.shape, "Error in hingeLoss: ");
-  const one = scalar(1);
-  $labels = sub(mul(scalar(2), $labels), one);
-  const losses2 = relu(sub(one, mul($labels, $predictions)));
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var hingeLoss = /* @__PURE__ */ op({ hingeLoss_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/huber_loss.js
-function huberLoss_(labels, predictions, weights, delta = 1, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  const $labels = convertToTensor(labels, "labels", "huberLoss");
-  const $predictions = convertToTensor(predictions, "predictions", "huberLoss");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "huberLoss");
-  }
-  assertShapesMatch($labels.shape, $predictions.shape, "Error in huberLoss: ");
-  const deltaScalar = scalar(delta);
-  const error = abs(sub($predictions, $labels));
-  const quadratic = minimum(error, deltaScalar);
-  const linear = sub(error, quadratic);
-  const losses2 = add2(mul(scalar(0.5), square(quadratic)), mul(deltaScalar, linear));
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var huberLoss = /* @__PURE__ */ op({ huberLoss_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/log_loss.js
-function logLoss_(labels, predictions, weights, epsilon3 = 1e-7, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  const $labels = convertToTensor(labels, "labels", "logLoss");
-  const $predictions = convertToTensor(predictions, "predictions", "logLoss");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "logLoss");
-  }
-  assertShapesMatch($labels.shape, $predictions.shape, "Error in logLoss: ");
-  const one = scalar(1);
-  const epsilonScalar = scalar(epsilon3);
-  const l12 = neg(mul($labels, log2(add2($predictions, epsilonScalar))));
-  const l22 = mul(sub(one, $labels), log2(add2(sub(one, $predictions), epsilonScalar)));
-  const losses2 = sub(l12, l22);
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var logLoss = /* @__PURE__ */ op({ logLoss_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/mean_squared_error.js
-function meanSquaredError_(labels, predictions, weights, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  const $labels = convertToTensor(labels, "labels", "meanSquaredError");
-  const $predictions = convertToTensor(predictions, "predictions", "meanSquaredError");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "meanSquaredError");
-  }
-  assertShapesMatch($labels.shape, $predictions.shape, "Error in meanSquaredError: ");
-  const losses2 = squaredDifference($labels, $predictions);
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var meanSquaredError = /* @__PURE__ */ op({ meanSquaredError_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/sigmoid_cross_entropy.js
-function sigmoidCrossEntropyWithLogits_(labels, logits) {
-  const $labels = convertToTensor(labels, "labels", "sigmoidCrossEntropyWithLogits");
-  const $logits = convertToTensor(logits, "logits", "sigmoidCrossEntropyWithLogits");
-  assertShapesMatch($labels.shape, $logits.shape, "Error in sigmoidCrossEntropyWithLogits: ");
-  const maxOutput = relu($logits);
-  const outputXTarget = mul($logits, $labels);
-  const sigmoidOutput = log1p(exp(neg(abs($logits))));
-  return add2(sub(maxOutput, outputXTarget), sigmoidOutput);
-}
-function sigmoidCrossEntropy_(multiClassLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  let $multiClassLabels = convertToTensor(multiClassLabels, "multiClassLabels", "sigmoidCrossEntropy");
-  const $logits = convertToTensor(logits, "logits", "sigmoidCrossEntropy");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "sigmoidCrossEntropy");
-  }
-  assertShapesMatch($multiClassLabels.shape, $logits.shape, "Error in sigmoidCrossEntropy: ");
-  if (labelSmoothing > 0) {
-    const labelSmoothingScalar = scalar(labelSmoothing);
-    const one = scalar(1);
-    const half = scalar(0.5);
-    $multiClassLabels = add2(mul($multiClassLabels, sub(one, labelSmoothingScalar)), mul(half, labelSmoothingScalar));
-  }
-  const losses2 = sigmoidCrossEntropyWithLogits_($multiClassLabels, $logits);
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var sigmoidCrossEntropy = /* @__PURE__ */ op({ sigmoidCrossEntropy_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/losses/softmax_cross_entropy.js
-function softmaxCrossEntropyWithLogits_(labels, logits, dim = -1) {
-  if (dim === -1) {
-    dim = logits.rank - 1;
-  }
-  if (dim !== logits.rank - 1) {
-    throw Error(`Softmax cross entropy along a non-last dimension is not yet supported. Labels / logits was rank ${logits.rank} and dim was ${dim}`);
-  }
-  const customOp = customGrad((labels2, logits2, save) => {
-    const keepDims = true;
-    const lse = logSumExp(logits2, [dim], keepDims);
-    const logResult = sub(cast(logits2, "float32"), lse);
-    save([labels2, logResult]);
-    const costVector = neg(mul(logResult, labels2));
-    const value = sum2(costVector, [dim]);
-    const gradFunc = (dy, saved) => {
-      const [labels3, logResult2] = saved;
-      const dyShape = expandShapeToKeepDim(dy.shape, [dim]);
-      return [
-        mul(reshape(dy, dyShape), sub(cast(labels3, "float32"), exp(logResult2))),
-        mul(reshape(dy, dyShape), sub(exp(logResult2), cast(labels3, "float32")))
-      ];
-    };
-    return { value, gradFunc };
-  });
-  return customOp(labels, logits);
-}
-function softmaxCrossEntropy_(onehotLabels, logits, weights, labelSmoothing = 0, reduction = Reduction.SUM_BY_NONZERO_WEIGHTS) {
-  let $onehotLabels = convertToTensor(onehotLabels, "onehotLabels", "softmaxCrossEntropy");
-  const $logits = convertToTensor(logits, "logits", "softmaxCrossEntropy");
-  let $weights = null;
-  if (weights != null) {
-    $weights = convertToTensor(weights, "weights", "softmaxCrossEntropy");
-  }
-  assertShapesMatch($onehotLabels.shape, $logits.shape, "Error in softmaxCrossEntropy: ");
-  if (labelSmoothing > 0) {
-    const labelSmoothingScalar = scalar(labelSmoothing);
-    const one = scalar(1);
-    const numClasses = scalar($onehotLabels.shape[1]);
-    $onehotLabels = add2(mul($onehotLabels, sub(one, labelSmoothingScalar)), div(labelSmoothingScalar, numClasses));
-  }
-  const losses2 = softmaxCrossEntropyWithLogits_($onehotLabels, $logits);
-  return computeWeightedLoss(losses2, $weights, reduction);
-}
-var softmaxCrossEntropy = /* @__PURE__ */ op({ softmaxCrossEntropy_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/sparse/sparse_fill_empty_rows.js
-function sparseFillEmptyRows_(indices, values, denseShape, defaultValue) {
-  const $indices = convertToTensor(indices, "indices", "sparseFillEmptyRows", "int32");
-  const $values = convertToTensor(values, "values", "sparseFillEmptyRows");
-  const $denseShape = convertToTensor(denseShape, "denseShape", "sparseFillEmptyRows", "int32");
-  const $defaultValue = convertToTensor(defaultValue, "defaultValue", "sparseFillEmptyRows", $values.dtype);
-  if ($indices.rank !== 2) {
-    throw new Error(`Indices should be Tensor2D but received shape
-        ${$indices.shape}`);
-  }
-  if ($values.rank !== 1) {
-    throw new Error(`Values should be Tensor1D but received shape ${$values.shape}`);
-  }
-  if ($denseShape.rank !== 1) {
-    throw new Error(`Dense shape should be Tensor1D but received shape ${$denseShape.shape}`);
-  }
-  if ($defaultValue.rank !== 0) {
-    throw new Error(`Default value should be a scalar but received shape ${$defaultValue.shape}`);
-  }
-  const inputs = {
-    indices: $indices,
-    values: $values,
-    denseShape: $denseShape,
-    defaultValue: $defaultValue
-  };
-  const result = ENGINE.runKernel(SparseFillEmptyRows, inputs);
-  return {
-    outputIndices: result[0],
-    outputValues: result[1],
-    emptyRowIndicator: result[2],
-    reverseIndexMap: result[3]
-  };
-}
-var sparseFillEmptyRows = /* @__PURE__ */ op({ sparseFillEmptyRows_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/sparse/sparse_reshape.js
-function sparseReshape_(inputIndices, inputShape, newShape) {
-  const $inputIndices = convertToTensor(inputIndices, "inputIndices", "sparseReshape", "int32");
-  const $inputShape = convertToTensor(inputShape, "inputShape", "sparseReshape", "int32");
-  const $newShape = convertToTensor(newShape, "newShape", "sparseReshape", "int32");
-  if ($inputIndices.rank !== 2) {
-    throw new Error(`Input indices should be Tensor2D but received shape
-        ${$inputIndices.shape}`);
-  }
-  if ($inputShape.rank !== 1) {
-    throw new Error(`Input shape should be Tensor1D but received shape ${$inputShape.shape}`);
-  }
-  if ($newShape.rank !== 1) {
-    throw new Error(`New shape should be Tensor1D but received shape ${$newShape.shape}`);
-  }
-  const inputs = {
-    inputIndices: $inputIndices,
-    inputShape: $inputShape,
-    newShape: $newShape
-  };
-  const result = ENGINE.runKernel(SparseReshape, inputs);
-  return { outputIndices: result[0], outputShape: result[1] };
-}
-var sparseReshape = /* @__PURE__ */ op({ sparseReshape_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/sparse/sparse_segment_mean.js
-function sparseSegmentMean_(data, indices, segmentIds) {
-  const $data = convertToTensor(data, "data", "sparseSegmentMean");
-  const $indices = convertToTensor(indices, "indices", "sparseSegmentMean", "int32");
-  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentMean", "int32");
-  if ($data.rank < 1) {
-    throw new Error(`Data should be at least 1 dimensional but received scalar`);
-  }
-  if ($indices.rank !== 1) {
-    throw new Error(`Indices should be Tensor1D but received shape
-          ${$indices.shape}`);
-  }
-  if ($segmentIds.rank !== 1) {
-    throw new Error(`Segment ids should be Tensor1D but received shape
-          ${$segmentIds.shape}`);
-  }
-  const inputs = {
-    data: $data,
-    indices: $indices,
-    segmentIds: $segmentIds
-  };
-  return ENGINE.runKernel(SparseSegmentMean, inputs);
-}
-var sparseSegmentMean = /* @__PURE__ */ op({ sparseSegmentMean_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/sparse/sparse_segment_sum.js
-function sparseSegmentSum_(data, indices, segmentIds) {
-  const $data = convertToTensor(data, "data", "sparseSegmentSum");
-  const $indices = convertToTensor(indices, "indices", "sparseSegmentSum", "int32");
-  const $segmentIds = convertToTensor(segmentIds, "segmentIds", "sparseSegmentSum", "int32");
-  if ($data.rank < 1) {
-    throw new Error(`Data should be at least 1 dimensional but received scalar`);
-  }
-  if ($indices.rank !== 1) {
-    throw new Error(`Indices should be Tensor1D but received shape
-         ${$indices.shape}`);
-  }
-  if ($segmentIds.rank !== 1) {
-    throw new Error(`Segment ids should be Tensor1D but received shape
-         ${$segmentIds.shape}`);
-  }
-  const inputs = {
-    data: $data,
-    indices: $indices,
-    segmentIds: $segmentIds
-  };
-  return ENGINE.runKernel(SparseSegmentSum, inputs);
-}
-var sparseSegmentSum = /* @__PURE__ */ op({ sparseSegmentSum_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/string/string_n_grams.js
-function stringNGrams_(data, dataSplits, separator, nGramWidths, leftPad, rightPad2, padWidth, preserveShortSequences) {
-  const $data = convertToTensor(data, "data", "stringNGrams", "string");
-  if ($data.dtype !== "string") {
-    throw new Error("Data must be of datatype string");
-  }
-  if ($data.shape.length !== 1) {
-    throw new Error(`Data must be a vector, saw: ${$data.shape}`);
-  }
-  const $dataSplits = convertToTensor(dataSplits, "dataSplits", "stringNGrams");
-  if ($dataSplits.dtype !== "int32") {
-    throw new Error("Data splits must be of datatype int32");
-  }
-  const attrs = {
-    separator,
-    nGramWidths,
-    leftPad,
-    rightPad: rightPad2,
-    padWidth,
-    preserveShortSequences
-  };
-  const inputs = { data: $data, dataSplits: $dataSplits };
-  const result = ENGINE.runKernel(StringNGrams, inputs, attrs);
-  return { nGrams: result[0], nGramsSplits: result[1] };
-}
-var stringNGrams = /* @__PURE__ */ op({ stringNGrams_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/string/string_split.js
-function stringSplit_(input2, delimiter, skipEmpty = true) {
-  const $input = convertToTensor(input2, "input", "stringSplit", "string");
-  const $delimiter = convertToTensor(delimiter, "delimiter", "stringSplit", "string");
-  if ($input.rank !== 1) {
-    throw new Error(`Input should be Tensor1D but received shape ${$input.shape}`);
-  }
-  if ($delimiter.rank !== 0) {
-    throw new Error(`Delimiter should be a scalar but received shape ${$delimiter.shape}`);
-  }
-  const attrs = { skipEmpty };
-  const inputs = { input: $input, delimiter: $delimiter };
-  const result = ENGINE.runKernel(StringSplit, inputs, attrs);
-  return { indices: result[0], values: result[1], shape: result[2] };
-}
-var stringSplit = /* @__PURE__ */ op({ stringSplit_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/string/string_to_hash_bucket_fast.js
-function stringToHashBucketFast_(input2, numBuckets) {
-  const $input = convertToTensor(input2, "input", "stringToHashBucketFast", "string");
-  const attrs = { numBuckets };
-  if (numBuckets <= 0) {
-    throw new Error(`Number of buckets must be at least 1`);
-  }
-  const inputs = { input: $input };
-  return ENGINE.runKernel(StringToHashBucketFast, inputs, attrs);
-}
-var stringToHashBucketFast = /* @__PURE__ */ op({ stringToHashBucketFast_ });
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/string/static_regex_replace.js
-function staticRegexReplace_(input2, pattern, rewrite, replaceGlobal = true) {
-  const $input = convertToTensor(input2, "input", "staticRegexReplace", "string");
-  const attrs = { pattern, rewrite, replaceGlobal };
-  return ENGINE.runKernel(StaticRegexReplace, { x: $input }, attrs);
-}
-var staticRegexReplace = /* @__PURE__ */ op({ staticRegexReplace_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/ops.js
-var spectral = {
-  fft,
-  ifft,
-  rfft,
-  irfft
-};
-var signal = {
-  hammingWindow,
-  hannWindow,
-  frame,
-  stft
-};
 var image = {
   flipLeftRight,
   grayscaleToRGB,
@@ -11167,29 +9976,6 @@ var linalg = {
   bandPart,
   gramSchmidt,
   qr
-};
-var losses = {
-  absoluteDifference,
-  computeWeightedLoss,
-  cosineDistance,
-  hingeLoss,
-  huberLoss,
-  logLoss,
-  meanSquaredError,
-  sigmoidCrossEntropy,
-  softmaxCrossEntropy
-};
-var sparse = {
-  sparseFillEmptyRows,
-  sparseReshape,
-  sparseSegmentMean,
-  sparseSegmentSum
-};
-var string = {
-  stringNGrams,
-  stringSplit,
-  stringToHashBucketFast,
-  staticRegexReplace
 };
 
 // node_modules/@tensorflow/tfjs-core/dist/serialization.js
@@ -12563,215 +11349,6 @@ function withSaveHandlerSync(saveHandler) {
   return new PassthroughSaver(saveHandler);
 }
 
-// node_modules/@tensorflow/tfjs-core/dist/ops/browser.js
-var browser_exports = {};
-__export(browser_exports, {
-  draw: () => draw,
-  fromPixels: () => fromPixels,
-  fromPixelsAsync: () => fromPixelsAsync,
-  toPixels: () => toPixels
-});
-var fromPixels2DContext;
-var hasToPixelsWarned = false;
-function fromPixels_(pixels, numChannels = 3) {
-  if (numChannels > 4) {
-    throw new Error("Cannot construct Tensor with more than 4 channels from pixels.");
-  }
-  if (pixels == null) {
-    throw new Error("pixels passed to tf.browser.fromPixels() can not be null");
-  }
-  let isPixelData2 = false;
-  let isImageData = false;
-  let isVideo = false;
-  let isImage = false;
-  let isCanvasLike = false;
-  let isImageBitmap = false;
-  if (pixels.data instanceof Uint8Array) {
-    isPixelData2 = true;
-  } else if (typeof ImageData !== "undefined" && pixels instanceof ImageData) {
-    isImageData = true;
-  } else if (typeof HTMLVideoElement !== "undefined" && pixels instanceof HTMLVideoElement) {
-    isVideo = true;
-  } else if (typeof HTMLImageElement !== "undefined" && pixels instanceof HTMLImageElement) {
-    isImage = true;
-  } else if (pixels.getContext != null) {
-    isCanvasLike = true;
-  } else if (typeof ImageBitmap !== "undefined" && pixels instanceof ImageBitmap) {
-    isImageBitmap = true;
-  } else {
-    throw new Error(`pixels passed to tf.browser.fromPixels() must be either an HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData in browser, or OffscreenCanvas, ImageData in webworker or {data: Uint32Array, width: number, height: number}, but was ${pixels.constructor.name}`);
-  }
-  const kernel = getKernel(FromPixels, ENGINE.backendName);
-  if (kernel != null) {
-    const inputs = { pixels };
-    const attrs = { numChannels };
-    return ENGINE.runKernel(FromPixels, inputs, attrs);
-  }
-  const [width, height] = isVideo ? [
-    pixels.videoWidth,
-    pixels.videoHeight
-  ] : [pixels.width, pixels.height];
-  let vals;
-  if (isCanvasLike) {
-    vals = // tslint:disable-next-line:no-any
-    pixels.getContext("2d").getImageData(0, 0, width, height).data;
-  } else if (isImageData || isPixelData2) {
-    vals = pixels.data;
-  } else if (isImage || isVideo || isImageBitmap) {
-    if (fromPixels2DContext == null) {
-      if (typeof document === "undefined") {
-        if (typeof OffscreenCanvas !== "undefined" && typeof OffscreenCanvasRenderingContext2D !== "undefined") {
-          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext("2d");
-        } else {
-          throw new Error("Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.");
-        }
-      } else {
-        fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
-      }
-    }
-    fromPixels2DContext.canvas.width = width;
-    fromPixels2DContext.canvas.height = height;
-    fromPixels2DContext.drawImage(pixels, 0, 0, width, height);
-    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
-  }
-  let values;
-  if (numChannels === 4) {
-    values = new Int32Array(vals);
-  } else {
-    const numPixels = width * height;
-    values = new Int32Array(numPixels * numChannels);
-    for (let i = 0; i < numPixels; i++) {
-      for (let channel = 0; channel < numChannels; ++channel) {
-        values[i * numChannels + channel] = vals[i * 4 + channel];
-      }
-    }
-  }
-  const outShape = [height, width, numChannels];
-  return tensor3d(values, outShape, "int32");
-}
-function isPixelData(pixels) {
-  return pixels != null && pixels.data instanceof Uint8Array;
-}
-function isImageBitmapFullySupported() {
-  return typeof window !== "undefined" && typeof ImageBitmap !== "undefined" && window.hasOwnProperty("createImageBitmap");
-}
-function isNonEmptyPixels(pixels) {
-  return pixels != null && pixels.width !== 0 && pixels.height !== 0;
-}
-function canWrapPixelsToImageBitmap(pixels) {
-  return isImageBitmapFullySupported() && !(pixels instanceof ImageBitmap) && isNonEmptyPixels(pixels) && !isPixelData(pixels);
-}
-async function fromPixelsAsync(pixels, numChannels = 3) {
-  let inputs = null;
-  if (env().getBool("WRAP_TO_IMAGEBITMAP") && canWrapPixelsToImageBitmap(pixels)) {
-    let imageBitmap;
-    try {
-      imageBitmap = await createImageBitmap(pixels, { premultiplyAlpha: "none" });
-    } catch (e) {
-      imageBitmap = null;
-    }
-    if (imageBitmap != null && imageBitmap.width === pixels.width && imageBitmap.height === pixels.height) {
-      inputs = imageBitmap;
-    } else {
-      inputs = pixels;
-    }
-  } else {
-    inputs = pixels;
-  }
-  return fromPixels_(inputs, numChannels);
-}
-function validateImgTensor(img) {
-  if (img.rank !== 2 && img.rank !== 3) {
-    throw new Error(`toPixels only supports rank 2 or 3 tensors, got rank ${img.rank}.`);
-  }
-  const depth = img.rank === 2 ? 1 : img.shape[2];
-  if (depth > 4 || depth === 2) {
-    throw new Error(`toPixels only supports depth of size 1, 3 or 4 but got ${depth}`);
-  }
-  if (img.dtype !== "float32" && img.dtype !== "int32") {
-    throw new Error(`Unsupported type for toPixels: ${img.dtype}. Please use float32 or int32 tensors.`);
-  }
-}
-function validateImageOptions(imageOptions) {
-  const alpha = (imageOptions === null || imageOptions === void 0 ? void 0 : imageOptions.alpha) || 1;
-  if (alpha > 1 || alpha < 0) {
-    throw new Error(`Alpha value ${alpha} is suppoed to be in range [0 - 1].`);
-  }
-}
-async function toPixels(img, canvas) {
-  let $img = convertToTensor(img, "img", "toPixels");
-  if (!(img instanceof Tensor)) {
-    const originalImgTensor = $img;
-    $img = cast(originalImgTensor, "int32");
-    originalImgTensor.dispose();
-  }
-  validateImgTensor($img);
-  const [height, width] = $img.shape.slice(0, 2);
-  const depth = $img.rank === 2 ? 1 : $img.shape[2];
-  const data = await $img.data();
-  const multiplier = $img.dtype === "float32" ? 255 : 1;
-  const bytes = new Uint8ClampedArray(width * height * 4);
-  for (let i = 0; i < height * width; ++i) {
-    const rgba = [0, 0, 0, 255];
-    for (let d = 0; d < depth; d++) {
-      const value = data[i * depth + d];
-      if ($img.dtype === "float32") {
-        if (value < 0 || value > 1) {
-          throw new Error(`Tensor values for a float32 Tensor must be in the range [0 - 1] but encountered ${value}.`);
-        }
-      } else if ($img.dtype === "int32") {
-        if (value < 0 || value > 255) {
-          throw new Error(`Tensor values for a int32 Tensor must be in the range [0 - 255] but encountered ${value}.`);
-        }
-      }
-      if (depth === 1) {
-        rgba[0] = value * multiplier;
-        rgba[1] = value * multiplier;
-        rgba[2] = value * multiplier;
-      } else {
-        rgba[d] = value * multiplier;
-      }
-    }
-    const j = i * 4;
-    bytes[j + 0] = Math.round(rgba[0]);
-    bytes[j + 1] = Math.round(rgba[1]);
-    bytes[j + 2] = Math.round(rgba[2]);
-    bytes[j + 3] = Math.round(rgba[3]);
-  }
-  if (canvas != null) {
-    if (!hasToPixelsWarned) {
-      const kernel = getKernel(Draw, ENGINE.backendName);
-      if (kernel != null) {
-        console.warn("tf.browser.toPixels is not efficient to draw tensor on canvas. Please try tf.browser.draw instead.");
-        hasToPixelsWarned = true;
-      }
-    }
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    const imageData = new ImageData(bytes, width, height);
-    ctx.putImageData(imageData, 0, 0);
-  }
-  if ($img !== img) {
-    $img.dispose();
-  }
-  return bytes;
-}
-function draw(image2, canvas, options) {
-  let $img = convertToTensor(image2, "img", "draw");
-  if (!(image2 instanceof Tensor)) {
-    const originalImgTensor = $img;
-    $img = cast(originalImgTensor, "int32");
-    originalImgTensor.dispose();
-  }
-  validateImgTensor($img);
-  validateImageOptions(options === null || options === void 0 ? void 0 : options.imageOptions);
-  const inputs = { image: $img };
-  const attrs = { canvas, options };
-  ENGINE.runKernel(Draw, inputs, attrs);
-}
-var fromPixels = /* @__PURE__ */ op({ fromPixels_ });
-
 // node_modules/@tensorflow/tfjs-core/dist/ops/gather_nd_util.js
 function prepareAndValidate(tensor2, indices) {
   const tensorRank = tensor2.shape.length;
@@ -13193,22 +11770,22 @@ function sliceInfo(xShape, begin, end, strides, beginMask, endMask, ellipsisMask
     strides: denseSpec.strides
   };
 }
-function buildDenseSpec(sparse2, dense) {
+function buildDenseSpec(sparse, dense) {
   dense.beginMask = 0;
   dense.endMask = 0;
   dense.shrinkAxisMask = 0;
   let fullIndex = 0;
-  dense.beginValid = sparse2.begin != null;
-  dense.endValid = sparse2.end != null;
+  dense.beginValid = sparse.begin != null;
+  dense.endValid = sparse.end != null;
   dense.begin = new Array(dense.dims);
   dense.end = new Array(dense.dims);
   dense.strides = new Array(dense.dims);
   dense.finalShapeGatherIndices = [];
   dense.finalShapeGatherIndicesSparse = [];
   dense.inputShapeGatherIndicesSparse = new Array(dense.dims);
-  for (let i = 0; i < sparse2.dims; i++) {
-    if (1 << i & sparse2.ellipsisMask) {
-      const nextIndex = Math.min(dense.dims - (sparse2.dims - i) + 1 + sparse2.numAddAxisAfterEllipsis, dense.dims);
+  for (let i = 0; i < sparse.dims; i++) {
+    if (1 << i & sparse.ellipsisMask) {
+      const nextIndex = Math.min(dense.dims - (sparse.dims - i) + 1 + sparse.numAddAxisAfterEllipsis, dense.dims);
       for (; fullIndex < nextIndex; fullIndex++) {
         dense.begin[fullIndex] = 0;
         dense.end[fullIndex] = 0;
@@ -13219,27 +11796,27 @@ function buildDenseSpec(sparse2, dense) {
         dense.finalShapeGatherIndicesSparse.push(-1);
         dense.inputShapeGatherIndicesSparse[fullIndex] = i;
       }
-    } else if (1 << i & sparse2.newAxisMask) {
+    } else if (1 << i & sparse.newAxisMask) {
       dense.finalShapeGatherIndices.push(NEW_AXIS);
       dense.finalShapeGatherIndicesSparse.push(-1);
     } else {
       if (fullIndex === dense.begin.length) {
         throw Error(`Index out of range using input dim ${fullIndex}; input has only ${dense.dims} dims, ${dense.begin.length}.`);
       }
-      if (sparse2.begin != null) {
-        dense.begin[fullIndex] = sparse2.begin[i];
+      if (sparse.begin != null) {
+        dense.begin[fullIndex] = sparse.begin[i];
       }
-      if (sparse2.end != null) {
-        dense.end[fullIndex] = sparse2.end[i];
+      if (sparse.end != null) {
+        dense.end[fullIndex] = sparse.end[i];
       }
-      dense.strides[fullIndex] = sparse2.strides[i];
-      if (sparse2.beginMask & 1 << i) {
+      dense.strides[fullIndex] = sparse.strides[i];
+      if (sparse.beginMask & 1 << i) {
         dense.beginMask |= 1 << fullIndex;
       }
-      if (sparse2.endMask & 1 << i) {
+      if (sparse.endMask & 1 << i) {
         dense.endMask |= 1 << fullIndex;
       }
-      if (sparse2.shrinkAxisMask & 1 << i) {
+      if (sparse.shrinkAxisMask & 1 << i) {
         dense.finalShapeGatherIndices.push(SHRINK_AXIS);
         dense.finalShapeGatherIndicesSparse.push(-1);
         dense.shrinkAxisMask |= 1 << fullIndex;
@@ -17907,8 +16484,8 @@ var Orthogonal = class extends Initializer {
       const qr2 = linalg.qr(randNormalMat, false);
       let qMat = qr2[0];
       const rMat = qr2[1];
-      const diag4 = rMat.flatten().stridedSlice([0], [Math.min(numCols, numRows) * Math.min(numCols, numRows)], [Math.min(numCols, numRows) + 1]);
-      qMat = mul(qMat, diag4.sign());
+      const diag3 = rMat.flatten().stridedSlice([0], [Math.min(numCols, numRows) * Math.min(numCols, numRows)], [Math.min(numCols, numRows) + 1]);
+      qMat = mul(qMat, diag3.sign());
       if (numRows < numCols) {
         qMat = qMat.transpose();
       }
@@ -18849,13 +17426,13 @@ var Layer = class extends serialization_exports.Serializable {
    *
    * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  addLoss(losses2) {
-    if (losses2 == null || Array.isArray(losses2) && losses2.length === 0) {
+  addLoss(losses) {
+    if (losses == null || Array.isArray(losses) && losses.length === 0) {
       return;
     }
-    losses2 = toList(losses2);
+    losses = toList(losses);
     if (this._losses !== void 0 && this._losses !== null) {
-      this.losses.push(...losses2);
+      this.losses.push(...losses);
     }
   }
   /**
@@ -20125,7 +18702,7 @@ function l2Normalize(x, axis) {
     return div(x, norm2);
   });
 }
-function meanSquaredError2(yTrue, yPred) {
+function meanSquaredError(yTrue, yPred) {
   return tidy(() => mean(square2(sub(yPred, yTrue)), -1));
 }
 function meanAbsoluteError(yTrue, yPred) {
@@ -20236,7 +18813,7 @@ function cosineProximity(yTrue, yPred) {
   });
 }
 var lossesMap = {
-  meanSquaredError: meanSquaredError2,
+  meanSquaredError,
   meanAbsoluteError,
   meanAbsolutePercentageError,
   meanSquaredLogarithmicError,
@@ -20308,8 +18885,8 @@ function sparseCategoricalAccuracy(yTrue, yPred) {
   }
   return cast(equal(yTrue, yPred), "float32");
 }
-var mse = meanSquaredError2;
-var MSE = meanSquaredError2;
+var mse = meanSquaredError;
+var MSE = meanSquaredError;
 var mae = meanAbsoluteError;
 var MAE = meanAbsoluteError;
 var mape = meanAbsolutePercentageError;
@@ -21337,16 +19914,16 @@ var Container = class _Container extends Layer {
    */
   calculateLosses() {
     return tidy(() => {
-      const losses2 = [];
+      const losses = [];
       for (const layer of this.layers) {
         for (let nodeIndex = 0; nodeIndex < layer.inboundNodes.length; ++nodeIndex) {
           const nodeKey = _Container.nodeKey(layer, nodeIndex);
           if (this.containerNodes.has(nodeKey)) {
-            losses2.push(...layer.calculateLosses());
+            losses.push(...layer.calculateLosses());
           }
         }
       }
-      return losses2;
+      return losses;
     });
   }
   getConfig() {
@@ -21638,8 +20215,8 @@ async function standardizeWeights(y, sampleWeight, classWeight, sampleWeightMode
     return null;
   }
 }
-function computeWeightedLoss2(losses2, sampleWeights) {
-  return mul(losses2, sampleWeights);
+function computeWeightedLoss(losses, sampleWeights) {
+  return mul(losses, sampleWeights);
 }
 
 // node_modules/@tensorflow/tfjs-layers/dist/engine/training_dataset.js
@@ -22083,7 +20660,7 @@ function checkArrayLengths(inputs, targets, weights) {
 }
 function checkLossAndTargetCompatibility(targets, lossFns, outputShapes) {
   const keyLosses = [
-    meanSquaredError2,
+    meanSquaredError,
     binaryCrossentropy,
     categoricalCrossentropy
   ];
@@ -22784,7 +21361,7 @@ var LayersModel = class extends Container {
           const lossFunction = this.lossFunctions[i];
           let loss = lossFunction(targets[i], outputs[i]);
           if (sampleWeights[i] != null) {
-            loss = computeWeightedLoss2(loss, sampleWeights[i]);
+            loss = computeWeightedLoss(loss, sampleWeights[i]);
           }
           const meanLoss = mean(loss);
           lossValues.push(meanLoss);
@@ -23159,13 +21736,13 @@ var LayersModel = class extends Container {
     const inputs = standardizeOut[0];
     const targets = standardizeOut[1];
     const trainFunction = this.makeTrainFunction();
-    const losses2 = trainFunction(inputs.concat(targets));
+    const losses = trainFunction(inputs.concat(targets));
     const lossValues = [];
-    for (const loss of losses2) {
+    for (const loss of losses) {
       const v = await loss.data();
       lossValues.push(v[0]);
     }
-    dispose(losses2);
+    dispose(losses);
     disposeNewTensors(standardizeOut[0], x);
     disposeNewTensors(standardizeOut[1], y);
     return singletonOrArray(lossValues);
@@ -23260,10 +21837,10 @@ var LayersModel = class extends Container {
     } else {
       const outputNames = Object.keys(this.loss);
       lossNames = {};
-      const losses2 = this.loss;
+      const losses = this.loss;
       for (const outputName of outputNames) {
-        if (typeof losses2[outputName] === "string") {
-          lossNames[outputName] = toSnakeCase(losses2[outputName]);
+        if (typeof losses[outputName] === "string") {
+          lossNames[outputName] = toSnakeCase(losses[outputName]);
         } else {
           throw new Error("Serialization of non-string loss is not supported.");
         }
@@ -23484,70 +22061,6 @@ Functional.className = "Functional";
 serialization_exports.registerClass(Functional);
 
 // node_modules/@tensorflow/tfjs-layers/dist/models.js
-async function loadLayersModel(pathOrIOHandler, options) {
-  if (options == null) {
-    options = {};
-  }
-  if (typeof pathOrIOHandler === "string") {
-    const handlers = io_exports.getLoadHandlers(pathOrIOHandler, options);
-    if (handlers.length === 0) {
-      handlers.push(io_exports.browserHTTPRequest(pathOrIOHandler, options));
-    } else if (handlers.length > 1) {
-      throw new ValueError(`Found more than one (${handlers.length}) load handlers for URL '${pathOrIOHandler}'`);
-    }
-    pathOrIOHandler = handlers[0];
-  }
-  return loadLayersModelFromIOHandler(pathOrIOHandler, void 0, options);
-}
-async function loadLayersModelFromIOHandler(handler, customObjects, options) {
-  if (options == null) {
-    options = {};
-  }
-  if (handler.load == null) {
-    throw new ValueError("Cannot proceed with model loading because the IOHandler provided does not have the `load` method implemented.");
-  }
-  const artifacts = await handler.load();
-  let modelTopology = artifacts.modelTopology;
-  if (modelTopology["model_config"] != null) {
-    modelTopology = modelTopology["model_config"];
-  }
-  const strict = options.strict == null ? true : options.strict;
-  const fastWeightInit = artifacts.weightData != null && artifacts.weightSpecs != null && strict;
-  const model2 = deserialize(convertPythonicToTs(modelTopology), customObjects, fastWeightInit);
-  const trainingConfig = artifacts.trainingConfig;
-  if (trainingConfig != null) {
-    model2.loadTrainingConfig(trainingConfig);
-  }
-  if (artifacts.userDefinedMetadata != null) {
-    model2.setUserDefinedMetadata(artifacts.userDefinedMetadata);
-  }
-  if (artifacts.weightData != null) {
-    if (artifacts.weightSpecs == null) {
-      throw new ValueError("LayersModel artifacts contains weight data, but not weight specs. Therefore loading of weights cannot proceed.");
-    }
-    const { modelWeights, optimizerWeights } = decodeModelAndOptimizerWeights(artifacts.weightData, artifacts.weightSpecs);
-    model2.loadWeights(modelWeights, strict);
-    if (model2.optimizer != null && optimizerWeights.length > 0) {
-      await model2.optimizer.setWeights(optimizerWeights);
-    }
-    dispose(modelWeights);
-    dispose(optimizerWeights.map((w) => w.tensor));
-  }
-  return model2;
-}
-function decodeModelAndOptimizerWeights(weightData, specs) {
-  const name2Tensor = io_exports.decodeWeights(weightData, specs);
-  const modelWeights = {};
-  const optimizerWeights = [];
-  specs.forEach((spec) => {
-    if (spec.group === "optimizer") {
-      optimizerWeights.push({ name: spec.name, tensor: name2Tensor[spec.name] });
-    } else {
-      modelWeights[spec.name] = name2Tensor[spec.name];
-    }
-  });
-  return { modelWeights, optimizerWeights };
-}
 var Sequential = class _Sequential extends LayersModel {
   constructor(args) {
     super({ inputs: [], outputs: [] });
@@ -29642,10474 +28155,6 @@ var SaverDef;
   })(CheckpointFormatVersion = SaverDef2.CheckpointFormatVersion || (SaverDef2.CheckpointFormatVersion = {}));
 })(SaverDef || (SaverDef = {}));
 
-// node_modules/@tensorflow/tfjs-converter/dist/operations/custom_op/register.js
-var CUSTOM_OPS = {};
-function getRegisteredOp(name) {
-  return CUSTOM_OPS[name];
-}
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/utils.js
-function getParamValue(paramName, node, tensorMap, context, resourceManager) {
-  const inputParam = node.inputParams[paramName];
-  if (inputParam && inputParam.inputIndexStart !== void 0) {
-    const start = inputParam.inputIndexStart;
-    const end = inputParam.inputIndexEnd === 0 ? void 0 : inputParam.inputIndexEnd === void 0 ? start + 1 : inputParam.inputIndexEnd;
-    const shiftedStart = start < 0 ? node.inputNames.length + start : start;
-    if (inputParam.type === "tensor") {
-      return getTensor(node.inputNames[shiftedStart], tensorMap, context, resourceManager);
-    }
-    if (inputParam.type === "tensors") {
-      const inputs = node.inputs.slice(start, end);
-      const inputNames = node.inputNames.slice(start, end).filter((_name, index) => {
-        var _a;
-        return ((_a = inputs[index]) === null || _a === void 0 ? void 0 : _a.op) !== "NoOp";
-      });
-      return inputNames.map((name) => getTensor(name, tensorMap, context, resourceManager));
-    }
-    const tensor2 = getTensor(node.inputNames[shiftedStart], tensorMap, context, resourceManager);
-    const data = tensor2.dataSync();
-    return inputParam.type === "number" ? data[0] : util_exports.toNestedArray(tensor2.shape, data);
-  }
-  const attrParam = node.attrParams[paramName];
-  return attrParam && attrParam.value;
-}
-function getTensor(name, tensorsMap, context, resourceManager) {
-  const [nodeName, index] = parseNodeName(name, context);
-  if (resourceManager != null) {
-    const tensor2 = resourceManager.getHashTableHandleByName(nodeName);
-    if (tensor2 != null) {
-      return tensor2;
-    }
-  }
-  const contextId = context.currentContextIds.find((contextId2) => {
-    return !!tensorsMap[getNodeNameWithContextId(nodeName, contextId2)];
-  });
-  return contextId !== void 0 ? tensorsMap[getNodeNameWithContextId(nodeName, contextId)][index] : void 0;
-}
-function getTensorsForCurrentContext(name, tensorsMap, context) {
-  return tensorsMap[getNodeNameWithContextId(name, context.currentContextId)];
-}
-function getNodeNameAndIndex(inputName, context) {
-  const [nodeName, index, outputName] = parseNodeName(inputName, context);
-  return [
-    getNodeNameWithContextId(nodeName, context && context.currentContextId),
-    index,
-    outputName
-  ];
-}
-function getNodeNameWithContextId(name, contextId) {
-  return !!contextId ? `${name}-${contextId}` : name;
-}
-function parseNodeName(name, context) {
-  if (name === "") {
-    return ["", 0, void 0];
-  }
-  const isCacheEnabled = context != null && context.parseNodeNameCache != null;
-  if (isCacheEnabled) {
-    const cachedResult = context.parseNodeNameCache.get(name);
-    if (cachedResult != null) {
-      return cachedResult;
-    }
-  }
-  const parts = name.split(":");
-  let result;
-  if (parts.length === 1) {
-    result = [name, 0, void 0];
-  } else {
-    const nodeName = parts[0];
-    const outputName = parts.length === 3 ? parts[1] : void 0;
-    const index = Number(parts[parts.length - 1]);
-    result = [nodeName, index, outputName];
-  }
-  if (isCacheEnabled) {
-    context.parseNodeNameCache.set(name, result);
-  }
-  return result;
-}
-function getPadding(node, tensorMap, context) {
-  let pad2 = getParamValue("pad", node, tensorMap, context);
-  if (pad2 === "explicit") {
-    pad2 = getParamValue("explicitPaddings", node, tensorMap, context);
-    const explicitPadding = [[0, 0], [0, 0], [0, 0], [0, 0]];
-    for (let i = 0; i < 4; i++) {
-      explicitPadding[i][0] = pad2[i * 2];
-      explicitPadding[i][1] = pad2[i * 2 + 1];
-    }
-    return explicitPadding;
-  }
-  return pad2;
-}
-function cloneTensor(tensor2) {
-  return tensor2.kept ? tensor2 : clone(tensor2);
-}
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/arithmetic.js
-var arithmetic_exports = {};
-__export(arithmetic_exports, {
-  json: () => json
-});
-var json = [
-  {
-    "tfOpName": "Add",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "AddV2",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "AddN",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "tensors",
-        "type": "tensors"
-      }
-    ]
-  },
-  {
-    "tfOpName": "BiasAdd",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Sub",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "RealDiv",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Div",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "DivNoNan",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "FloorDiv",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Mul",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Maximum",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Minimum",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Pow",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "SquaredDifference",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Mod",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "FloorMod",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/basic_math.js
-var basic_math_exports = {};
-__export(basic_math_exports, {
-  json: () => json2
-});
-var json2 = [
-  {
-    "tfOpName": "Abs",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Acos",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Asin",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Atan",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Atan2",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "y",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Ceil",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "ClipByValue",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "clipValueMin",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "clipValueMax",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Complex",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "real",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "imag",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "ComplexAbs",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Cos",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Cosh",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Elu",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Exp",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Floor",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Log",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Imag",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "Tout",
-        "name": "outputType",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Neg",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Real",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "Tout",
-        "name": "outputType",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Prelu",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "alpha",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Relu",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Relu6",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Selu",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Sigmoid",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Sin",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Sinh",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Sqrt",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Rsqrt",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Square",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Tan",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Tanh",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Sign",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Round",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Expm1",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Log1p",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Reciprocal",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Softplus",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Asinh",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Acosh",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Atanh",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Erf",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LeakyRelu",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "alpha",
-        "name": "alpha",
-        "type": "number",
-        "defaultValue": 0.2
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "IsNan",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "IsFinite",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "IsInf",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/control.js
-var control_exports = {};
-__export(control_exports, {
-  json: () => json3
-});
-var json3 = [
-  {
-    "tfOpName": "EmptyTensorList",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "elementShape",
-        "type": "shape"
-      },
-      {
-        "start": 1,
-        "name": "maxNumElements",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "LoopCond",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "pred",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Switch",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "data",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "pred",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Merge",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "tensors",
-        "type": "tensors"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Enter",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "frame_name",
-        "name": "frameName",
-        "type": "string"
-      },
-      {
-        "tfName": "is_constant",
-        "name": "isConstant",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Exit",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "NextIteration",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArrayV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "size",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      },
-      {
-        "tfName": "element_shape",
-        "name": "elementShape",
-        "type": "shape"
-      },
-      {
-        "tfName": "dynamic_size",
-        "name": "dynamicSize",
-        "type": "bool"
-      },
-      {
-        "tfName": "clear_after_read",
-        "name": "clearAfterRead",
-        "type": "bool"
-      },
-      {
-        "tfName": "identical_element_shapes",
-        "name": "identicalElementShapes",
-        "type": "bool"
-      },
-      {
-        "tfName": "tensor_array_name",
-        "name": "name",
-        "type": "string"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArrayWriteV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "index",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "flowIn",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArrayReadV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "index",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "flowIn",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArrayGatherV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "flowIn",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      },
-      {
-        "tfName": "element_shape",
-        "name": "elementShape",
-        "type": "shape"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArrayScatterV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "flowIn",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArrayConcatV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "flowIn",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      },
-      {
-        "tfName": "element_shape_except0",
-        "name": "elementShapeExcept0",
-        "type": "shape",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArraySplitV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "lengths",
-        "type": "number[]"
-      },
-      {
-        "start": 3,
-        "name": "flowIn",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArraySizeV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "flowIn",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorArrayCloseV3",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorArrayId",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "StatelessIf",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "cond",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "end": 0,
-        "name": "args",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "then_branch",
-        "name": "thenBranch",
-        "type": "func"
-      },
-      {
-        "tfName": "else_branch",
-        "name": "elseBranch",
-        "type": "func"
-      }
-    ]
-  },
-  {
-    "tfOpName": "If",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "cond",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "end": 0,
-        "name": "args",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "then_branch",
-        "name": "thenBranch",
-        "type": "func"
-      },
-      {
-        "tfName": "else_branch",
-        "name": "elseBranch",
-        "type": "func"
-      }
-    ]
-  },
-  {
-    "tfOpName": "StatelessWhile",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "args",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "cond",
-        "name": "cond",
-        "type": "func"
-      },
-      {
-        "tfName": "body",
-        "name": "body",
-        "type": "func"
-      }
-    ]
-  },
-  {
-    "tfOpName": "While",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "args",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "cond",
-        "name": "cond",
-        "type": "func"
-      },
-      {
-        "tfName": "body",
-        "name": "body",
-        "type": "func"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListScatter",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "elementShape",
-        "type": "shape"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListScatterV2",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "elementShape",
-        "type": "shape"
-      },
-      {
-        "start": 3,
-        "name": "numElements",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListGather",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "elementShape",
-        "type": "shape"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListGetItem",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "index",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "elementShape",
-        "type": "shape"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListSetItem",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "index",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "tensor",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListReserve",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "elementShape",
-        "type": "shape"
-      },
-      {
-        "start": 1,
-        "name": "numElements",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListFromTensor",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "elementShape",
-        "type": "shape"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListStack",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "elementShape",
-        "type": "shape"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      },
-      {
-        "tfName": "num_elements",
-        "name": "numElements",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListSplit",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "elementShape",
-        "type": "shape"
-      },
-      {
-        "start": 2,
-        "name": "lengths",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListConcat",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_shape",
-        "name": "elementShape",
-        "type": "shape"
-      },
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListConcatV2",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_shape",
-        "name": "elementShape",
-        "type": "shape"
-      },
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListPopBack",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "elementShape",
-        "type": "shape"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListPushBack",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "tensor",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "element_dtype",
-        "name": "elementDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListLength",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorListResize",
-    "category": "control",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensorListId",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "size",
-        "type": "number"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/convolution.js
-var convolution_exports = {};
-__export(convolution_exports, {
-  json: () => json4
-});
-var json4 = [
-  {
-    "tfOpName": "AvgPool",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      },
-      {
-        "tfName": "ksize",
-        "name": "kernelSize",
-        "type": "number[]"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "MaxPool",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      },
-      {
-        "tfName": "ksize",
-        "name": "kernelSize",
-        "type": "number[]"
-      },
-      {
-        "tfName": "explicit_paddings",
-        "name": "explicitPaddings",
-        "type": "number[]",
-        "defaultValue": [],
-        "notSupported": true
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "MaxPoolWithArgmax",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "ksize",
-        "name": "kernelSize",
-        "type": "number[]"
-      },
-      {
-        "tfName": "include_batch_in_index",
-        "name": "includeBatchInIndex",
-        "type": "bool"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "AvgPool3D",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      },
-      {
-        "tfName": "ksize",
-        "name": "kernelSize",
-        "type": "number[]"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "MaxPool3D",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      },
-      {
-        "tfName": "ksize",
-        "name": "kernelSize",
-        "type": "number[]"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Conv1D",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "stride",
-        "name": "stride",
-        "type": "number"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "defaultValue": "NWC"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "dilation",
-        "name": "dilation",
-        "type": "number",
-        "defaultValue": 1
-      }
-    ]
-  },
-  {
-    "tfOpName": "Conv2D",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "useCudnnOnGpu",
-        "name": "useCudnnOnGpu",
-        "type": "bool"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "defaultValue": "NHWC"
-      },
-      {
-        "tfName": "explicit_paddings",
-        "name": "explicitPaddings",
-        "type": "number[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "dilations",
-        "name": "dilations",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "_FusedConv2D",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "end": 0,
-        "name": "args",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "num_args",
-        "name": "numArgs",
-        "type": "number"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "explicit_paddings",
-        "name": "explicitPaddings",
-        "type": "number[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "use_cudnn_on_gpu",
-        "name": "useCudnnOnGpu",
-        "type": "bool",
-        "defaultValue": true
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "defaultValue": "NHWC"
-      },
-      {
-        "tfName": "dilations",
-        "name": "dilations",
-        "type": "number[]",
-        "defaultValue": [
-          1,
-          1,
-          1,
-          1
-        ]
-      },
-      {
-        "tfName": "fused_ops",
-        "name": "fusedOps",
-        "type": "string[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "epsilon",
-        "name": "epsilon",
-        "type": "number",
-        "defaultValue": 1e-4
-      },
-      {
-        "tfName": "leakyrelu_alpha",
-        "name": "leakyreluAlpha",
-        "type": "number",
-        "defaultValue": 0.2
-      }
-    ]
-  },
-  {
-    "tfOpName": "Conv2DBackpropInput",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 2,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      },
-      {
-        "start": 0,
-        "name": "outputShape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      },
-      {
-        "tfName": "explicit_paddings",
-        "name": "explicitPaddings",
-        "type": "number[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "dilations",
-        "name": "dilations",
-        "type": "number[]",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "DepthwiseConv2d",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "input",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "defaultValue": "NHWC"
-      },
-      {
-        "tfName": "explicit_paddings",
-        "name": "explicitPaddings",
-        "type": "number[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "dilations",
-        "name": "dilations",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "DepthwiseConv2dNative",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "input",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "defaultValue": "NHWC"
-      },
-      {
-        "tfName": "explicit_paddings",
-        "name": "explicitPaddings",
-        "type": "number[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "dilations",
-        "name": "dilations",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "FusedDepthwiseConv2dNative",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "end": 0,
-        "name": "args",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "num_args",
-        "name": "numArgs",
-        "type": "number"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "defaultValue": "NHWC"
-      },
-      {
-        "tfName": "dilations",
-        "name": "dilations",
-        "type": "number[]",
-        "defaultValue": [
-          1,
-          1,
-          1,
-          1
-        ]
-      },
-      {
-        "tfName": "fused_ops",
-        "name": "fusedOps",
-        "type": "string[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "explicit_paddings",
-        "name": "explicitPaddings",
-        "type": "number[]",
-        "defaultValue": []
-      }
-    ]
-  },
-  {
-    "tfOpName": "Conv3D",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "defaultValue": "NHWC"
-      },
-      {
-        "tfName": "dilations",
-        "name": "dilations",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Dilation2D",
-    "category": "convolution",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "filter",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "strides",
-        "name": "strides",
-        "type": "number[]"
-      },
-      {
-        "tfName": "rates",
-        "name": "dilations",
-        "type": "number[]"
-      },
-      {
-        "tfName": "padding",
-        "name": "pad",
-        "type": "string"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/creation.js
-var creation_exports = {};
-__export(creation_exports, {
-  json: () => json5
-});
-var json5 = [
-  {
-    "tfOpName": "Fill",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "shape",
-        "type": "number[]"
-      },
-      {
-        "start": 1,
-        "name": "value",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "LinSpace",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "start",
-        "type": "number"
-      },
-      {
-        "start": 1,
-        "name": "stop",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "num",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "OneHot",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "indices",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "depth",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "onValue",
-        "type": "number",
-        "defaultValue": 1
-      },
-      {
-        "start": 3,
-        "name": "offValue",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "axis",
-        "name": "axis",
-        "type": "number",
-        "notSupported": true
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Ones",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "OnesLike",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "RandomStandardNormal",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "seed",
-        "name": "seed",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "seed2",
-        "name": "seed2",
-        "type": "number",
-        "defaultValue": 0,
-        "notSupported": true
-      },
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      },
-      {
-        "tfName": "T",
-        "name": "T",
-        "type": "number",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "RandomUniform",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "minval",
-        "name": "minval",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "maxval",
-        "name": "maxval",
-        "type": "number",
-        "defaultValue": 1
-      },
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      },
-      {
-        "tfName": "seed",
-        "name": "seed",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "seed2",
-        "name": "seed2",
-        "type": "number",
-        "defaultValue": 0,
-        "notSupported": true
-      },
-      {
-        "tfName": "T",
-        "name": "T",
-        "type": "number",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "RandomUniformInt",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "minval",
-        "name": "minval",
-        "type": "number"
-      },
-      {
-        "tfName": "maxval",
-        "name": "maxval",
-        "type": "number"
-      },
-      {
-        "tfName": "seed",
-        "name": "seed",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "seed2",
-        "name": "seed2",
-        "type": "number",
-        "defaultValue": 0,
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Range",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "start",
-        "type": "number"
-      },
-      {
-        "start": 1,
-        "name": "stop",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "step",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "Tidx",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TruncatedNormal",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "means",
-        "name": "mean",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "stddev",
-        "name": "stdDev",
-        "type": "number",
-        "defaultValue": 1
-      },
-      {
-        "tfName": "seed",
-        "name": "seed",
-        "type": "number"
-      },
-      {
-        "tfName": "seed2",
-        "name": "seed2",
-        "type": "number",
-        "defaultValue": 0,
-        "notSupported": true
-      },
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      },
-      {
-        "tfName": "T",
-        "name": "T",
-        "type": "number",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Zeros",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "ZerosLike",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Multinomial",
-    "category": "creation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "logits",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "numSamples",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "seed",
-        "name": "seed",
-        "type": "number"
-      },
-      {
-        "tfName": "seed2",
-        "name": "seed2",
-        "type": "number"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      },
-      {
-        "tfName": "output_dtype",
-        "name": "output_dtype",
-        "type": "dtype"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/dynamic.js
-var dynamic_exports = {};
-__export(dynamic_exports, {
-  json: () => json6
-});
-var json6 = [
-  {
-    "tfOpName": "NonMaxSuppressionV2",
-    "category": "dynamic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "boxes",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "scores",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "maxOutputSize",
-        "type": "number"
-      },
-      {
-        "start": 3,
-        "name": "iouThreshold",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "NonMaxSuppressionV3",
-    "category": "dynamic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "boxes",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "scores",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "maxOutputSize",
-        "type": "number"
-      },
-      {
-        "start": 3,
-        "name": "iouThreshold",
-        "type": "number"
-      },
-      {
-        "start": 4,
-        "name": "scoreThreshold",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "NonMaxSuppressionV4",
-    "category": "dynamic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "boxes",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "scores",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "maxOutputSize",
-        "type": "number"
-      },
-      {
-        "start": 3,
-        "name": "iouThreshold",
-        "type": "number"
-      },
-      {
-        "start": 4,
-        "name": "scoreThreshold",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "T_threshold",
-        "name": "threshold",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "pad_to_max_output_size",
-        "name": "padToMaxOutputSize",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "NonMaxSuppressionV5",
-    "category": "dynamic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "boxes",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "scores",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "maxOutputSize",
-        "type": "number"
-      },
-      {
-        "start": 3,
-        "name": "iouThreshold",
-        "type": "number"
-      },
-      {
-        "start": 4,
-        "name": "scoreThreshold",
-        "type": "number"
-      },
-      {
-        "start": 5,
-        "name": "softNmsSigma",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Where",
-    "category": "dynamic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "condition",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "ListDiff",
-    "category": "dynamic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "y",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/evaluation.js
-var evaluation_exports = {};
-__export(evaluation_exports, {
-  json: () => json7
-});
-var json7 = [
-  {
-    "tfOpName": "LowerBound",
-    "category": "evaluation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "sortedSequence",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "values",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "TopKV2",
-    "category": "evaluation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "k",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "sorted",
-        "name": "sorted",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "UpperBound",
-    "category": "evaluation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "sortedSequence",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "values",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Unique",
-    "category": "evaluation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "UniqueV2",
-    "category": "evaluation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/graph.js
-var graph_exports = {};
-__export(graph_exports, {
-  json: () => json8
-});
-var json8 = [
-  {
-    "tfOpName": "PlaceholderWithDefault",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "default",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "shape",
-        "name": "shape",
-        "type": "shape"
-      },
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Placeholder",
-    "category": "graph",
-    "attrs": [
-      {
-        "tfName": "shape",
-        "name": "shape",
-        "type": "shape"
-      },
-      {
-        "tfName": "dtype",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Const",
-    "category": "graph"
-  },
-  {
-    "tfOpName": "Identity",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "IdentityN",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "x",
-        "type": "tensors"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Snapshot",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Rank",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Size",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Shape",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "ShapeN",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "x",
-        "type": "tensors"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Print",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "data",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "message",
-        "name": "message",
-        "type": "string"
-      },
-      {
-        "tfName": "first_n",
-        "name": "firstN",
-        "type": "number",
-        "notSupported": true
-      },
-      {
-        "tfName": "summarize",
-        "name": "summarize",
-        "type": "number",
-        "defaultValue": 3
-      }
-    ]
-  },
-  {
-    "tfOpName": "NoOp",
-    "category": "graph",
-    "inputs": []
-  },
-  {
-    "tfOpName": "StopGradient",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "FakeQuantWithMinMaxVars",
-    "category": "graph",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "min",
-        "name": "min",
-        "type": "number"
-      },
-      {
-        "tfName": "max",
-        "name": "max",
-        "type": "number"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/hash_table.js
-var hash_table_exports = {};
-__export(hash_table_exports, {
-  json: () => json9
-});
-var json9 = [
-  {
-    "tfOpName": "HashTable",
-    "category": "hash_table",
-    "inputs": [],
-    "attrs": [
-      {
-        "tfName": "shared_name",
-        "name": "sharedName",
-        "type": "string"
-      },
-      {
-        "tfName": "use_node_name_sharing",
-        "name": "useNodeNameSharing",
-        "type": "bool"
-      },
-      {
-        "tfName": "key_dtype",
-        "name": "keyDType",
-        "type": "dtype"
-      },
-      {
-        "tfName": "value_dtype",
-        "name": "valueDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "HashTableV2",
-    "category": "hash_table",
-    "inputs": [],
-    "attrs": [
-      {
-        "tfName": "shared_name",
-        "name": "sharedName",
-        "type": "string"
-      },
-      {
-        "tfName": "use_node_name_sharing",
-        "name": "useNodeNameSharing",
-        "type": "bool"
-      },
-      {
-        "tfName": "key_dtype",
-        "name": "keyDType",
-        "type": "dtype"
-      },
-      {
-        "tfName": "value_dtype",
-        "name": "valueDType",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "LookupTableImport",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "keys",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "values",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "Tin",
-        "name": "tIn",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "Tout",
-        "name": "tOut",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LookupTableImportV2",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "keys",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "values",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "Tin",
-        "name": "tIn",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "Tout",
-        "name": "tOut",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LookupTableFind",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "keys",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "defaultValue",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "Tin",
-        "name": "tIn",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "Tout",
-        "name": "tOut",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LookupTableFindV2",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "keys",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "defaultValue",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "Tin",
-        "name": "tIn",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "Tout",
-        "name": "tOut",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LookupTableSize",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "LookupTableSizeV2",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "InitializeTable",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "keys",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "values",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "InitializeTableV2",
-    "category": "hash_table",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tableHandle",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "keys",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "values",
-        "type": "tensor"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/image.js
-var image_exports = {};
-__export(image_exports, {
-  json: () => json10
-});
-var json10 = [
-  {
-    "tfOpName": "ResizeBilinear",
-    "category": "image",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "images",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "size",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "align_corners",
-        "name": "alignCorners",
-        "type": "bool"
-      },
-      {
-        "tfName": "half_pixel_centers",
-        "name": "halfPixelCenters",
-        "type": "bool"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "ResizeNearestNeighbor",
-    "category": "image",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "images",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "size",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "align_corners",
-        "name": "alignCorners",
-        "type": "bool"
-      },
-      {
-        "tfName": "half_pixel_centers",
-        "name": "halfPixelCenters",
-        "type": "bool"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "CropAndResize",
-    "category": "image",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "image",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "boxes",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "boxInd",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "cropSize",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "method",
-        "name": "method",
-        "type": "string"
-      },
-      {
-        "tfName": "extrapolation_value",
-        "name": "extrapolationValue",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "ImageProjectiveTransformV3",
-    "category": "image",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "images",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "transforms",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "outputShape",
-        "type": "number[]"
-      },
-      {
-        "start": 3,
-        "name": "fillValue",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "interpolation",
-        "name": "interpolation",
-        "type": "string"
-      },
-      {
-        "tfName": "fill_mode",
-        "name": "fillMode",
-        "type": "string"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/logical.js
-var logical_exports = {};
-__export(logical_exports, {
-  json: () => json11
-});
-var json11 = [
-  {
-    "tfOpName": "Equal",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "NotEqual",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Greater",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "GreaterEqual",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Less",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LessEqual",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LogicalAnd",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LogicalNot",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LogicalOr",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Select",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "condition",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "SelectV2",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "condition",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "BitwiseAnd",
-    "category": "logical",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "y",
-        "type": "tensor"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/matrices.js
-var matrices_exports = {};
-__export(matrices_exports, {
-  json: () => json12
-});
-var json12 = [
-  {
-    "tfOpName": "_FusedMatMul",
-    "category": "matrices",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "end": 0,
-        "name": "args",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "num_args",
-        "name": "numArgs",
-        "type": "number"
-      },
-      {
-        "tfName": "fused_ops",
-        "name": "fusedOps",
-        "type": "string[]",
-        "defaultValue": []
-      },
-      {
-        "tfName": "epsilon",
-        "name": "epsilon",
-        "type": "number",
-        "defaultValue": 1e-4
-      },
-      {
-        "tfName": "transpose_a",
-        "name": "transposeA",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "transpose_b",
-        "name": "transposeB",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "leakyrelu_alpha",
-        "name": "leakyreluAlpha",
-        "type": "number",
-        "defaultValue": 0.2
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "MatMul",
-    "category": "matrices",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "transpose_a",
-        "name": "transposeA",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "transpose_b",
-        "name": "transposeB",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "BatchMatMul",
-    "category": "matrices",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "adj_x",
-        "name": "transposeA",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "adj_y",
-        "name": "transposeB",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "BatchMatMulV2",
-    "category": "matrices",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "adj_x",
-        "name": "transposeA",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "adj_y",
-        "name": "transposeB",
-        "type": "bool",
-        "defaultValue": false
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Transpose",
-    "category": "matrices",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "perm",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Einsum",
-    "category": "matrices",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "tensors",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "equation",
-        "name": "equation",
-        "type": "string"
-      },
-      {
-        "tfName": "N",
-        "name": "n",
-        "type": "number",
-        "defaultValue": 2
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "MatrixBandPart",
-    "category": "matrices",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "numLower",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "numUpper",
-        "type": "tensor"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/normalization.js
-var normalization_exports = {};
-__export(normalization_exports, {
-  json: () => json13
-});
-var json13 = [
-  {
-    "tfOpName": "EuclideanNorm",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool",
-        "defaultValue": false
-      }
-    ]
-  },
-  {
-    "tfOpName": "FusedBatchNorm",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "scale",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "offset",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "mean",
-        "type": "tensor"
-      },
-      {
-        "start": 4,
-        "name": "variance",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "epsilon",
-        "name": "epsilon",
-        "type": "number",
-        "defaultValue": 1e-3
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "FusedBatchNormV2",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "scale",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "offset",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "mean",
-        "type": "tensor"
-      },
-      {
-        "start": 4,
-        "name": "variance",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "epsilon",
-        "name": "epsilon",
-        "type": "number",
-        "defaultValue": 1e-3
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "FusedBatchNormV3",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "scale",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "offset",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "mean",
-        "type": "tensor"
-      },
-      {
-        "start": 4,
-        "name": "variance",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "epsilon",
-        "name": "epsilon",
-        "type": "number",
-        "defaultValue": 1e-3
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "LRN",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "depth_radius",
-        "name": "radius",
-        "type": "number",
-        "defaultValue": 5
-      },
-      {
-        "tfName": "bias",
-        "name": "bias",
-        "type": "number",
-        "defaultValue": 1
-      },
-      {
-        "tfName": "alpha",
-        "name": "alpha",
-        "type": "number",
-        "defaultValue": 1
-      },
-      {
-        "tfName": "beta",
-        "name": "beta",
-        "type": "number",
-        "defaultValue": 0.5
-      }
-    ]
-  },
-  {
-    "tfOpName": "Softmax",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "LogSoftmax",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/reduction.js
-var reduction_exports = {};
-__export(reduction_exports, {
-  json: () => json14
-});
-var json14 = [
-  {
-    "tfOpName": "Bincount",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "size",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "weights",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "DenseBincount",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "size",
-        "type": "number"
-      },
-      {
-        "start": 2,
-        "name": "weights",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "binary_output",
-        "name": "binaryOutput",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Max",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Mean",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Min",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Sum",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "All",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Any",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "ArgMax",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "ArgMin",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Prod",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool"
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Cumprod",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "exclusive",
-        "name": "exclusive",
-        "type": "bool"
-      },
-      {
-        "tfName": "reverse",
-        "name": "reverse",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Cumsum",
-    "category": "reduction",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "exclusive",
-        "name": "exclusive",
-        "type": "bool"
-      },
-      {
-        "tfName": "reverse",
-        "name": "reverse",
-        "type": "bool"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/slice_join.js
-var slice_join_exports = {};
-__export(slice_join_exports, {
-  json: () => json15
-});
-var json15 = [
-  {
-    "tfOpName": "ConcatV2",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "end": -1,
-        "name": "tensors",
-        "type": "tensors"
-      },
-      {
-        "start": -1,
-        "name": "axis",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "N",
-        "name": "n",
-        "type": "number",
-        "defaultValue": 2
-      }
-    ]
-  },
-  {
-    "tfOpName": "Concat",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 1,
-        "end": 0,
-        "name": "tensors",
-        "type": "tensors"
-      },
-      {
-        "start": 0,
-        "name": "axis",
-        "type": "number"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "N",
-        "name": "n",
-        "type": "number",
-        "defaultValue": 2
-      }
-    ]
-  },
-  {
-    "tfOpName": "GatherV2",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "axis",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "batch_dims",
-        "name": "batchDims",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ]
-  },
-  {
-    "tfOpName": "Gather",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "validate_indices",
-        "name": "validateIndices",
-        "type": "bool",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Reverse",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "dims",
-        "type": "bool[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "ReverseV2",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Slice",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "begin",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "size",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "StridedSlice",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "begin",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "end",
-        "type": "number[]"
-      },
-      {
-        "start": 3,
-        "name": "strides",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "begin_mask",
-        "name": "beginMask",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "end_mask",
-        "name": "endMask",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "new_axis_mask",
-        "name": "newAxisMask",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "ellipsis_mask",
-        "name": "ellipsisMask",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "shrink_axis_mask",
-        "name": "shrinkAxisMask",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ]
-  },
-  {
-    "tfOpName": "Pack",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "end": 0,
-        "name": "tensors",
-        "type": "tensors"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "axis",
-        "name": "axis",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ]
-  },
-  {
-    "tfOpName": "Unpack",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "axis",
-        "name": "axis",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "num",
-        "name": "num",
-        "type": "number",
-        "defaultValue": 0,
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "Tile",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "reps",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Split",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "axis",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "start": 1,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "num_split",
-        "name": "numOrSizeSplits",
-        "type": "number",
-        "defaultValue": 1
-      }
-    ]
-  },
-  {
-    "tfOpName": "SplitV",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "numOrSizeSplits",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "axis",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ]
-  },
-  {
-    "tfOpName": "ScatterNd",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "indices",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "values",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "GatherNd",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "SparseToDense",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "sparseIndices",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "outputShape",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "sparseValues",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "defaultValue",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "validate_indices",
-        "name": "validateIndices",
-        "type": "bool",
-        "defaultValue": false,
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "TensorScatterUpdate",
-    "category": "slice_join",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "tensor",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "values",
-        "type": "tensor"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/sparse.js
-var sparse_exports = {};
-__export(sparse_exports, {
-  json: () => json16
-});
-var json16 = [
-  {
-    "tfOpName": "SparseFillEmptyRows",
-    "category": "sparse",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "indices",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "values",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "denseShape",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "defaultValue",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "SparseReshape",
-    "category": "sparse",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "inputIndices",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "inputShape",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "newShape",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "SparseSegmentMean",
-    "category": "sparse",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "data",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "segmentIds",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "SparseSegmentSum",
-    "category": "sparse",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "data",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "indices",
-        "type": "tensor"
-      },
-      {
-        "start": 2,
-        "name": "segmentIds",
-        "type": "tensor"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/spectral.js
-var spectral_exports = {};
-__export(spectral_exports, {
-  json: () => json17
-});
-var json17 = [
-  {
-    "tfOpName": "FFT",
-    "category": "spectral",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "IFFT",
-    "category": "spectral",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ]
-  },
-  {
-    "tfOpName": "RFFT",
-    "category": "spectral",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "fft_length",
-        "type": "number",
-        "notSupported": true
-      }
-    ]
-  },
-  {
-    "tfOpName": "IRFFT",
-    "category": "spectral",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "fft_length",
-        "type": "number",
-        "notSupported": true
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/string.js
-var string_exports = {};
-__export(string_exports, {
-  json: () => json18
-});
-var json18 = [
-  {
-    "tfOpName": "StaticRegexReplace",
-    "category": "string",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "input",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "pattern",
-        "name": "pattern",
-        "type": "string"
-      },
-      {
-        "tfName": "rewrite",
-        "name": "rewrite",
-        "type": "string"
-      },
-      {
-        "tfName": "replace_global",
-        "name": "replaceGlobal",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "tfOpName": "StringNGrams",
-    "category": "string",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "data",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "dataSplits",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "separator",
-        "name": "separator",
-        "type": "string"
-      },
-      {
-        "tfName": "ngram_widths",
-        "name": "nGramWidths",
-        "type": "number[]"
-      },
-      {
-        "tfName": "left_pad",
-        "name": "leftPad",
-        "type": "string"
-      },
-      {
-        "tfName": "right_pad",
-        "name": "rightPad",
-        "type": "string"
-      },
-      {
-        "tfName": "pad_width",
-        "name": "padWidth",
-        "type": "number"
-      },
-      {
-        "tfName": "preserve_short_sequences",
-        "name": "preserveShortSequences",
-        "type": "bool"
-      }
-    ],
-    "outputs": [
-      "ngrams",
-      "ngrams_splits"
-    ]
-  },
-  {
-    "tfOpName": "StringSplit",
-    "category": "string",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "input",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "delimiter",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "skip_empty",
-        "name": "skipEmpty",
-        "type": "bool"
-      }
-    ],
-    "outputs": [
-      "indices",
-      "values",
-      "shape"
-    ]
-  },
-  {
-    "tfOpName": "StringToHashBucketFast",
-    "category": "string",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "input",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "num_buckets",
-        "name": "numBuckets",
-        "type": "number"
-      }
-    ]
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/op_list/transformation.js
-var transformation_exports = {};
-__export(transformation_exports, {
-  json: () => json19
-});
-var json19 = [
-  {
-    "tfOpName": "Cast",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "SrcT",
-        "name": "sdtype",
-        "type": "dtype",
-        "notSupported": true
-      },
-      {
-        "tfName": "DstT",
-        "name": "dtype",
-        "type": "dtype"
-      }
-    ]
-  },
-  {
-    "tfOpName": "ExpandDims",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axis",
-        "type": "number"
-      }
-    ]
-  },
-  {
-    "tfOpName": "MirrorPad",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "padding",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "mode",
-        "name": "mode",
-        "type": "string"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Pad",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "padding",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "constant_value",
-        "name": "constantValue",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ]
-  },
-  {
-    "tfOpName": "PadV2",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "padding",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "constantValue",
-        "type": "number",
-        "defaultValue": 0
-      }
-    ]
-  },
-  {
-    "tfOpName": "Reshape",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "EnsureShape",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "Squeeze",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "axis",
-        "tfDeprecatedName": "squeeze_dims",
-        "name": "axis",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "SpaceToBatchND",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "blockShape",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "paddings",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "BatchToSpaceND",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "blockShape",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "crops",
-        "type": "number[]"
-      }
-    ]
-  },
-  {
-    "tfOpName": "DepthToSpace",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "block_size",
-        "name": "blockSize",
-        "type": "number"
-      },
-      {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string"
-      }
-    ]
-  },
-  {
-    "tfOpName": "BroadcastTo",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "shape",
-        "type": "number[]"
-      }
-    ],
-    "attrs": []
-  },
-  {
-    "tfOpName": "BroadcastArgs",
-    "category": "transformation",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "s0",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "s1",
-        "type": "tensor"
-      }
-    ],
-    "attrs": []
-  }
-];
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/operation_mapper.js
-var OperationMapper = class {
-  // Singleton instance for the mapper
-  static get Instance() {
-    return this._instance || (this._instance = new this());
-  }
-  // Loads the op mapping from the JSON file.
-  constructor() {
-    const ops = [
-      arithmetic_exports,
-      basic_math_exports,
-      control_exports,
-      convolution_exports,
-      creation_exports,
-      dynamic_exports,
-      evaluation_exports,
-      graph_exports,
-      hash_table_exports,
-      image_exports,
-      logical_exports,
-      matrices_exports,
-      normalization_exports,
-      reduction_exports,
-      slice_join_exports,
-      sparse_exports,
-      spectral_exports,
-      string_exports,
-      transformation_exports
-    ];
-    const mappersJson = [].concat(...ops.map((op2) => op2.json));
-    this.opMappers = mappersJson.reduce((map, mapper) => {
-      map[mapper.tfOpName] = mapper;
-      return map;
-    }, {});
-  }
-  // Converts the model inference graph from Tensorflow GraphDef to local
-  // representation for TensorFlow.js API
-  transformGraph(graph, signature = {}) {
-    const tfNodes = graph.node;
-    const placeholders = [];
-    const weights = [];
-    const initNodes = [];
-    const nodes = tfNodes.reduce((map, node) => {
-      map[node.name] = this.mapNode(node);
-      if (node.op.startsWith("Placeholder")) {
-        placeholders.push(map[node.name]);
-      } else if (node.op === "Const") {
-        weights.push(map[node.name]);
-      } else if (node.input == null || node.input.length === 0) {
-        initNodes.push(map[node.name]);
-      }
-      return map;
-    }, {});
-    let inputs = [];
-    const outputs = [];
-    let inputNodeNameToKey = {};
-    let outputNodeNameToKey = {};
-    if (signature != null) {
-      inputNodeNameToKey = this.mapSignatureEntries(signature.inputs);
-      outputNodeNameToKey = this.mapSignatureEntries(signature.outputs);
-    }
-    const allNodes = Object.keys(nodes);
-    allNodes.forEach((key) => {
-      const node = nodes[key];
-      node.inputNames.forEach((name, index) => {
-        const [nodeName, , outputName] = getNodeNameAndIndex(name);
-        const inputNode = nodes[nodeName];
-        if (inputNode.outputs != null) {
-          const outputIndex = inputNode.outputs.indexOf(outputName);
-          if (outputIndex !== -1) {
-            const inputName = `${nodeName}:${outputIndex}`;
-            node.inputNames[index] = inputName;
-          }
-        }
-        node.inputs.push(inputNode);
-        inputNode.children.push(node);
-      });
-    });
-    if (Object.keys(outputNodeNameToKey).length === 0) {
-      allNodes.forEach((key) => {
-        const node = nodes[key];
-        if (node.children.length === 0) {
-          outputs.push(node);
-        }
-      });
-    } else {
-      Object.keys(outputNodeNameToKey).forEach((name) => {
-        const [nodeName] = getNodeNameAndIndex(name);
-        const node = nodes[nodeName];
-        if (node != null) {
-          node.signatureKey = outputNodeNameToKey[name];
-          outputs.push(node);
-        }
-      });
-    }
-    if (Object.keys(inputNodeNameToKey).length > 0) {
-      Object.keys(inputNodeNameToKey).forEach((name) => {
-        const [nodeName] = getNodeNameAndIndex(name);
-        const node = nodes[nodeName];
-        if (node) {
-          node.signatureKey = inputNodeNameToKey[name];
-          inputs.push(node);
-        }
-      });
-    } else {
-      inputs = placeholders;
-    }
-    let functions = {};
-    if (graph.library != null && graph.library.function != null) {
-      functions = graph.library.function.reduce((functions2, func2) => {
-        functions2[func2.signature.name] = this.mapFunction(func2);
-        return functions2;
-      }, {});
-    }
-    const result = { nodes, inputs, outputs, weights, placeholders, signature, functions };
-    if (initNodes.length > 0) {
-      result.initNodes = initNodes;
-    }
-    return result;
-  }
-  mapSignatureEntries(entries) {
-    return Object.keys(entries || {}).reduce((prev, curr) => {
-      prev[entries[curr].name] = curr;
-      return prev;
-    }, {});
-  }
-  mapNode(node) {
-    const mapper = getRegisteredOp(node.op) || this.opMappers[node.op] || {};
-    if (node.attr == null) {
-      node.attr = {};
-    }
-    const newNode = {
-      name: node.name,
-      op: node.op,
-      category: mapper.category,
-      inputNames: (node.input || []).map((input2) => input2.startsWith("^") ? input2.slice(1) : input2),
-      inputs: [],
-      children: [],
-      inputParams: {},
-      attrParams: {},
-      rawAttrs: node.attr,
-      outputs: mapper.outputs
-    };
-    if (mapper.inputs != null) {
-      newNode.inputParams = mapper.inputs.reduce((map, param) => {
-        map[param.name] = {
-          type: param.type,
-          inputIndexStart: param.start,
-          inputIndexEnd: param.end
-        };
-        return map;
-      }, {});
-    }
-    if (mapper.attrs != null) {
-      newNode.attrParams = mapper.attrs.reduce((map, param) => {
-        const type = param.type;
-        let value = void 0;
-        switch (param.type) {
-          case "string":
-            value = getStringParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getStringParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "string[]":
-            value = getStringArrayParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getStringArrayParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "number":
-            value = getNumberParam(node.attr, param.tfName, param.defaultValue || 0);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getNumberParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "number[]":
-            value = getNumericArrayParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getNumericArrayParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "bool":
-            value = getBoolParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getBoolParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "bool[]":
-            value = getBoolArrayParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getBoolArrayParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "shape":
-            value = getTensorShapeParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getTensorShapeParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "shape[]":
-            value = getTensorShapeArrayParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getTensorShapeArrayParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "dtype":
-            value = getDtypeParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getDtypeParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "dtype[]":
-            value = getDtypeArrayParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getDtypeArrayParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "func":
-            value = getFuncParam(node.attr, param.tfName, param.defaultValue);
-            if (value === void 0 && !!param.tfDeprecatedName) {
-              value = getFuncParam(node.attr, param.tfDeprecatedName, param.defaultValue);
-            }
-            break;
-          case "tensor":
-          case "tensors":
-            break;
-          default:
-            throw new Error(`Unsupported param type: ${param.type} for op: ${node.op}`);
-        }
-        map[param.name] = { value, type };
-        return map;
-      }, {});
-    }
-    return newNode;
-  }
-  // map the TFunctionDef to TFJS graph object
-  mapFunction(functionDef) {
-    const tfNodes = functionDef.nodeDef;
-    const placeholders = [];
-    const weights = [];
-    let nodes = {};
-    if (tfNodes != null) {
-      nodes = tfNodes.reduce((map, node) => {
-        map[node.name] = this.mapNode(node);
-        if (node.op === "Const") {
-          weights.push(map[node.name]);
-        }
-        return map;
-      }, {});
-    }
-    const inputs = [];
-    const outputs = [];
-    functionDef.signature.inputArg.forEach((arg) => {
-      const [nodeName] = getNodeNameAndIndex(arg.name);
-      const node = {
-        name: nodeName,
-        op: "Placeholder",
-        inputs: [],
-        inputNames: [],
-        category: "graph",
-        inputParams: {},
-        attrParams: { dtype: { value: parseDtypeParam(arg.type), type: "dtype" } },
-        children: []
-      };
-      node.signatureKey = arg.name;
-      inputs.push(node);
-      nodes[nodeName] = node;
-    });
-    const allNodes = Object.keys(nodes);
-    allNodes.forEach((key) => {
-      const node = nodes[key];
-      node.inputNames.forEach((name, index) => {
-        const [nodeName, , outputName] = getNodeNameAndIndex(name);
-        const inputNode = nodes[nodeName];
-        if (inputNode.outputs != null) {
-          const outputIndex = inputNode.outputs.indexOf(outputName);
-          if (outputIndex !== -1) {
-            const inputName = `${nodeName}:${outputIndex}`;
-            node.inputNames[index] = inputName;
-          }
-        }
-        node.inputs.push(inputNode);
-        inputNode.children.push(node);
-      });
-    });
-    const returnNodeMap = functionDef.ret;
-    functionDef.signature.outputArg.forEach((output) => {
-      const [nodeName, index] = getNodeNameAndIndex(returnNodeMap[output.name]);
-      const node = nodes[nodeName];
-      if (node != null) {
-        node.defaultOutput = index;
-        outputs.push(node);
-      }
-    });
-    const signature = this.mapArgsToSignature(functionDef);
-    return { nodes, inputs, outputs, weights, placeholders, signature };
-  }
-  mapArgsToSignature(functionDef) {
-    return {
-      methodName: functionDef.signature.name,
-      inputs: functionDef.signature.inputArg.reduce((map, arg) => {
-        map[arg.name] = this.mapArgToTensorInfo(arg);
-        return map;
-      }, {}),
-      outputs: functionDef.signature.outputArg.reduce((map, arg) => {
-        map[arg.name] = this.mapArgToTensorInfo(arg, functionDef.ret);
-        return map;
-      }, {})
-    };
-  }
-  mapArgToTensorInfo(arg, nameMap2) {
-    let name = arg.name;
-    if (nameMap2 != null) {
-      name = nameMap2[name];
-    }
-    return { name, dtype: arg.type };
-  }
-};
-function decodeBase64(text) {
-  const global2 = env().global;
-  if (typeof global2.atob !== "undefined") {
-    return global2.atob(text);
-  } else if (typeof Buffer !== "undefined") {
-    return new Buffer(text, "base64").toString();
-  } else {
-    throw new Error("Unable to decode base64 in this environment. Missing built-in atob() or Buffer()");
-  }
-}
-function parseStringParam(s, keepCase) {
-  const value = Array.isArray(s) ? String.fromCharCode.apply(null, s) : decodeBase64(s);
-  return keepCase ? value : value.toLowerCase();
-}
-function getStringParam(attrs, name, def, keepCase = false) {
-  const param = attrs[name];
-  if (param != null) {
-    return parseStringParam(param.s, keepCase);
-  }
-  return def;
-}
-function getBoolParam(attrs, name, def) {
-  const param = attrs[name];
-  return param ? param.b : def;
-}
-function getNumberParam(attrs, name, def) {
-  const param = attrs[name] || {};
-  const value = param["i"] != null ? param["i"] : param["f"] != null ? param["f"] : def;
-  return typeof value === "number" ? value : parseInt(value, 10);
-}
-function parseDtypeParam(value) {
-  if (typeof value === "string") {
-    value = DataType[value];
-  }
-  switch (value) {
-    case DataType.DT_FLOAT:
-    case DataType.DT_HALF:
-      return "float32";
-    case DataType.DT_INT32:
-    case DataType.DT_INT64:
-    case DataType.DT_INT8:
-    case DataType.DT_UINT8:
-      return "int32";
-    case DataType.DT_BOOL:
-      return "bool";
-    case DataType.DT_DOUBLE:
-      return "float32";
-    case DataType.DT_STRING:
-      return "string";
-    case DataType.DT_COMPLEX64:
-    case DataType.DT_COMPLEX128:
-      return "complex64";
-    default:
-      return null;
-  }
-}
-function getFuncParam(attrs, name, def) {
-  const param = attrs[name];
-  if (param && param.func) {
-    return param.func.name;
-  }
-  return def;
-}
-function getDtypeParam(attrs, name, def) {
-  const param = attrs[name];
-  if (param && param.type) {
-    return parseDtypeParam(param.type);
-  }
-  return def;
-}
-function getDtypeArrayParam(attrs, name, def) {
-  const param = attrs[name];
-  if (param && param.list && param.list.type) {
-    return param.list.type.map((v) => parseDtypeParam(v));
-  }
-  return def;
-}
-function parseTensorShapeParam(shape) {
-  if (shape.unknownRank) {
-    return void 0;
-  }
-  if (shape.dim != null) {
-    return shape.dim.map((dim) => typeof dim.size === "number" ? dim.size : parseInt(dim.size, 10));
-  }
-  return [];
-}
-function getTensorShapeParam(attrs, name, def) {
-  const param = attrs[name];
-  if (param && param.shape) {
-    return parseTensorShapeParam(param.shape);
-  }
-  return def;
-}
-function getNumericArrayParam(attrs, name, def) {
-  const param = attrs[name];
-  if (param) {
-    return ((param.list.f && param.list.f.length ? param.list.f : param.list.i) || []).map((v) => typeof v === "number" ? v : parseInt(v, 10));
-  }
-  return def;
-}
-function getStringArrayParam(attrs, name, def, keepCase = false) {
-  const param = attrs[name];
-  if (param && param.list && param.list.s) {
-    return param.list.s.map((v) => {
-      return parseStringParam(v, keepCase);
-    });
-  }
-  return def;
-}
-function getTensorShapeArrayParam(attrs, name, def) {
-  const param = attrs[name];
-  if (param && param.list && param.list.shape) {
-    return param.list.shape.map((v) => {
-      return parseTensorShapeParam(v);
-    });
-  }
-  return def;
-}
-function getBoolArrayParam(attrs, name, def) {
-  const param = attrs[name];
-  if (param && param.list && param.list.b) {
-    return param.list.b;
-  }
-  return def;
-}
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/custom_op/node_value_impl.js
-var NodeValueImpl = class {
-  constructor(node, tensorMap, context) {
-    this.node = node;
-    this.tensorMap = tensorMap;
-    this.context = context;
-    this.inputs = [];
-    this.attrs = {};
-    this.inputs = node.inputNames.map((name) => this.getInput(name));
-    if (node.rawAttrs != null) {
-      this.attrs = Object.keys(node.rawAttrs).reduce((attrs, key) => {
-        attrs[key] = this.getAttr(key);
-        return attrs;
-      }, {});
-    }
-  }
-  /**
-   * Return the value of the attribute or input param.
-   * @param name String: name of attribute or input param.
-   */
-  getInput(name) {
-    return getTensor(name, this.tensorMap, this.context);
-  }
-  /**
-   * Return the value of the attribute or input param.
-   * @param name String: name of attribute or input param.
-   */
-  getAttr(name, defaultValue) {
-    const value = this.node.rawAttrs[name];
-    if (value.tensor != null) {
-      return getTensor(name, this.tensorMap, this.context);
-    }
-    if (value.i != null || value.f != null) {
-      return getNumberParam(this.node.rawAttrs, name, defaultValue);
-    }
-    if (value.s != null) {
-      return getStringParam(this.node.rawAttrs, name, defaultValue);
-    }
-    if (value.b != null) {
-      return getBoolParam(this.node.rawAttrs, name, defaultValue);
-    }
-    if (value.shape != null) {
-      return getTensorShapeParam(this.node.rawAttrs, name, defaultValue);
-    }
-    if (value.type != null) {
-      return getDtypeParam(this.node.rawAttrs, name, defaultValue);
-    }
-    if (value.list != null) {
-      if (value.list.i != null || value.list.f != null) {
-        return getNumericArrayParam(this.node.rawAttrs, name, defaultValue);
-      }
-      if (value.list.s != null) {
-        return getStringArrayParam(this.node.rawAttrs, name, defaultValue);
-      }
-      if (value.list.shape != null) {
-        return getTensorShapeArrayParam(this.node.rawAttrs, name, defaultValue);
-      }
-      if (value.list.b != null) {
-        return getBoolArrayParam(this.node.rawAttrs, name, defaultValue);
-      }
-      if (value.list.type != null) {
-        return getDtypeArrayParam(this.node.rawAttrs, name, defaultValue);
-      }
-    }
-    return defaultValue;
-  }
-};
-
-// node_modules/@tensorflow/tfjs-core/dist/ops/ops_for_converter.js
-var ops_for_converter_exports = {};
-__export(ops_for_converter_exports, {
-  OP_SCOPE_SUFFIX: () => OP_SCOPE_SUFFIX,
-  abs: () => abs,
-  acos: () => acos,
-  acosh: () => acosh,
-  add: () => add2,
-  addN: () => addN,
-  all: () => all,
-  any: () => any,
-  argMax: () => argMax,
-  argMin: () => argMin,
-  asin: () => asin,
-  asinh: () => asinh,
-  atan: () => atan,
-  atan2: () => atan2,
-  atanh: () => atanh,
-  avgPool: () => avgPool,
-  avgPool3d: () => avgPool3d,
-  basicLSTMCell: () => basicLSTMCell,
-  batchNorm: () => batchNorm,
-  batchNorm2d: () => batchNorm2d,
-  batchNorm3d: () => batchNorm3d,
-  batchNorm4d: () => batchNorm4d,
-  batchToSpaceND: () => batchToSpaceND,
-  bincount: () => bincount,
-  bitwiseAnd: () => bitwiseAnd,
-  booleanMaskAsync: () => booleanMaskAsync,
-  broadcastArgs: () => broadcastArgs,
-  broadcastTo: () => broadcastTo,
-  buffer: () => buffer,
-  cast: () => cast,
-  ceil: () => ceil,
-  clipByValue: () => clipByValue,
-  clone: () => clone,
-  complex: () => complex,
-  concat: () => concat,
-  concat1d: () => concat1d,
-  concat2d: () => concat2d,
-  concat3d: () => concat3d,
-  concat4d: () => concat4d,
-  conv1d: () => conv1d,
-  conv2d: () => conv2d,
-  conv2dTranspose: () => conv2dTranspose,
-  conv3d: () => conv3d,
-  conv3dTranspose: () => conv3dTranspose,
-  cos: () => cos,
-  cosh: () => cosh,
-  cosineWindow: () => cosineWindow,
-  cumprod: () => cumprod,
-  cumsum: () => cumsum,
-  denseBincount: () => denseBincount,
-  depthToSpace: () => depthToSpace,
-  depthwiseConv2d: () => depthwiseConv2d,
-  diag: () => diag,
-  dilation2d: () => dilation2d,
-  div: () => div,
-  divNoNan: () => divNoNan,
-  dot: () => dot,
-  dropout: () => dropout,
-  einsum: () => einsum,
-  elu: () => elu,
-  enclosingPowerOfTwo: () => enclosingPowerOfTwo,
-  ensureShape: () => ensureShape,
-  equal: () => equal,
-  erf: () => erf,
-  euclideanNorm: () => euclideanNorm,
-  exp: () => exp,
-  expandDims: () => expandDims,
-  expm1: () => expm1,
-  eye: () => eye,
-  fft: () => fft,
-  fill: () => fill,
-  floor: () => floor,
-  floorDiv: () => floorDiv,
-  fused: () => fused_ops_exports,
-  gather: () => gather,
-  gatherND: () => gatherND,
-  greater: () => greater,
-  greaterEqual: () => greaterEqual,
-  ifft: () => ifft,
-  imag: () => imag,
-  image: () => image,
-  inTopKAsync: () => inTopKAsync,
-  irfft: () => irfft,
-  isFinite: () => isFinite2,
-  isInf: () => isInf,
-  isNaN: () => isNaN2,
-  leakyRelu: () => leakyRelu,
-  less: () => less,
-  lessEqual: () => lessEqual,
-  linalg: () => linalg,
-  linspace: () => linspace,
-  localResponseNormalization: () => localResponseNormalization,
-  log: () => log2,
-  log1p: () => log1p,
-  logSigmoid: () => logSigmoid,
-  logSoftmax: () => logSoftmax,
-  logSumExp: () => logSumExp,
-  logicalAnd: () => logicalAnd,
-  logicalNot: () => logicalNot,
-  logicalOr: () => logicalOr,
-  logicalXor: () => logicalXor,
-  losses: () => losses,
-  lowerBound: () => lowerBound,
-  matMul: () => matMul,
-  max: () => max,
-  maxPool: () => maxPool,
-  maxPool3d: () => maxPool3d,
-  maxPoolWithArgmax: () => maxPoolWithArgmax,
-  maximum: () => maximum,
-  mean: () => mean,
-  meshgrid: () => meshgrid,
-  min: () => min,
-  minimum: () => minimum,
-  mirrorPad: () => mirrorPad,
-  mod: () => mod,
-  moments: () => moments,
-  movingAverage: () => movingAverage,
-  mul: () => mul,
-  multiRNNCell: () => multiRNNCell,
-  multinomial: () => multinomial,
-  neg: () => neg,
-  norm: () => norm,
-  notEqual: () => notEqual,
-  oneHot: () => oneHot,
-  ones: () => ones2,
-  onesLike: () => onesLike,
-  op: () => op,
-  outerProduct: () => outerProduct,
-  pad: () => pad,
-  pad1d: () => pad1d,
-  pad2d: () => pad2d,
-  pad3d: () => pad3d,
-  pad4d: () => pad4d,
-  pool: () => pool,
-  pow: () => pow,
-  prelu: () => prelu,
-  print: () => print,
-  prod: () => prod,
-  raggedGather: () => raggedGather,
-  raggedRange: () => raggedRange,
-  raggedTensorToTensor: () => raggedTensorToTensor,
-  rand: () => rand,
-  randomGamma: () => randomGamma,
-  randomNormal: () => randomNormal,
-  randomStandardNormal: () => randomStandardNormal,
-  randomUniform: () => randomUniform,
-  randomUniformInt: () => randomUniformInt,
-  range: () => range,
-  real: () => real,
-  reciprocal: () => reciprocal,
-  relu: () => relu,
-  relu6: () => relu6,
-  reshape: () => reshape,
-  reverse: () => reverse,
-  reverse1d: () => reverse1d,
-  reverse2d: () => reverse2d,
-  reverse3d: () => reverse3d,
-  reverse4d: () => reverse4d,
-  rfft: () => rfft,
-  round: () => round2,
-  rsqrt: () => rsqrt,
-  scalar: () => scalar,
-  scatterND: () => scatterND,
-  searchSorted: () => searchSorted,
-  selu: () => selu,
-  separableConv2d: () => separableConv2d,
-  setdiff1dAsync: () => setdiff1dAsync,
-  sigmoid: () => sigmoid,
-  sign: () => sign,
-  signal: () => signal,
-  sin: () => sin,
-  sinh: () => sinh,
-  slice: () => slice,
-  slice1d: () => slice1d,
-  slice2d: () => slice2d,
-  slice3d: () => slice3d,
-  slice4d: () => slice4d,
-  softmax: () => softmax,
-  softplus: () => softplus,
-  spaceToBatchND: () => spaceToBatchND,
-  sparse: () => sparse,
-  sparseToDense: () => sparseToDense,
-  spectral: () => spectral,
-  split: () => split,
-  sqrt: () => sqrt,
-  square: () => square,
-  squaredDifference: () => squaredDifference,
-  squeeze: () => squeeze,
-  stack: () => stack,
-  step: () => step,
-  stridedSlice: () => stridedSlice,
-  string: () => string,
-  sub: () => sub,
-  sum: () => sum2,
-  tan: () => tan,
-  tanh: () => tanh2,
-  tensor: () => tensor,
-  tensor1d: () => tensor1d,
-  tensor2d: () => tensor2d,
-  tensor3d: () => tensor3d,
-  tensor4d: () => tensor4d,
-  tensor5d: () => tensor5d,
-  tensor6d: () => tensor6d,
-  tensorScatterUpdate: () => tensorScatterUpdate,
-  tile: () => tile,
-  topk: () => topk,
-  transpose: () => transpose,
-  truncatedNormal: () => truncatedNormal,
-  unique: () => unique,
-  unsortedSegmentSum: () => unsortedSegmentSum,
-  unstack: () => unstack,
-  upperBound: () => upperBound,
-  variable: () => variable,
-  where: () => where,
-  whereAsync: () => whereAsync,
-  zeros: () => zeros,
-  zerosLike: () => zerosLike
-});
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/arithmetic_executor.js
-var executeOp = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "BiasAdd":
-    case "AddV2":
-    case "Add": {
-      return [ops.add(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "AddN": {
-      return [ops.addN(getParamValue("tensors", node, tensorMap, context))];
-    }
-    case "FloorMod":
-    case "Mod":
-      return [ops.mod(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    case "Mul":
-      return [ops.mul(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    case "RealDiv":
-    case "Div": {
-      return [ops.div(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "DivNoNan": {
-      return [ops.divNoNan(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "FloorDiv": {
-      return [ops.floorDiv(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "Sub": {
-      return [ops.sub(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "Minimum": {
-      return [ops.minimum(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "Maximum": {
-      return [ops.maximum(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "Pow": {
-      return [ops.pow(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "SquaredDifference": {
-      return [ops.squaredDifference(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/basic_math_executor.js
-var executeOp2 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "Abs":
-    case "ComplexAbs":
-      return [ops.abs(getParamValue("x", node, tensorMap, context))];
-    case "Acos":
-      return [ops.acos(getParamValue("x", node, tensorMap, context))];
-    case "Acosh":
-      return [ops.acosh(getParamValue("x", node, tensorMap, context))];
-    case "Asin":
-      return [ops.asin(getParamValue("x", node, tensorMap, context))];
-    case "Asinh":
-      return [ops.asinh(getParamValue("x", node, tensorMap, context))];
-    case "Atan":
-      return [ops.atan(getParamValue("x", node, tensorMap, context))];
-    case "Atan2":
-      return [ops.atan2(getParamValue("x", node, tensorMap, context), getParamValue("y", node, tensorMap, context))];
-    case "Atanh":
-      return [ops.atanh(getParamValue("x", node, tensorMap, context))];
-    case "Ceil":
-      return [ops.ceil(getParamValue("x", node, tensorMap, context))];
-    case "Complex":
-      return [ops.complex(getParamValue("real", node, tensorMap, context), getParamValue("imag", node, tensorMap, context))];
-    case "Cos":
-      return [ops.cos(getParamValue("x", node, tensorMap, context))];
-    case "Cosh":
-      return [ops.cosh(getParamValue("x", node, tensorMap, context))];
-    case "Elu":
-      return [ops.elu(getParamValue("x", node, tensorMap, context))];
-    case "Erf":
-      return [ops.erf(getParamValue("x", node, tensorMap, context))];
-    case "Exp":
-      return [ops.exp(getParamValue("x", node, tensorMap, context))];
-    case "Expm1": {
-      return [ops.expm1(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Floor":
-      return [ops.floor(getParamValue("x", node, tensorMap, context))];
-    case "Log":
-      return [ops.log(getParamValue("x", node, tensorMap, context))];
-    case "Log1p": {
-      return [ops.log1p(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Imag":
-      return [ops.imag(getParamValue("x", node, tensorMap, context))];
-    case "Neg":
-      return [ops.neg(getParamValue("x", node, tensorMap, context))];
-    case "Reciprocal": {
-      return [ops.reciprocal(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Real":
-      return [ops.real(getParamValue("x", node, tensorMap, context))];
-    case "Relu":
-      return [ops.relu(getParamValue("x", node, tensorMap, context))];
-    case "Round": {
-      return [ops.round(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Selu":
-      return [ops.selu(getParamValue("x", node, tensorMap, context))];
-    case "Sigmoid":
-      return [ops.sigmoid(getParamValue("x", node, tensorMap, context))];
-    case "Sin":
-      return [ops.sin(getParamValue("x", node, tensorMap, context))];
-    case "Sign": {
-      return [ops.sign(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Sinh": {
-      return [ops.sinh(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Softplus": {
-      return [ops.softplus(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Sqrt": {
-      return [ops.sqrt(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Square": {
-      return [ops.square(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Tanh": {
-      return [ops.tanh(getParamValue("x", node, tensorMap, context))];
-    }
-    case "Tan":
-      return [ops.tan(getParamValue("x", node, tensorMap, context))];
-    case "ClipByValue":
-      return [ops.clipByValue(getParamValue("x", node, tensorMap, context), getParamValue("clipValueMin", node, tensorMap, context), getParamValue("clipValueMax", node, tensorMap, context))];
-    case "Relu6":
-      return [ops.relu6(getParamValue("x", node, tensorMap, context))];
-    case "Rsqrt":
-      return [ops.rsqrt(getTensor(node.inputNames[0], tensorMap, context))];
-    case "LeakyRelu":
-      return [ops.leakyRelu(getParamValue("x", node, tensorMap, context), getParamValue("alpha", node, tensorMap, context))];
-    case "Prelu":
-      return [ops.prelu(getParamValue("x", node, tensorMap, context), getParamValue("alpha", node, tensorMap, context))];
-    case "IsNan":
-      return [ops.isNaN(getTensor(node.inputNames[0], tensorMap, context))];
-    case "IsInf":
-      return [ops.isInf(getTensor(node.inputNames[0], tensorMap, context))];
-    case "IsFinite":
-      return [ops.isFinite(getTensor(node.inputNames[0], tensorMap, context))];
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/tensor_utils.js
-function assertShapesMatchAllowUndefinedSize(shapeA, shapeB, errorMessagePrefix = "") {
-  if (typeof shapeA === "number" || typeof shapeB === "number") {
-    return;
-  }
-  util_exports.assert(shapeA.length === shapeB.length, () => errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
-  for (let i = 0; i < shapeA.length; i++) {
-    const dim0 = shapeA[i];
-    const dim1 = shapeB[i];
-    util_exports.assert(dim0 < 0 || dim1 < 0 || dim0 === dim1, () => errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
-  }
-}
-function fullDefinedShape(elementShape) {
-  if (typeof elementShape === "number" || elementShape.some((dim) => dim < 0)) {
-    return false;
-  }
-  return true;
-}
-function inferElementShape(listElementShape, tensors, elementShape) {
-  let partialShape = mergeElementShape(listElementShape, elementShape);
-  const notfullDefinedShape = !fullDefinedShape(partialShape);
-  if (notfullDefinedShape && tensors.length === 0) {
-    throw new Error(`Tried to calculate elements of an empty list with non-fully-defined elementShape: ${partialShape}`);
-  }
-  if (notfullDefinedShape) {
-    tensors.forEach((tensor2) => {
-      partialShape = mergeElementShape(tensor2.shape, partialShape);
-    });
-  }
-  if (!fullDefinedShape(partialShape)) {
-    throw new Error(`Non-fully-defined elementShape: ${partialShape}`);
-  }
-  return partialShape;
-}
-function mergeElementShape(elementShapeA, elementShapeB) {
-  if (typeof elementShapeA === "number") {
-    return elementShapeB;
-  }
-  if (typeof elementShapeB === "number") {
-    return elementShapeA;
-  }
-  if (elementShapeA.length !== elementShapeB.length) {
-    throw new Error(`Incompatible ranks during merge: ${elementShapeA} vs. ${elementShapeB}`);
-  }
-  const result = [];
-  for (let i = 0; i < elementShapeA.length; ++i) {
-    const dim0 = elementShapeA[i];
-    const dim1 = elementShapeB[i];
-    if (dim0 >= 0 && dim1 >= 0 && dim0 !== dim1) {
-      throw new Error(`Incompatible shape during merge: ${elementShapeA} vs. ${elementShapeB}`);
-    }
-    result[i] = dim0 >= 0 ? dim0 : dim1;
-  }
-  return result;
-}
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/tensor_array.js
-var TensorArray = class {
-  constructor(name, dtype, maxSize, elementShape, identicalElementShapes, dynamicSize, clearAfterRead) {
-    this.name = name;
-    this.dtype = dtype;
-    this.maxSize = maxSize;
-    this.elementShape = elementShape;
-    this.identicalElementShapes = identicalElementShapes;
-    this.dynamicSize = dynamicSize;
-    this.clearAfterRead = clearAfterRead;
-    this.tensors = [];
-    this.closed_ = false;
-    this.idTensor = scalar(0);
-    keep(this.idTensor);
-  }
-  get id() {
-    return this.idTensor.id;
-  }
-  get closed() {
-    return this.closed_;
-  }
-  /**
-   * Dispose the tensors and idTensor and mark the TensoryArray as closed.
-   */
-  clearAndClose(keepIds) {
-    this.tensors.forEach((tensor2) => {
-      if (keepIds == null || !keepIds.has(tensor2.tensor.id)) {
-        tensor2.tensor.dispose();
-      }
-    });
-    this.tensors = [];
-    this.closed_ = true;
-    this.idTensor.dispose();
-  }
-  size() {
-    return this.tensors.length;
-  }
-  /**
-   * Read the value at location index in the TensorArray.
-   * @param index Number the index to read from.
-   */
-  read(index) {
-    if (this.closed_) {
-      throw new Error(`TensorArray ${this.name} has already been closed.`);
-    }
-    if (index < 0 || index >= this.size()) {
-      throw new Error(`Tried to read from index ${index}, but array size is: ${this.size()}`);
-    }
-    const tensorWithState = this.tensors[index];
-    if (tensorWithState.cleared) {
-      throw new Error(`TensorArray ${this.name}: Could not read index ${index} twice because it was cleared after a previous read (perhaps try setting clear_after_read = false?).`);
-    }
-    if (this.clearAfterRead) {
-      tensorWithState.cleared = true;
-    }
-    tensorWithState.read = true;
-    return tensorWithState.tensor;
-  }
-  /**
-   * Helper method to read multiple tensors from the specified indices.
-   */
-  readMany(indices) {
-    return indices.map((index) => this.read(index));
-  }
-  /**
-   * Write value into the index of the TensorArray.
-   * @param index number the index to write to.
-   * @param tensor
-   */
-  write(index, tensor2) {
-    if (this.closed_) {
-      throw new Error(`TensorArray ${this.name} has already been closed.`);
-    }
-    if (index < 0 || !this.dynamicSize && index >= this.maxSize) {
-      throw new Error(`Tried to write to index ${index}, but array is not resizeable and size is: ${this.maxSize}`);
-    }
-    const t = this.tensors[index] || {};
-    if (tensor2.dtype !== this.dtype) {
-      throw new Error(`TensorArray ${this.name}: Could not write to TensorArray index ${index},
-          because the value dtype is ${tensor2.dtype}, but TensorArray dtype is ${this.dtype}.`);
-    }
-    if (this.size() === 0 && (this.elementShape == null || this.elementShape.length === 0)) {
-      this.elementShape = tensor2.shape;
-    }
-    assertShapesMatchAllowUndefinedSize(this.elementShape, tensor2.shape, `TensorArray ${this.name}: Could not write to TensorArray index ${index}.`);
-    if (t.read) {
-      throw new Error(`TensorArray ${this.name}: Could not write to TensorArray index ${index}, because it has already been read.`);
-    }
-    if (t.written) {
-      throw new Error(`TensorArray ${this.name}: Could not write to TensorArray index ${index}, because it has already been written.`);
-    }
-    t.tensor = tensor2;
-    keep(tensor2);
-    t.written = true;
-    this.tensors[index] = t;
-  }
-  /**
-   * Helper method to write multiple tensors to the specified indices.
-   */
-  writeMany(indices, tensors) {
-    if (indices.length !== tensors.length) {
-      throw new Error(`TensorArray ${this.name}: could not write multiple tensors,because the index size: ${indices.length} is not the same as tensors size: ${tensors.length}.`);
-    }
-    indices.forEach((i, index) => this.write(i, tensors[index]));
-  }
-  /**
-   * Return selected values in the TensorArray as a packed Tensor. All of
-   * selected values must have been written and their shapes must all match.
-   * @param [indices] number[] Optional. Taking values in [0, max_value). If the
-   *    TensorArray is not dynamic, max_value=size(). If not specified returns
-   *    all tensors in the original order.
-   * @param [dtype]
-   */
-  gather(indices, dtype) {
-    if (!!dtype && dtype !== this.dtype) {
-      throw new Error(`TensorArray dtype is ${this.dtype} but gather requested dtype ${dtype}`);
-    }
-    if (!indices) {
-      indices = [];
-      for (let i = 0; i < this.size(); i++) {
-        indices.push(i);
-      }
-    } else {
-      indices = indices.slice(0, this.size());
-    }
-    if (indices.length === 0) {
-      return tensor([], [0].concat(this.elementShape));
-    }
-    const tensors = this.readMany(indices);
-    assertShapesMatchAllowUndefinedSize(this.elementShape, tensors[0].shape, "TensorArray shape mismatch: ");
-    return stack(tensors, 0);
-  }
-  /**
-   * Return the values in the TensorArray as a concatenated Tensor.
-   */
-  concat(dtype) {
-    if (!!dtype && dtype !== this.dtype) {
-      throw new Error(`TensorArray dtype is ${this.dtype} but concat requested dtype ${dtype}`);
-    }
-    if (this.size() === 0) {
-      return tensor([], [0].concat(this.elementShape));
-    }
-    const indices = [];
-    for (let i = 0; i < this.size(); i++) {
-      indices.push(i);
-    }
-    const tensors = this.readMany(indices);
-    assertShapesMatchAllowUndefinedSize(this.elementShape, tensors[0].shape, `TensorArray shape mismatch: tensor array shape (${this.elementShape}) vs first tensor shape (${tensors[0].shape})`);
-    return concat(tensors, 0);
-  }
-  /**
-   * Scatter the values of a Tensor in specific indices of a TensorArray.
-   * @param indices number[] values in [0, max_value). If the
-   *    TensorArray is not dynamic, max_value=size().
-   * @param tensor Tensor input tensor.
-   */
-  scatter(indices, tensor2) {
-    if (tensor2.dtype !== this.dtype) {
-      throw new Error(`TensorArray dtype is ${this.dtype} but tensor has dtype ${tensor2.dtype}`);
-    }
-    if (indices.length !== tensor2.shape[0]) {
-      throw new Error(`Expected len(indices) == tensor.shape[0], but saw: ${indices.length} vs. ${tensor2.shape[0]}`);
-    }
-    const maxIndex = Math.max(...indices);
-    if (!this.dynamicSize && maxIndex >= this.maxSize) {
-      throw new Error(`Max index must be < array size (${maxIndex}  vs. ${this.maxSize})`);
-    }
-    this.writeMany(indices, unstack(tensor2, 0));
-  }
-  /**
-   * Split the values of a Tensor into the TensorArray.
-   * @param length number[] with the lengths to use when splitting value along
-   *    its first dimension.
-   * @param tensor Tensor, the tensor to split.
-   */
-  split(length, tensor2) {
-    if (tensor2.dtype !== this.dtype) {
-      throw new Error(`TensorArray dtype is ${this.dtype} but tensor has dtype ${tensor2.dtype}`);
-    }
-    let totalLength = 0;
-    const cumulativeLengths = length.map((len) => {
-      totalLength += len;
-      return totalLength;
-    });
-    if (totalLength !== tensor2.shape[0]) {
-      throw new Error(`Expected sum of lengths to be equal to
-          tensor.shape[0], but sum of lengths is
-        ${totalLength}, and tensor's shape is: ${tensor2.shape}`);
-    }
-    if (!this.dynamicSize && length.length !== this.maxSize) {
-      throw new Error(`TensorArray's size is not equal to the size of lengths (${this.maxSize} vs. ${length.length}), and the TensorArray is not marked as dynamically resizeable`);
-    }
-    const elementPerRow = totalLength === 0 ? 0 : tensor2.size / totalLength;
-    const tensors = [];
-    tidy(() => {
-      tensor2 = reshape(tensor2, [1, totalLength, elementPerRow]);
-      for (let i = 0; i < length.length; ++i) {
-        const previousLength = i === 0 ? 0 : cumulativeLengths[i - 1];
-        const indices2 = [0, previousLength, 0];
-        const sizes = [1, length[i], elementPerRow];
-        tensors[i] = reshape(slice(tensor2, indices2, sizes), this.elementShape);
-      }
-      return tensors;
-    });
-    const indices = [];
-    for (let i = 0; i < length.length; i++) {
-      indices[i] = i;
-    }
-    this.writeMany(indices, tensors);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/tensor_list.js
-var TensorList = class _TensorList {
-  get id() {
-    return this.idTensor.id;
-  }
-  /**
-   *
-   * @param tensors list of tensors
-   * @param elementShape shape of each tensor, this can be a single number (any
-   * shape is allowed) or partial shape (dim = -1).
-   * @param elementDtype data type of each tensor
-   * @param maxNumElements The maximum allowed size of `tensors`. Defaults to -1
-   *   meaning that the size of `tensors` is unbounded.
-   */
-  constructor(tensors, elementShape, elementDtype, maxNumElements = -1) {
-    this.tensors = tensors;
-    this.elementShape = elementShape;
-    this.elementDtype = elementDtype;
-    if (tensors != null) {
-      tensors.forEach((tensor2) => {
-        if (elementDtype !== tensor2.dtype) {
-          throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${tensor2.dtype}`);
-        }
-        assertShapesMatchAllowUndefinedSize(elementShape, tensor2.shape, "TensorList shape mismatch: ");
-        keep(tensor2);
-      });
-    }
-    this.idTensor = scalar(0);
-    this.maxNumElements = maxNumElements;
-    keep(this.idTensor);
-  }
-  /**
-   * Get a new TensorList containing a copy of the underlying tensor container.
-   */
-  copy() {
-    return new _TensorList([...this.tensors], this.elementShape, this.elementDtype);
-  }
-  /**
-   * Dispose the tensors and idTensor and clear the tensor list.
-   */
-  clearAndClose(keepIds) {
-    this.tensors.forEach((tensor2) => {
-      if (keepIds == null || !keepIds.has(tensor2.id)) {
-        tensor2.dispose();
-      }
-    });
-    this.tensors.length = 0;
-    this.idTensor.dispose();
-  }
-  /**
-   * The size of the tensors in the tensor list.
-   */
-  size() {
-    return this.tensors.length;
-  }
-  /**
-   * Return a tensor that stacks a list of rank-R tf.Tensors into one rank-(R+1)
-   * tf.Tensor.
-   * @param elementShape shape of each tensor
-   * @param elementDtype data type of each tensor
-   * @param numElements the number of elements to stack
-   */
-  stack(elementShape, elementDtype, numElements = -1) {
-    if (elementDtype !== this.elementDtype) {
-      throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
-    }
-    if (numElements !== -1 && this.tensors.length !== numElements) {
-      throw new Error(`Operation expected a list with ${numElements} elements but got a list with ${this.tensors.length} elements.`);
-    }
-    assertShapesMatchAllowUndefinedSize(elementShape, this.elementShape, "TensorList shape mismatch: ");
-    const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
-    return tidy(() => {
-      const reshapedTensors = this.tensors.map((tensor2) => reshape(tensor2, outputElementShape));
-      return stack(reshapedTensors, 0);
-    });
-  }
-  /**
-   * Pop a tensor from the end of the list.
-   * @param elementShape shape of the tensor
-   * @param elementDtype data type of the tensor
-   */
-  popBack(elementShape, elementDtype) {
-    if (elementDtype !== this.elementDtype) {
-      throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
-    }
-    if (this.size() === 0) {
-      throw new Error("Trying to pop from an empty list.");
-    }
-    const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
-    const tensor2 = this.tensors.pop();
-    tensor2.kept = false;
-    assertShapesMatchAllowUndefinedSize(tensor2.shape, elementShape, "TensorList shape mismatch: ");
-    return reshape(tensor2, outputElementShape);
-  }
-  /**
-   * Push a tensor to the end of the list.
-   * @param tensor Tensor to be pushed.
-   */
-  pushBack(tensor2) {
-    if (tensor2.dtype !== this.elementDtype) {
-      throw new Error(`Invalid data types; op elements ${tensor2.dtype}, but list elements ${this.elementDtype}`);
-    }
-    assertShapesMatchAllowUndefinedSize(tensor2.shape, this.elementShape, "TensorList shape mismatch: ");
-    if (this.maxNumElements === this.size()) {
-      throw new Error(`Trying to push element into a full list.`);
-    }
-    keep(tensor2);
-    this.tensors.push(tensor2);
-  }
-  /**
-   * Update the size of the list.
-   * @param size the new size of the list.
-   */
-  resize(size) {
-    if (size < 0) {
-      throw new Error(`TensorListResize expects size to be non-negative. Got: ${size}`);
-    }
-    if (this.maxNumElements !== -1 && size > this.maxNumElements) {
-      throw new Error(`TensorListResize input size ${size} is greater maxNumElement ${this.maxNumElements}.`);
-    }
-    const destTensorList = new _TensorList([], this.elementShape, this.elementDtype, this.maxNumElements);
-    destTensorList.tensors.length = size;
-    for (let i = 0; i < Math.min(this.tensors.length, size); ++i) {
-      destTensorList.tensors[i] = this.tensors[i];
-    }
-    return destTensorList;
-  }
-  /**
-   * Retrieve the element at the provided index
-   * @param elementShape shape of the tensor
-   * @param elementDtype dtype of the tensor
-   * @param elementIndex index of the tensor
-   */
-  getItem(elementIndex, elementShape, elementDtype) {
-    if (elementDtype !== this.elementDtype) {
-      throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
-    }
-    if (elementIndex < 0 || elementIndex > this.tensors.length) {
-      throw new Error(`Trying to access element ${elementIndex} in a list with ${this.tensors.length} elements.`);
-    }
-    if (this.tensors[elementIndex] == null) {
-      throw new Error(`element at index ${elementIndex} is null.`);
-    }
-    assertShapesMatchAllowUndefinedSize(this.tensors[elementIndex].shape, elementShape, "TensorList shape mismatch: ");
-    const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
-    return reshape(this.tensors[elementIndex], outputElementShape);
-  }
-  /**
-   * Set the tensor at the index
-   * @param elementIndex index of the tensor
-   * @param tensor the tensor to be inserted into the list
-   */
-  setItem(elementIndex, tensor2) {
-    if (tensor2.dtype !== this.elementDtype) {
-      throw new Error(`Invalid data types; op elements ${tensor2.dtype}, but list elements ${this.elementDtype}`);
-    }
-    if (elementIndex < 0 || this.maxNumElements !== -1 && elementIndex >= this.maxNumElements) {
-      throw new Error(`Trying to set element ${elementIndex} in a list with max ${this.maxNumElements} elements.`);
-    }
-    assertShapesMatchAllowUndefinedSize(this.elementShape, tensor2.shape, "TensorList shape mismatch: ");
-    keep(tensor2);
-    if (this.tensors[elementIndex] != null) {
-      this.tensors[elementIndex].kept = false;
-    }
-    this.tensors[elementIndex] = tensor2;
-  }
-  /**
-   * Return selected values in the TensorList as a stacked Tensor. All of
-   * selected values must have been written and their shapes must all match.
-   * @param indices indices of tensors to gather
-   * @param elementDtype output tensor dtype
-   * @param elementShape output tensor element shape
-   */
-  gather(indices, elementDtype, elementShape) {
-    if (elementDtype !== this.elementDtype) {
-      throw new Error(`Invalid data types; op elements ${elementDtype}, but list elements ${this.elementDtype}`);
-    }
-    assertShapesMatchAllowUndefinedSize(this.elementShape, elementShape, "TensorList shape mismatch: ");
-    indices = indices.slice(0, this.size());
-    const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
-    if (indices.length === 0) {
-      return tensor([], [0].concat(outputElementShape));
-    }
-    return tidy(() => {
-      const tensors = indices.map((i) => reshape(this.tensors[i], outputElementShape));
-      return stack(tensors, 0);
-    });
-  }
-  /**
-   * Return the values in the TensorList as a concatenated Tensor.
-   * @param elementDtype output tensor dtype
-   * @param elementShape output tensor element shape
-   */
-  concat(elementDtype, elementShape) {
-    if (!!elementDtype && elementDtype !== this.elementDtype) {
-      throw new Error(`TensorList dtype is ${this.elementDtype} but concat requested dtype ${elementDtype}`);
-    }
-    assertShapesMatchAllowUndefinedSize(this.elementShape, elementShape, "TensorList shape mismatch: ");
-    const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
-    if (this.size() === 0) {
-      return tensor([], [0].concat(outputElementShape));
-    }
-    return tidy(() => {
-      const tensors = this.tensors.map((t) => reshape(t, outputElementShape));
-      return concat(tensors, 0);
-    });
-  }
-};
-function fromTensor(tensor2, elementShape, elementDtype) {
-  const dtype = tensor2.dtype;
-  if (tensor2.shape.length < 1) {
-    throw new Error(`Tensor must be at least a vector, but saw shape: ${tensor2.shape}`);
-  }
-  if (tensor2.dtype !== elementDtype) {
-    throw new Error(`Invalid data types; op elements ${tensor2.dtype}, but list elements ${elementDtype}`);
-  }
-  const tensorElementShape = tensor2.shape.slice(1);
-  assertShapesMatchAllowUndefinedSize(tensorElementShape, elementShape, "TensorList shape mismatch: ");
-  const tensorList = unstack(tensor2);
-  return new TensorList(tensorList, elementShape, dtype);
-}
-function reserve(elementShape, elementDtype, numElements, maxNumElements) {
-  return new TensorList([], elementShape, elementDtype, maxNumElements);
-}
-function scatter(tensor2, indices, elementShape, numElements) {
-  if (indices.length !== tensor2.shape[0]) {
-    throw new Error(`Expected len(indices) == tensor.shape[0], but saw: ${indices.length} vs. ${tensor2.shape[0]}`);
-  }
-  const maxIndex = Math.max(...indices);
-  if (numElements != null && numElements !== -1 && maxIndex >= numElements) {
-    throw new Error(`Max index must be < array size (${maxIndex}  vs. ${numElements})`);
-  }
-  const list = new TensorList([], elementShape, tensor2.dtype, numElements);
-  const tensors = unstack(tensor2, 0);
-  indices.forEach((value, index) => {
-    list.setItem(value, tensors[index]);
-  });
-  return list;
-}
-function split2(tensor2, length, elementShape) {
-  let totalLength = 0;
-  const cumulativeLengths = length.map((len) => {
-    totalLength += len;
-    return totalLength;
-  });
-  if (totalLength !== tensor2.shape[0]) {
-    throw new Error(`Expected sum of lengths to be equal to
-          tensor.shape[0], but sum of lengths is
-        ${totalLength}, and tensor's shape is: ${tensor2.shape}`);
-  }
-  const shapeWithoutFirstDim = tensor2.shape.slice(1);
-  const outputElementShape = mergeElementShape(shapeWithoutFirstDim, elementShape);
-  const elementPerRow = totalLength === 0 ? 0 : tensor2.size / totalLength;
-  const tensors = tidy(() => {
-    const tensors2 = [];
-    tensor2 = reshape(tensor2, [1, totalLength, elementPerRow]);
-    for (let i = 0; i < length.length; ++i) {
-      const previousLength = i === 0 ? 0 : cumulativeLengths[i - 1];
-      const indices = [0, previousLength, 0];
-      const sizes = [1, length[i], elementPerRow];
-      tensors2[i] = reshape(slice(tensor2, indices, sizes), outputElementShape);
-    }
-    tensor2.dispose();
-    return tensors2;
-  });
-  const list = new TensorList([], elementShape, tensor2.dtype, length.length);
-  for (let i = 0; i < tensors.length; i++) {
-    list.setItem(i, tensors[i]);
-  }
-  return list;
-}
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/control_executor.js
-var executeOp3 = async (node, tensorMap, context) => {
-  switch (node.op) {
-    case "If":
-    case "StatelessIf": {
-      const thenFunc = getParamValue("thenBranch", node, tensorMap, context);
-      const elseFunc = getParamValue("elseBranch", node, tensorMap, context);
-      const cond = getParamValue("cond", node, tensorMap, context);
-      const args = getParamValue("args", node, tensorMap, context);
-      const condValue = await cond.data();
-      if (condValue[0]) {
-        return context.functionMap[thenFunc].executeFunctionAsync(args, context.tensorArrayMap, context.tensorListMap);
-      } else {
-        return context.functionMap[elseFunc].executeFunctionAsync(args, context.tensorArrayMap, context.tensorListMap);
-      }
-    }
-    case "While":
-    case "StatelessWhile": {
-      const bodyFunc = getParamValue("body", node, tensorMap, context);
-      const condFunc = getParamValue("cond", node, tensorMap, context);
-      const args = getParamValue("args", node, tensorMap, context);
-      const condResult = await context.functionMap[condFunc].executeFunctionAsync(args, context.tensorArrayMap, context.tensorListMap);
-      const argIds = args.map((tensor2) => tensor2.id);
-      let condValue = await condResult[0].data();
-      condResult.forEach((tensor2) => {
-        if (!tensor2.kept && argIds.indexOf(tensor2.id) === -1) {
-          tensor2.dispose();
-        }
-      });
-      let result = args;
-      while (condValue[0]) {
-        const origResult = result;
-        result = await context.functionMap[bodyFunc].executeFunctionAsync(result, context.tensorArrayMap, context.tensorListMap);
-        const resultIds = result.map((tensor2) => tensor2.id);
-        origResult.forEach((tensor2) => {
-          if (!tensor2.kept && argIds.indexOf(tensor2.id) === -1 && resultIds.indexOf(tensor2.id) === -1) {
-            tensor2.dispose();
-          }
-        });
-        const condResult2 = await context.functionMap[condFunc].executeFunctionAsync(result, context.tensorArrayMap, context.tensorListMap);
-        condValue = await condResult2[0].data();
-        condResult2.forEach((tensor2) => {
-          if (!tensor2.kept && argIds.indexOf(tensor2.id) === -1 && resultIds.indexOf(tensor2.id) === -1) {
-            tensor2.dispose();
-          }
-        });
-      }
-      return result;
-    }
-    case "LoopCond": {
-      const pred = getParamValue("pred", node, tensorMap, context);
-      return [cloneTensor(pred)];
-    }
-    case "Switch": {
-      const pred = getParamValue("pred", node, tensorMap, context);
-      let data = getParamValue("data", node, tensorMap, context);
-      if (!data.kept) {
-        data = cloneTensor(data);
-      }
-      return (await pred.data())[0] ? [void 0, data] : [data, void 0];
-    }
-    case "Merge": {
-      const inputName = node.inputNames.find((name) => getTensor(name, tensorMap, context) !== void 0);
-      if (inputName) {
-        const data = getTensor(inputName, tensorMap, context);
-        return [cloneTensor(data)];
-      }
-      return void 0;
-    }
-    case "Enter": {
-      const frameId = getParamValue("frameName", node, tensorMap, context);
-      const data = getParamValue("tensor", node, tensorMap, context);
-      context.enterFrame(frameId);
-      return [cloneTensor(data)];
-    }
-    case "Exit": {
-      const data = getParamValue("tensor", node, tensorMap, context);
-      context.exitFrame();
-      return [cloneTensor(data)];
-    }
-    case "NextIteration": {
-      const data = getParamValue("tensor", node, tensorMap, context);
-      context.nextIteration();
-      return [cloneTensor(data)];
-    }
-    case "TensorArrayV3": {
-      const size = getParamValue("size", node, tensorMap, context);
-      const dtype = getParamValue("dtype", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const dynamicSize = getParamValue("dynamicSize", node, tensorMap, context);
-      const clearAfterRead = getParamValue("clearAfterRead", node, tensorMap, context);
-      const identicalElementShapes = getParamValue("identicalElementShapes", node, tensorMap, context);
-      const name = getParamValue("name", node, tensorMap, context);
-      const tensorArray = new TensorArray(name, dtype, size, elementShape, identicalElementShapes, dynamicSize, clearAfterRead);
-      context.addTensorArray(tensorArray);
-      return [tensorArray.idTensor, scalar(1)];
-    }
-    case "TensorArrayWriteV3": {
-      const id = getParamValue("tensorArrayId", node, tensorMap, context);
-      const index = getParamValue("index", node, tensorMap, context);
-      const writeTensor = getParamValue("tensor", node, tensorMap, context);
-      const writeTensorArray = context.getTensorArray(id.id);
-      writeTensorArray.write(index, writeTensor);
-      return [writeTensorArray.idTensor];
-    }
-    case "TensorArrayReadV3": {
-      const readId = getParamValue("tensorArrayId", node, tensorMap, context);
-      const readIndex = getParamValue("index", node, tensorMap, context);
-      const readTensorArray = context.getTensorArray(readId.id);
-      return [readTensorArray.read(readIndex)];
-    }
-    case "TensorArrayGatherV3": {
-      const gatherId = getParamValue("tensorArrayId", node, tensorMap, context);
-      const gatherIndices = getParamValue("indices", node, tensorMap, context);
-      const gatherDtype = getParamValue("dtype", node, tensorMap, context);
-      const gatherTensorArray = context.getTensorArray(gatherId.id);
-      return [gatherTensorArray.gather(gatherIndices, gatherDtype)];
-    }
-    case "TensorArrayScatterV3": {
-      const scatterId = getParamValue("tensorArrayId", node, tensorMap, context);
-      const scatterIndices = getParamValue("indices", node, tensorMap, context);
-      const scatterTensor = getParamValue("tensor", node, tensorMap, context);
-      const scatterTensorArray = context.getTensorArray(scatterId.id);
-      scatterTensorArray.scatter(scatterIndices, scatterTensor);
-      return [scatterTensorArray.idTensor];
-    }
-    case "TensorArrayConcatV3": {
-      const concatId = getParamValue("tensorArrayId", node, tensorMap, context);
-      const concatTensorArray = context.getTensorArray(concatId.id);
-      const concatDtype = getParamValue("dtype", node, tensorMap, context);
-      return [concatTensorArray.concat(concatDtype)];
-    }
-    case "TensorArraySplitV3": {
-      const splitId = getParamValue("tensorArrayId", node, tensorMap, context);
-      const splitTensor = getParamValue("tensor", node, tensorMap, context);
-      const lengths = getParamValue("lengths", node, tensorMap, context);
-      const splitTensorArray = context.getTensorArray(splitId.id);
-      splitTensorArray.split(lengths, splitTensor);
-      return [splitTensorArray.idTensor];
-    }
-    case "TensorArraySizeV3": {
-      const sizeId = getParamValue("tensorArrayId", node, tensorMap, context);
-      const sizeTensorArray = context.getTensorArray(sizeId.id);
-      return [scalar(sizeTensorArray.size(), "int32")];
-    }
-    case "TensorArrayCloseV3": {
-      const closeId = getParamValue("tensorArrayId", node, tensorMap, context);
-      const closeTensorArray = context.getTensorArray(closeId.id);
-      closeTensorArray.clearAndClose();
-      return [closeTensorArray.idTensor];
-    }
-    case "TensorListSetItem": {
-      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
-      const index = getParamValue("index", node, tensorMap, context);
-      const writeTensor = getParamValue("tensor", node, tensorMap, context);
-      const tensorList = context.getTensorList(idTensor.id);
-      tensorList.setItem(index, writeTensor);
-      return [tensorList.idTensor];
-    }
-    case "TensorListGetItem": {
-      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
-      const readIndex = getParamValue("index", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const elementDType = getParamValue("elementDType", node, tensorMap, context);
-      const tensorList = context.getTensorList(idTensor.id);
-      return [tensorList.getItem(readIndex, elementShape, elementDType)];
-    }
-    case "TensorListScatterV2":
-    case "TensorListScatter": {
-      const scatterIndices = getParamValue("indices", node, tensorMap, context);
-      const scatterTensor = getParamValue("tensor", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const numElements = getParamValue("numElements", node, tensorMap, context);
-      const tensorList = scatter(scatterTensor, scatterIndices, elementShape, numElements);
-      context.addTensorList(tensorList);
-      return [tensorList.idTensor];
-    }
-    case "TensorListReserve":
-    case "EmptyTensorList": {
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const elementDtype = getParamValue("elementDType", node, tensorMap, context);
-      let numElementsParam;
-      if (node.op === "TensorListReserve") {
-        numElementsParam = "numElements";
-      } else {
-        numElementsParam = "maxNumElements";
-      }
-      const numElements = getParamValue(numElementsParam, node, tensorMap, context);
-      const maxNumElements = node.op === "TensorListReserve" ? -1 : numElements;
-      const tensorList = reserve(elementShape, elementDtype, numElements, maxNumElements);
-      context.addTensorList(tensorList);
-      return [tensorList.idTensor];
-    }
-    case "TensorListGather": {
-      const gatherId = getParamValue("tensorListId", node, tensorMap, context);
-      const gatherIndices = getParamValue("indices", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const elementDtype = getParamValue("elementDType", node, tensorMap, context);
-      const tensorList = context.getTensorList(gatherId.id);
-      return [tensorList.gather(gatherIndices, elementDtype, elementShape)];
-    }
-    case "TensorListStack": {
-      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const elementDtype = getParamValue("elementDType", node, tensorMap, context);
-      const numElements = getParamValue("numElements", node, tensorMap, context);
-      const tensorList = context.getTensorList(idTensor.id);
-      return [tensorList.stack(elementShape, elementDtype, numElements)];
-    }
-    case "TensorListFromTensor": {
-      const tensor2 = getParamValue("tensor", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const elementDtype = getParamValue("elementDType", node, tensorMap, context);
-      const tensorList = fromTensor(tensor2, elementShape, elementDtype);
-      context.addTensorList(tensorList);
-      return [tensorList.idTensor];
-    }
-    case "TensorListConcat":
-    case "TensorListConcatV2": {
-      const concatId = getParamValue("tensorListId", node, tensorMap, context);
-      const tensorList = context.getTensorList(concatId.id);
-      const concatDtype = getParamValue("dtype", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      return [tensorList.concat(concatDtype, elementShape)];
-    }
-    case "TensorListPushBack": {
-      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
-      const writeTensor = getParamValue("tensor", node, tensorMap, context);
-      const tensorList = context.getTensorList(idTensor.id);
-      tensorList.pushBack(writeTensor);
-      return [tensorList.idTensor];
-    }
-    case "TensorListPopBack": {
-      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const elementDType = getParamValue("elementDType", node, tensorMap, context);
-      const tensorList = context.getTensorList(idTensor.id);
-      return [tensorList.popBack(elementShape, elementDType)];
-    }
-    case "TensorListSplit": {
-      const splitTensor = getParamValue("tensor", node, tensorMap, context);
-      const elementShape = getParamValue("elementShape", node, tensorMap, context);
-      const lengths = getParamValue("lengths", node, tensorMap, context);
-      const tensorList = split2(splitTensor, lengths, elementShape);
-      context.addTensorList(tensorList);
-      return [tensorList.idTensor];
-    }
-    case "TensorListLength": {
-      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
-      const tensorList = context.getTensorList(idTensor.id);
-      return [scalar(tensorList.size(), "int32")];
-    }
-    case "TensorListResize": {
-      const idTensor = getParamValue("tensorListId", node, tensorMap, context);
-      const size = getParamValue("size", node, tensorMap, context);
-      const srcTensorList = context.getTensorList(idTensor.id);
-      const destTensorList = srcTensorList.resize(size);
-      context.addTensorList(destTensorList);
-      return [destTensorList.idTensor];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/convolution_executor.js
-function fusedConvAndDepthWiseParams(node, tensorMap, context) {
-  const [extraOp, activationFunc] = getParamValue("fusedOps", node, tensorMap, context);
-  const isBiasAdd = extraOp === "biasadd";
-  const noBiasAdd = !isBiasAdd;
-  const isPrelu = activationFunc === "prelu";
-  const isBatchNorm = extraOp === "fusedbatchnorm";
-  const numArgs = getParamValue("numArgs", node, tensorMap, context);
-  if (isBiasAdd) {
-    if (isPrelu && numArgs !== 2) {
-      throw new Error("FusedConv2d and DepthwiseConv2d with BiasAdd and Prelu must have two extra arguments: bias and alpha.");
-    }
-    if (!isPrelu && isBiasAdd && numArgs !== 1) {
-      throw new Error("FusedConv2d and DepthwiseConv2d with BiasAdd must have one extra argument: bias.");
-    }
-  }
-  if (isBatchNorm) {
-    throw new Error("FusedConv2d and DepthwiseConv2d with FusedBatchNorm is not supported");
-  }
-  const stride = getParamValue("strides", node, tensorMap, context);
-  const pad2 = getPadding(node, tensorMap, context);
-  const dataFormat = getParamValue("dataFormat", node, tensorMap, context).toUpperCase();
-  const dilations = getParamValue("dilations", node, tensorMap, context);
-  let [biasArg, preluArg] = getParamValue("args", node, tensorMap, context);
-  if (noBiasAdd) {
-    preluArg = biasArg;
-    biasArg = void 0;
-  }
-  const leakyreluAlpha = getParamValue("leakyreluAlpha", node, tensorMap, context);
-  return {
-    stride,
-    pad: pad2,
-    dataFormat,
-    dilations,
-    biasArg,
-    preluArg,
-    activationFunc,
-    leakyreluAlpha
-  };
-}
-var executeOp4 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "Conv1D": {
-      const stride = getParamValue("stride", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const dataFormat = getParamValue("dataFormat", node, tensorMap, context).toUpperCase();
-      const dilation = getParamValue("dilation", node, tensorMap, context);
-      return [ops.conv1d(getParamValue("x", node, tensorMap, context), getParamValue("filter", node, tensorMap, context), stride, pad2, dataFormat, dilation)];
-    }
-    case "Conv2D": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getPadding(node, tensorMap, context);
-      const dataFormat = getParamValue("dataFormat", node, tensorMap, context).toUpperCase();
-      const dilations = getParamValue("dilations", node, tensorMap, context);
-      return [ops.conv2d(getParamValue("x", node, tensorMap, context), getParamValue("filter", node, tensorMap, context), [stride[1], stride[2]], pad2, dataFormat, [dilations[1], dilations[2]])];
-    }
-    case "_FusedConv2D": {
-      const { stride, pad: pad2, dataFormat, dilations, biasArg, preluArg, activationFunc, leakyreluAlpha } = fusedConvAndDepthWiseParams(node, tensorMap, context);
-      return [ops.fused.conv2d({
-        x: getParamValue("x", node, tensorMap, context),
-        filter: getParamValue("filter", node, tensorMap, context),
-        strides: [stride[1], stride[2]],
-        pad: pad2,
-        dataFormat,
-        dilations: [dilations[1], dilations[2]],
-        bias: biasArg,
-        activation: activationFunc,
-        preluActivationWeights: preluArg,
-        leakyreluAlpha
-      })];
-    }
-    case "FusedDepthwiseConv2dNative": {
-      const { stride, pad: pad2, dataFormat, dilations, biasArg, preluArg, activationFunc, leakyreluAlpha } = fusedConvAndDepthWiseParams(node, tensorMap, context);
-      return [ops.fused.depthwiseConv2d({
-        x: getParamValue("x", node, tensorMap, context),
-        filter: getParamValue("filter", node, tensorMap, context),
-        strides: [stride[1], stride[2]],
-        pad: pad2,
-        dataFormat,
-        dilations: [dilations[1], dilations[2]],
-        bias: biasArg,
-        activation: activationFunc,
-        preluActivationWeights: preluArg,
-        leakyreluAlpha
-      })];
-    }
-    case "Conv2DBackpropInput":
-    case "Conv2dTranspose": {
-      const shape = getParamValue("outputShape", node, tensorMap, context);
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getPadding(node, tensorMap, context);
-      return [ops.conv2dTranspose(getParamValue("x", node, tensorMap, context), getParamValue("filter", node, tensorMap, context), shape, [stride[1], stride[2]], pad2)];
-    }
-    case "DepthwiseConv2dNative":
-    case "DepthwiseConv2d": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getPadding(node, tensorMap, context);
-      const dilations = getParamValue("dilations", node, tensorMap, context);
-      const dataFormat = getParamValue("dataFormat", node, tensorMap, context).toUpperCase();
-      return [ops.depthwiseConv2d(getParamValue("input", node, tensorMap, context), getParamValue("filter", node, tensorMap, context), [stride[1], stride[2]], pad2, dataFormat, [dilations[1], dilations[2]])];
-    }
-    case "Conv3D": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const dataFormat = getParamValue("dataFormat", node, tensorMap, context).toUpperCase();
-      const dilations = getParamValue("dilations", node, tensorMap, context);
-      return [ops.conv3d(getParamValue("x", node, tensorMap, context), getParamValue("filter", node, tensorMap, context), [stride[1], stride[2], stride[3]], pad2, dataFormat, [dilations[1], dilations[2], dilations[3]])];
-    }
-    case "AvgPool": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const kernelSize = getParamValue("kernelSize", node, tensorMap, context);
-      return [ops.avgPool(getParamValue("x", node, tensorMap, context), [kernelSize[1], kernelSize[2]], [stride[1], stride[2]], pad2)];
-    }
-    case "MaxPool": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const kernelSize = getParamValue("kernelSize", node, tensorMap, context);
-      return [ops.maxPool(getParamValue("x", node, tensorMap, context), [kernelSize[1], kernelSize[2]], [stride[1], stride[2]], pad2)];
-    }
-    case "MaxPoolWithArgmax": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const kernelSize = getParamValue("kernelSize", node, tensorMap, context);
-      const includeBatchInIndex = getParamValue("includeBatchInIndex", node, tensorMap, context);
-      const { result, indexes } = ops.maxPoolWithArgmax(getParamValue("x", node, tensorMap, context), [kernelSize[1], kernelSize[2]], [stride[1], stride[2]], pad2, includeBatchInIndex);
-      return [result, indexes];
-    }
-    case "AvgPool3D": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const kernelSize = getParamValue("kernelSize", node, tensorMap, context);
-      return [ops.avgPool3d(getParamValue("x", node, tensorMap, context), [kernelSize[1], kernelSize[2], kernelSize[3]], [stride[1], stride[2], stride[3]], pad2)];
-    }
-    case "MaxPool3D": {
-      const stride = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const kernelSize = getParamValue("kernelSize", node, tensorMap, context);
-      return [ops.maxPool3d(getParamValue("x", node, tensorMap, context), [kernelSize[1], kernelSize[2], kernelSize[3]], [stride[1], stride[2], stride[3]], pad2)];
-    }
-    case "Dilation2D": {
-      const strides = getParamValue("strides", node, tensorMap, context);
-      const pad2 = getParamValue("pad", node, tensorMap, context);
-      const dilations = getParamValue("dilations", node, tensorMap, context);
-      const strideHeight = strides[1];
-      const strideWidth = strides[2];
-      const dilationHeight = dilations[1];
-      const dilationWidth = dilations[2];
-      return [ops.dilation2d(
-        getParamValue("x", node, tensorMap, context),
-        getParamValue("filter", node, tensorMap, context),
-        [strideHeight, strideWidth],
-        pad2,
-        [dilationHeight, dilationWidth],
-        "NHWC"
-        /* dataFormat */
-      )];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/creation_executor.js
-var executeOp5 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "Fill": {
-      const shape = getParamValue("shape", node, tensorMap, context);
-      const dtype = getParamValue("dtype", node, tensorMap, context);
-      const value = getParamValue("value", node, tensorMap, context);
-      return [ops.fill(shape, value, dtype)];
-    }
-    case "LinSpace": {
-      const start = getParamValue("start", node, tensorMap, context);
-      const stop = getParamValue("stop", node, tensorMap, context);
-      const num = getParamValue("num", node, tensorMap, context);
-      return [ops.linspace(start, stop, num)];
-    }
-    case "Multinomial": {
-      const logits = getParamValue("logits", node, tensorMap, context);
-      const numSamples = getParamValue("numSamples", node, tensorMap, context);
-      const seed = getParamValue("seed", node, tensorMap, context);
-      return [ops.multinomial(logits, numSamples, seed)];
-    }
-    case "OneHot": {
-      const indices = getParamValue("indices", node, tensorMap, context);
-      const depth = getParamValue("depth", node, tensorMap, context);
-      const onValue = getParamValue("onValue", node, tensorMap, context);
-      const offValue = getParamValue("offValue", node, tensorMap, context);
-      const dtype = getParamValue("dtype", node, tensorMap, context);
-      return [ops.oneHot(indices, depth, onValue, offValue, dtype)];
-    }
-    case "Ones": {
-      return [ops.ones(getParamValue("shape", node, tensorMap, context), getParamValue("dtype", node, tensorMap, context))];
-    }
-    case "OnesLike": {
-      return [ops.onesLike(getParamValue("x", node, tensorMap, context))];
-    }
-    case "RandomStandardNormal": {
-      return [ops.randomStandardNormal(getParamValue("shape", node, tensorMap, context), getParamValue("dtype", node, tensorMap, context), getParamValue("seed", node, tensorMap, context))];
-    }
-    case "RandomUniform": {
-      return [ops.randomUniform(
-        // tslint:disable-next-line:no-any
-        getParamValue("shape", node, tensorMap, context),
-        getParamValue("minval", node, tensorMap, context),
-        getParamValue("maxval", node, tensorMap, context),
-        getParamValue("dtype", node, tensorMap, context)
-      )];
-    }
-    case "RandomUniformInt": {
-      return [ops.randomUniformInt(getParamValue("shape", node, tensorMap, context), getParamValue("minval", node, tensorMap, context), getParamValue("maxval", node, tensorMap, context), getParamValue("seed", node, tensorMap, context))];
-    }
-    case "Range": {
-      const start = getParamValue("start", node, tensorMap, context);
-      const stop = getParamValue("stop", node, tensorMap, context);
-      const step4 = getParamValue("step", node, tensorMap, context);
-      return [ops.range(start, stop, step4, getParamValue("dtype", node, tensorMap, context))];
-    }
-    case "TruncatedNormal": {
-      const shape = getParamValue("shape", node, tensorMap, context);
-      const mean3 = getParamValue("mean", node, tensorMap, context);
-      const stdDev = getParamValue("stdDev", node, tensorMap, context);
-      const seed = getParamValue("seed", node, tensorMap, context);
-      return [ops.truncatedNormal(shape, mean3, stdDev, getParamValue("dtype", node, tensorMap, context), seed)];
-    }
-    case "Zeros": {
-      return [ops.zeros(getParamValue("shape", node, tensorMap, context), getParamValue("dtype", node, tensorMap, context))];
-    }
-    case "ZerosLike": {
-      return [ops.zerosLike(getParamValue("x", node, tensorMap, context))];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/dynamic_executor.js
-function nmsParams(node, tensorMap, context) {
-  const boxes = getParamValue("boxes", node, tensorMap, context);
-  const scores = getParamValue("scores", node, tensorMap, context);
-  const maxOutputSize = getParamValue("maxOutputSize", node, tensorMap, context);
-  const iouThreshold = getParamValue("iouThreshold", node, tensorMap, context);
-  const scoreThreshold = getParamValue("scoreThreshold", node, tensorMap, context);
-  const softNmsSigma = getParamValue("softNmsSigma", node, tensorMap, context);
-  return {
-    boxes,
-    scores,
-    maxOutputSize,
-    iouThreshold,
-    scoreThreshold,
-    softNmsSigma
-  };
-}
-var executeOp6 = async (node, tensorMap, context, resourceManager, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "NonMaxSuppressionV5": {
-      const { boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma } = nmsParams(node, tensorMap, context);
-      const result = await ops.image.nonMaxSuppressionWithScoreAsync(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma);
-      return [result.selectedIndices, result.selectedScores];
-    }
-    case "NonMaxSuppressionV4": {
-      const { boxes, scores, maxOutputSize, iouThreshold, scoreThreshold } = nmsParams(node, tensorMap, context);
-      const padToMaxOutputSize = getParamValue("padToMaxOutputSize", node, tensorMap, context);
-      const result = await ops.image.nonMaxSuppressionPaddedAsync(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize);
-      return [result.selectedIndices, result.validOutputs];
-    }
-    case "NonMaxSuppressionV3":
-    case "NonMaxSuppressionV2": {
-      const { boxes, scores, maxOutputSize, iouThreshold, scoreThreshold } = nmsParams(node, tensorMap, context);
-      return [await ops.image.nonMaxSuppressionAsync(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold)];
-    }
-    case "Where": {
-      const condition = ops.cast(getParamValue("condition", node, tensorMap, context), "bool");
-      const result = [await ops.whereAsync(condition)];
-      condition.dispose();
-      return result;
-    }
-    case "ListDiff": {
-      return ops.setdiff1dAsync(getParamValue("x", node, tensorMap, context), getParamValue("y", node, tensorMap, context));
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/evaluation_executor.js
-var executeOp7 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "LowerBound": {
-      const sortedSequence = getParamValue("sortedSequence", node, tensorMap, context);
-      const values = getParamValue("values", node, tensorMap, context);
-      return [ops.lowerBound(sortedSequence, values)];
-    }
-    case "TopKV2": {
-      const x = getParamValue("x", node, tensorMap, context);
-      const k = getParamValue("k", node, tensorMap, context);
-      const sorted = getParamValue("sorted", node, tensorMap, context);
-      const result = ops.topk(x, k, sorted);
-      return [result.values, result.indices];
-    }
-    case "UpperBound": {
-      const sortedSequence = getParamValue("sortedSequence", node, tensorMap, context);
-      const values = getParamValue("values", node, tensorMap, context);
-      return [ops.upperBound(sortedSequence, values)];
-    }
-    case "Unique": {
-      const x = getParamValue("x", node, tensorMap, context);
-      const result = ops.unique(x);
-      return [result.values, result.indices];
-    }
-    case "UniqueV2": {
-      const x = getParamValue("x", node, tensorMap, context);
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const result = ops.unique(x, axis);
-      return [result.values, result.indices];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/graph_executor.js
-var executeOp8 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "Const": {
-      return tensorMap[node.name];
-    }
-    case "PlaceholderWithDefault":
-      const def = getParamValue("default", node, tensorMap, context);
-      return [getTensor(node.name, tensorMap, context) || def];
-    case "Placeholder":
-      return [getTensor(node.name, tensorMap, context)];
-    case "Identity":
-    case "StopGradient":
-    case "FakeQuantWithMinMaxVars": {
-      const data2 = getParamValue("x", node, tensorMap, context);
-      return [cloneTensor(data2)];
-    }
-    case "IdentityN":
-      return getParamValue("x", node, tensorMap, context).map((t) => cloneTensor(t));
-    case "Snapshot":
-      const snapshot = getParamValue("x", node, tensorMap, context);
-      return [cloneTensor(snapshot)];
-    case "Shape":
-      return [ops.tensor1d(getParamValue("x", node, tensorMap, context).shape, "int32")];
-    case "ShapeN":
-      return getParamValue("x", node, tensorMap, context).map((t) => ops.tensor1d(t.shape));
-    case "Size":
-      return [ops.scalar(getParamValue("x", node, tensorMap, context).size, "int32")];
-    case "Rank":
-      return [ops.scalar(getParamValue("x", node, tensorMap, context).rank, "int32")];
-    case "NoOp":
-      return [ops.scalar(1)];
-    case "Print":
-      const input2 = getParamValue("x", node, tensorMap, context);
-      const data = getParamValue("data", node, tensorMap, context);
-      const message = getParamValue("message", node, tensorMap, context);
-      const summarize = getParamValue("summarize", node, tensorMap, context);
-      console.warn("The graph has a tf.print() operation,usually used for debugging, which slows down performance.");
-      console.log(message);
-      for (let i = 0; i < data.length; i++) {
-        console.log(Array.prototype.slice.call(data[i].dataSync()).slice(0, summarize));
-      }
-      return [input2];
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/hash_table.js
-var HashTable = class {
-  get id() {
-    return this.handle.id;
-  }
-  /**
-   * Constructor of HashTable. Creates a hash table.
-   *
-   * @param keyDType `dtype` of the table keys.
-   * @param valueDType `dtype` of the table values.
-   */
-  constructor(keyDType, valueDType) {
-    this.keyDType = keyDType;
-    this.valueDType = valueDType;
-    this.handle = scalar(0);
-    this.tensorMap = /* @__PURE__ */ new Map();
-    keep(this.handle);
-  }
-  /**
-   * Dispose the tensors and handle and clear the hashtable.
-   */
-  clearAndClose() {
-    this.tensorMap.forEach((value) => value.dispose());
-    this.tensorMap.clear();
-    this.handle.dispose();
-  }
-  /**
-   * The number of items in the hash table.
-   */
-  size() {
-    return this.tensorMap.size;
-  }
-  /**
-   * The number of items in the hash table as a rank-0 tensor.
-   */
-  tensorSize() {
-    return scalar(this.size(), "int32");
-  }
-  /**
-   * Replaces the contents of the table with the specified keys and values.
-   * @param keys Keys to store in the hashtable.
-   * @param values Values to store in the hashtable.
-   */
-  async import(keys, values) {
-    this.checkKeyAndValueTensor(keys, values);
-    const $keys = await keys.data();
-    this.tensorMap.forEach((value) => value.dispose());
-    this.tensorMap.clear();
-    return tidy(() => {
-      const $values = unstack(values);
-      const keysLength = $keys.length;
-      const valuesLength = $values.length;
-      util_exports.assert(keysLength === valuesLength, () => `The number of elements doesn't match, keys has ${keysLength} elements, the values has ${valuesLength} elements.`);
-      for (let i = 0; i < keysLength; i++) {
-        const key = $keys[i];
-        const value = $values[i];
-        keep(value);
-        this.tensorMap.set(key, value);
-      }
-      return this.handle;
-    });
-  }
-  /**
-   * Looks up keys in a hash table, outputs the corresponding values.
-   *
-   * Performs batch lookups, for every element in the key tensor, `find`
-   * stacks the corresponding value into the return tensor.
-   *
-   * If an element is not present in the table, the given `defaultValue` is
-   * used.
-   *
-   * @param keys Keys to look up. Must have the same type as the keys of the
-   *     table.
-   * @param defaultValue The scalar `defaultValue` is the value output for keys
-   *     not present in the table. It must also be of the same type as the
-   *     table values.
-   */
-  async find(keys, defaultValue) {
-    this.checkKeyAndValueTensor(keys, defaultValue);
-    const $keys = await keys.data();
-    return tidy(() => {
-      const result = [];
-      for (let i = 0; i < $keys.length; i++) {
-        const key = $keys[i];
-        const value = this.findWithDefault(key, defaultValue);
-        result.push(value);
-      }
-      return stack(result);
-    });
-  }
-  // tslint:disable-next-line: no-any
-  findWithDefault(key, defaultValue) {
-    const result = this.tensorMap.get(key);
-    return result != null ? result : defaultValue;
-  }
-  checkKeyAndValueTensor(key, value) {
-    if (key.dtype !== this.keyDType) {
-      throw new Error(`Expect key dtype ${this.keyDType}, but got ${key.dtype}`);
-    }
-    if (value.dtype !== this.valueDType) {
-      throw new Error(`Expect value dtype ${this.valueDType}, but got ${value.dtype}`);
-    }
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/hash_table_executor.js
-var executeOp9 = async (node, tensorMap, context, resourceManager) => {
-  switch (node.op) {
-    case "HashTable":
-    case "HashTableV2": {
-      const existingTableHandle = resourceManager.getHashTableHandleByName(node.name);
-      if (existingTableHandle != null) {
-        return [existingTableHandle];
-      } else {
-        const keyDType = getParamValue("keyDType", node, tensorMap, context);
-        const valueDType = getParamValue("valueDType", node, tensorMap, context);
-        const hashTable = new HashTable(keyDType, valueDType);
-        resourceManager.addHashTable(node.name, hashTable);
-        return [hashTable.handle];
-      }
-    }
-    case "InitializeTable":
-    case "InitializeTableV2":
-    case "LookupTableImport":
-    case "LookupTableImportV2": {
-      const handle = getParamValue("tableHandle", node, tensorMap, context, resourceManager);
-      const keys = getParamValue("keys", node, tensorMap, context);
-      const values = getParamValue("values", node, tensorMap, context);
-      const hashTable = resourceManager.getHashTableById(handle.id);
-      return [await hashTable.import(keys, values)];
-    }
-    case "LookupTableFind":
-    case "LookupTableFindV2": {
-      const handle = getParamValue("tableHandle", node, tensorMap, context, resourceManager);
-      const keys = getParamValue("keys", node, tensorMap, context);
-      const defaultValue = getParamValue("defaultValue", node, tensorMap, context);
-      const hashTable = resourceManager.getHashTableById(handle.id);
-      return [await hashTable.find(keys, defaultValue)];
-    }
-    case "LookupTableSize":
-    case "LookupTableSizeV2": {
-      const handle = getParamValue("tableHandle", node, tensorMap, context, resourceManager);
-      const hashTable = resourceManager.getHashTableById(handle.id);
-      return [hashTable.tensorSize()];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/image_executor.js
-var executeOp10 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "ResizeBilinear": {
-      const images = getParamValue("images", node, tensorMap, context);
-      const size = getParamValue("size", node, tensorMap, context);
-      const alignCorners = getParamValue("alignCorners", node, tensorMap, context);
-      const halfPixelCenters = getParamValue("halfPixelCenters", node, tensorMap, context);
-      return [ops.image.resizeBilinear(images, [size[0], size[1]], alignCorners, halfPixelCenters)];
-    }
-    case "ResizeNearestNeighbor": {
-      const images = getParamValue("images", node, tensorMap, context);
-      const size = getParamValue("size", node, tensorMap, context);
-      const alignCorners = getParamValue("alignCorners", node, tensorMap, context);
-      const halfPixelCenters = getParamValue("halfPixelCenters", node, tensorMap, context);
-      return [ops.image.resizeNearestNeighbor(images, [size[0], size[1]], alignCorners, halfPixelCenters)];
-    }
-    case "CropAndResize": {
-      const image2 = getParamValue("image", node, tensorMap, context);
-      const boxes = getParamValue("boxes", node, tensorMap, context);
-      const boxInd = getParamValue("boxInd", node, tensorMap, context);
-      const cropSize = getParamValue("cropSize", node, tensorMap, context);
-      const method = getParamValue("method", node, tensorMap, context);
-      const extrapolationValue = getParamValue("extrapolationValue", node, tensorMap, context);
-      return [ops.image.cropAndResize(image2, boxes, boxInd, cropSize, method, extrapolationValue)];
-    }
-    case "ImageProjectiveTransformV3": {
-      const images = getParamValue("images", node, tensorMap, context);
-      const transforms = getParamValue("transforms", node, tensorMap, context);
-      const outputShape = getParamValue("outputShape", node, tensorMap, context);
-      const fillValue = getParamValue("fillValue", node, tensorMap, context);
-      const interpolation = getParamValue("interpolation", node, tensorMap, context);
-      const fillMode = getParamValue("fillMode", node, tensorMap, context);
-      return [ops.image.transform(images, transforms, interpolation.toLowerCase(), fillMode.toLowerCase(), fillValue, outputShape)];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/logical_executor.js
-var executeOp11 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "Equal": {
-      return [ops.equal(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "NotEqual": {
-      return [ops.notEqual(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "Greater": {
-      return [ops.greater(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "GreaterEqual": {
-      return [ops.greaterEqual(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "Less": {
-      return [ops.less(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "LessEqual": {
-      return [ops.lessEqual(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "LogicalAnd": {
-      return [ops.logicalAnd(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "LogicalNot": {
-      return [ops.logicalNot(getParamValue("a", node, tensorMap, context))];
-    }
-    case "LogicalOr": {
-      return [ops.logicalOr(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "Select":
-    case "SelectV2": {
-      return [ops.where(getParamValue("condition", node, tensorMap, context), getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    case "BitwiseAnd": {
-      return [ops.bitwiseAnd(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context))];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/matrices_executor.js
-var executeOp12 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "BatchMatMul":
-    case "BatchMatMulV2":
-    case "MatMul":
-      return [ops.matMul(getParamValue("a", node, tensorMap, context), getParamValue("b", node, tensorMap, context), getParamValue("transposeA", node, tensorMap, context), getParamValue("transposeB", node, tensorMap, context))];
-    case "Einsum":
-      return [ops.einsum(getParamValue("equation", node, tensorMap, context), ...getParamValue("tensors", node, tensorMap, context))];
-    case "Transpose":
-      return [ops.transpose(getParamValue("x", node, tensorMap, context), getParamValue("perm", node, tensorMap, context))];
-    case "_FusedMatMul":
-      const [extraOp, activationFunc] = getParamValue("fusedOps", node, tensorMap, context);
-      const isBiasAdd = extraOp === "biasadd";
-      const isPrelu = activationFunc === "prelu";
-      const numArgs = getParamValue("numArgs", node, tensorMap, context);
-      const leakyreluAlpha = getParamValue("leakyreluAlpha", node, tensorMap, context);
-      if (isBiasAdd) {
-        if (isPrelu && numArgs !== 2) {
-          throw new Error("Fused MatMul with BiasAdd and Prelu must have two extra arguments: bias and alpha.");
-        }
-        if (!isPrelu && numArgs !== 1) {
-          throw new Error("Fused MatMul with BiasAdd must have one extra argument: bias.");
-        }
-      }
-      const [biasArg, preluArg] = getParamValue("args", node, tensorMap, context);
-      return [ops.fused.matMul({
-        a: getParamValue("a", node, tensorMap, context),
-        b: getParamValue("b", node, tensorMap, context),
-        transposeA: getParamValue("transposeA", node, tensorMap, context),
-        transposeB: getParamValue("transposeB", node, tensorMap, context),
-        bias: biasArg,
-        activation: activationFunc,
-        preluActivationWeights: preluArg,
-        leakyreluAlpha
-      })];
-    case "MatrixBandPart":
-      return [ops.linalg.bandPart(getParamValue("a", node, tensorMap, context), getParamValue("numLower", node, tensorMap, context), getParamValue("numUpper", node, tensorMap, context))];
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/normalization_executor.js
-var executeOp13 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "EuclideanNorm":
-      return [ops.euclideanNorm(getParamValue("x", node, tensorMap, context), getParamValue("axis", node, tensorMap, context), getParamValue("keepDims", node, tensorMap, context))];
-    case "FusedBatchNorm":
-    case "FusedBatchNormV2": {
-      return [ops.batchNorm(getParamValue("x", node, tensorMap, context), getParamValue("mean", node, tensorMap, context), getParamValue("variance", node, tensorMap, context), getParamValue("offset", node, tensorMap, context), getParamValue("scale", node, tensorMap, context), getParamValue("epsilon", node, tensorMap, context))];
-    }
-    case "FusedBatchNormV3": {
-      return [ops.batchNorm(getParamValue("x", node, tensorMap, context), getParamValue("mean", node, tensorMap, context), getParamValue("variance", node, tensorMap, context), getParamValue("offset", node, tensorMap, context), getParamValue("scale", node, tensorMap, context), getParamValue("epsilon", node, tensorMap, context))];
-    }
-    case "LRN": {
-      return [ops.localResponseNormalization(getParamValue("x", node, tensorMap, context), getParamValue("radius", node, tensorMap, context), getParamValue("bias", node, tensorMap, context), getParamValue("alpha", node, tensorMap, context), getParamValue("beta", node, tensorMap, context))];
-    }
-    case "Softmax": {
-      return [ops.softmax(getParamValue("x", node, tensorMap, context))];
-    }
-    case "LogSoftmax": {
-      return [ops.logSoftmax(getParamValue("x", node, tensorMap, context))];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/ragged_executor.js
-var executeOp14 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "RaggedGather": {
-      const { outputNestedSplits, outputDenseValues } = ops.raggedGather(getParamValue("paramsNestedSplits", node, tensorMap, context), getParamValue("paramsDenseValues", node, tensorMap, context), getParamValue("indices", node, tensorMap, context), getParamValue("outputRaggedRank", node, tensorMap, context));
-      return outputNestedSplits.concat(outputDenseValues);
-    }
-    case "RaggedRange": {
-      const { rtNestedSplits, rtDenseValues } = ops.raggedRange(getParamValue("starts", node, tensorMap, context), getParamValue("limits", node, tensorMap, context), getParamValue("splits", node, tensorMap, context));
-      return [rtNestedSplits, rtDenseValues];
-    }
-    case "RaggedTensorToTensor": {
-      return [ops.raggedTensorToTensor(getParamValue("shape", node, tensorMap, context), getParamValue("values", node, tensorMap, context), getParamValue("defaultValue", node, tensorMap, context), getParamValue("rowPartitionTensors", node, tensorMap, context), getParamValue("rowPartitionTypes", node, tensorMap, context))];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/reduction_executor.js
-var executeOp15 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "Max": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const keepDims = getParamValue("keepDims", node, tensorMap, context);
-      return [ops.max(getParamValue("x", node, tensorMap, context), axis, keepDims)];
-    }
-    case "Mean": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const keepDims = getParamValue("keepDims", node, tensorMap, context);
-      return [ops.mean(getParamValue("x", node, tensorMap, context), axis, keepDims)];
-    }
-    case "Min": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const keepDims = getParamValue("keepDims", node, tensorMap, context);
-      return [ops.min(getParamValue("x", node, tensorMap, context), axis, keepDims)];
-    }
-    case "Sum": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const keepDims = getParamValue("keepDims", node, tensorMap, context);
-      return [ops.sum(getParamValue("x", node, tensorMap, context), axis, keepDims)];
-    }
-    case "All": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const keepDims = getParamValue("keepDims", node, tensorMap, context);
-      return [ops.all(getParamValue("x", node, tensorMap, context), axis, keepDims)];
-    }
-    case "Any": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const keepDims = getParamValue("keepDims", node, tensorMap, context);
-      return [ops.any(getParamValue("x", node, tensorMap, context), axis, keepDims)];
-    }
-    case "ArgMax": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      return [ops.argMax(getParamValue("x", node, tensorMap, context), axis)];
-    }
-    case "ArgMin": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      return [ops.argMin(getParamValue("x", node, tensorMap, context), axis)];
-    }
-    case "Prod": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const keepDims = getParamValue("keepDims", node, tensorMap, context);
-      return [ops.prod(getParamValue("x", node, tensorMap, context), axis, keepDims)];
-    }
-    case "Cumprod": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const exclusive = getParamValue("exclusive", node, tensorMap, context);
-      const reverse4 = getParamValue("reverse", node, tensorMap, context);
-      return [ops.cumprod(getParamValue("x", node, tensorMap, context), axis, exclusive, reverse4)];
-    }
-    case "Cumsum": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const exclusive = getParamValue("exclusive", node, tensorMap, context);
-      const reverse4 = getParamValue("reverse", node, tensorMap, context);
-      return [ops.cumsum(getParamValue("x", node, tensorMap, context), axis, exclusive, reverse4)];
-    }
-    case "Bincount":
-      const x = getParamValue("x", node, tensorMap, context);
-      const weights = getParamValue("weights", node, tensorMap, context);
-      const size = getParamValue("size", node, tensorMap, context);
-      return [ops.bincount(x, weights, size)];
-    case "DenseBincount": {
-      const x2 = getParamValue("x", node, tensorMap, context);
-      const weights2 = getParamValue("weights", node, tensorMap, context);
-      const size2 = getParamValue("size", node, tensorMap, context);
-      const binaryOutput = getParamValue("binaryOutput", node, tensorMap, context);
-      return [ops.denseBincount(x2, weights2, size2, binaryOutput)];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/slice_join_executor.js
-var executeOp16 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "ConcatV2":
-    case "Concat": {
-      const n = getParamValue("n", node, tensorMap, context);
-      const axis = getParamValue("axis", node, tensorMap, context);
-      let inputs = getParamValue("tensors", node, tensorMap, context);
-      inputs = inputs.slice(0, n);
-      return [ops.concat(inputs, axis)];
-    }
-    case "Gather": {
-      const input2 = getParamValue("x", node, tensorMap, context);
-      const indices = getParamValue("indices", node, tensorMap, context);
-      return [ops.gather(input2, ops.cast(indices, "int32"), 0)];
-    }
-    case "GatherV2": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const batchDims = getParamValue("batchDims", node, tensorMap, context);
-      const input2 = getParamValue("x", node, tensorMap, context);
-      const indices = getParamValue("indices", node, tensorMap, context);
-      return [ops.gather(input2, ops.cast(indices, "int32"), axis, batchDims)];
-    }
-    case "Reverse": {
-      const dims = getParamValue("dims", node, tensorMap, context);
-      const axis = [];
-      for (let i = 0; i < dims.length; i++) {
-        if (dims[i]) {
-          axis.push(i);
-        }
-      }
-      const input2 = getParamValue("x", node, tensorMap, context);
-      return [ops.reverse(input2, axis)];
-    }
-    case "ReverseV2": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const input2 = getParamValue("x", node, tensorMap, context);
-      return [ops.reverse(input2, axis)];
-    }
-    case "Slice": {
-      const begin = getParamValue("begin", node, tensorMap, context);
-      const size = getParamValue("size", node, tensorMap, context);
-      return [ops.slice(getParamValue("x", node, tensorMap, context), begin, size)];
-    }
-    case "StridedSlice": {
-      const begin = getParamValue("begin", node, tensorMap, context);
-      const end = getParamValue("end", node, tensorMap, context);
-      const strides = getParamValue("strides", node, tensorMap, context);
-      const beginMask = getParamValue("beginMask", node, tensorMap, context);
-      const endMask = getParamValue("endMask", node, tensorMap, context);
-      const ellipsisMask = getParamValue("ellipsisMask", node, tensorMap, context);
-      const newAxisMask = getParamValue("newAxisMask", node, tensorMap, context);
-      const shrinkAxisMask = getParamValue("shrinkAxisMask", node, tensorMap, context);
-      const tensor2 = getParamValue("x", node, tensorMap, context);
-      return [ops.stridedSlice(tensor2, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask)];
-    }
-    case "Pack": {
-      return tidy(() => {
-        const axis = getParamValue("axis", node, tensorMap, context);
-        const tensors = getParamValue("tensors", node, tensorMap, context);
-        const shape = tensors[0].shape;
-        const squeezedShape = ops.squeeze(tensors[0]).shape;
-        const mapped = tensors.map((tensor2) => {
-          const sameShape = util_exports.arraysEqual(tensor2.shape, shape);
-          if (!sameShape && !util_exports.arraysEqual(ops.squeeze(tensor2).shape, squeezedShape)) {
-            throw new Error("the input tensors shape does not match");
-          }
-          return sameShape ? tensor2 : ops.reshape(tensor2, shape);
-        });
-        return [ops.stack(mapped, axis)];
-      });
-    }
-    case "Unpack": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const tensor2 = getParamValue("tensor", node, tensorMap, context);
-      return ops.unstack(tensor2, axis);
-    }
-    case "Tile": {
-      const reps = getParamValue("reps", node, tensorMap, context);
-      return [ops.tile(getParamValue("x", node, tensorMap, context), reps)];
-    }
-    case "Split":
-    case "SplitV": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      const numOrSizeSplits = getParamValue("numOrSizeSplits", node, tensorMap, context);
-      const tensor2 = getParamValue("x", node, tensorMap, context);
-      return ops.split(tensor2, numOrSizeSplits, axis);
-    }
-    case "ScatterNd": {
-      const indices = getParamValue("indices", node, tensorMap, context);
-      const values = getParamValue("values", node, tensorMap, context);
-      const shape = getParamValue("shape", node, tensorMap, context);
-      return [ops.scatterND(indices, values, shape)];
-    }
-    case "GatherNd": {
-      const x = getParamValue("x", node, tensorMap, context);
-      const indices = getParamValue("indices", node, tensorMap, context);
-      return [ops.gatherND(x, indices)];
-    }
-    case "SparseToDense": {
-      const indices = getParamValue("sparseIndices", node, tensorMap, context);
-      const shape = getParamValue("outputShape", node, tensorMap, context);
-      const sparseValues = getParamValue("sparseValues", node, tensorMap, context);
-      const defaultValue = getParamValue("defaultValue", node, tensorMap, context);
-      return [ops.sparseToDense(indices, sparseValues, shape, sparseValues.dtype === defaultValue.dtype ? defaultValue : ops.cast(defaultValue, sparseValues.dtype))];
-    }
-    case "TensorScatterUpdate": {
-      const indices = getParamValue("indices", node, tensorMap, context);
-      const values = getParamValue("values", node, tensorMap, context);
-      const tensor2 = getParamValue("tensor", node, tensorMap, context);
-      return [ops.tensorScatterUpdate(tensor2, indices, values)];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/sparse_executor.js
-var executeOp17 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "SparseFillEmptyRows": {
-      const { outputIndices, outputValues, emptyRowIndicator, reverseIndexMap } = ops.sparse.sparseFillEmptyRows(getParamValue("indices", node, tensorMap, context), getParamValue("values", node, tensorMap, context), getParamValue("denseShape", node, tensorMap, context), getParamValue("defaultValue", node, tensorMap, context));
-      return [
-        outputIndices,
-        outputValues,
-        emptyRowIndicator,
-        reverseIndexMap
-      ];
-    }
-    case "SparseReshape": {
-      const { outputIndices, outputShape } = ops.sparse.sparseReshape(getParamValue("inputIndices", node, tensorMap, context), getParamValue("inputShape", node, tensorMap, context), getParamValue("newShape", node, tensorMap, context));
-      return [outputIndices, outputShape];
-    }
-    case "SparseSegmentMean": {
-      const outputData = ops.sparse.sparseSegmentMean(getParamValue("data", node, tensorMap, context), getParamValue("indices", node, tensorMap, context), getParamValue("segmentIds", node, tensorMap, context));
-      return [outputData];
-    }
-    case "SparseSegmentSum": {
-      const outputData = ops.sparse.sparseSegmentSum(getParamValue("data", node, tensorMap, context), getParamValue("indices", node, tensorMap, context), getParamValue("segmentIds", node, tensorMap, context));
-      return [outputData];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/spectral_executor.js
-var executeOp18 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "FFT": {
-      return [ops.fft(getParamValue("x", node, tensorMap, context))];
-    }
-    case "IFFT": {
-      return [ops.ifft(getParamValue("x", node, tensorMap, context))];
-    }
-    case "RFFT": {
-      return [ops.rfft(getParamValue("x", node, tensorMap, context))];
-    }
-    case "IRFFT": {
-      return [ops.irfft(getParamValue("x", node, tensorMap, context))];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/string_executor.js
-var executeOp19 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "StaticRegexReplace": {
-      return [ops.string.staticRegexReplace(getParamValue("input", node, tensorMap, context), getParamValue("pattern", node, tensorMap, context), getParamValue("rewrite", node, tensorMap, context), getParamValue("replaceGlobal", node, tensorMap, context))];
-    }
-    case "StringNGrams": {
-      const { nGrams, nGramsSplits } = ops.string.stringNGrams(getParamValue("data", node, tensorMap, context), getParamValue("dataSplits", node, tensorMap, context), getParamValue("separator", node, tensorMap, context), getParamValue("nGramWidths", node, tensorMap, context), getParamValue("leftPad", node, tensorMap, context), getParamValue("rightPad", node, tensorMap, context), getParamValue("padWidth", node, tensorMap, context), getParamValue("preserveShortSequences", node, tensorMap, context));
-      return [nGrams, nGramsSplits];
-    }
-    case "StringSplit": {
-      const { indices, values, shape } = ops.string.stringSplit(getParamValue("input", node, tensorMap, context), getParamValue("delimiter", node, tensorMap, context), getParamValue("skipEmpty", node, tensorMap, context));
-      return [indices, values, shape];
-    }
-    case "StringToHashBucketFast": {
-      const output = ops.string.stringToHashBucketFast(getParamValue("input", node, tensorMap, context), getParamValue("numBuckets", node, tensorMap, context));
-      return [output];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/executors/transformation_executor.js
-var executeOp20 = (node, tensorMap, context, ops = ops_for_converter_exports) => {
-  switch (node.op) {
-    case "Cast": {
-      return [ops.cast(getParamValue("x", node, tensorMap, context), getParamValue("dtype", node, tensorMap, context))];
-    }
-    case "ExpandDims": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      return [ops.expandDims(getParamValue("x", node, tensorMap, context), axis)];
-    }
-    case "Squeeze": {
-      const axis = getParamValue("axis", node, tensorMap, context);
-      return [ops.squeeze(getParamValue("x", node, tensorMap, context), axis)];
-    }
-    case "Reshape": {
-      return [ops.reshape(getParamValue("x", node, tensorMap, context), getParamValue("shape", node, tensorMap, context))];
-    }
-    case "EnsureShape": {
-      return [ops.ensureShape(getParamValue("x", node, tensorMap, context), getParamValue("shape", node, tensorMap, context))];
-    }
-    case "MirrorPad": {
-      return [ops.mirrorPad(getParamValue("x", node, tensorMap, context), getParamValue("padding", node, tensorMap, context), getParamValue("mode", node, tensorMap, context))];
-    }
-    case "PadV2":
-    case "Pad": {
-      return [ops.pad(getParamValue("x", node, tensorMap, context), getParamValue("padding", node, tensorMap, context), getParamValue("constantValue", node, tensorMap, context))];
-    }
-    case "SpaceToBatchND": {
-      const blockShape = getParamValue("blockShape", node, tensorMap, context);
-      const paddings = getParamValue("paddings", node, tensorMap, context);
-      return [ops.spaceToBatchND(getParamValue("x", node, tensorMap, context), blockShape, paddings)];
-    }
-    case "BatchToSpaceND": {
-      const blockShape = getParamValue("blockShape", node, tensorMap, context);
-      const crops = getParamValue("crops", node, tensorMap, context);
-      return [ops.batchToSpaceND(getParamValue("x", node, tensorMap, context), blockShape, crops)];
-    }
-    case "DepthToSpace": {
-      const blockSize = getParamValue("blockSize", node, tensorMap, context);
-      const dataFormat = getParamValue("dataFormat", node, tensorMap, context).toUpperCase();
-      return [ops.depthToSpace(getParamValue("x", node, tensorMap, context), blockSize, dataFormat)];
-    }
-    case "BroadcastTo": {
-      return [ops.broadcastTo(getParamValue("x", node, tensorMap, context), getParamValue("shape", node, tensorMap, context))];
-    }
-    case "BroadcastArgs": {
-      return [ops.broadcastArgs(getParamValue("s0", node, tensorMap, context), getParamValue("s1", node, tensorMap, context))];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/operations/operation_executor.js
-function executeOp21(node, tensorMap, context, resourceManager, tidy2 = tidy) {
-  const value = ((node2, tensorMap2, context2) => {
-    switch (node2.category) {
-      case "arithmetic":
-        return tidy2(() => executeOp(node2, tensorMap2, context2));
-      case "basic_math":
-        return tidy2(() => executeOp2(node2, tensorMap2, context2));
-      case "control":
-        return executeOp3(node2, tensorMap2, context2);
-      case "convolution":
-        return tidy2(() => executeOp4(node2, tensorMap2, context2));
-      case "creation":
-        return tidy2(() => executeOp5(node2, tensorMap2, context2));
-      case "dynamic":
-        return executeOp6(node2, tensorMap2, context2);
-      case "evaluation":
-        return tidy2(() => executeOp7(node2, tensorMap2, context2));
-      case "image":
-        return tidy2(() => executeOp10(node2, tensorMap2, context2));
-      case "graph":
-        return tidy2(() => executeOp8(node2, tensorMap2, context2));
-      case "logical":
-        return tidy2(() => executeOp11(node2, tensorMap2, context2));
-      case "matrices":
-        return tidy2(() => executeOp12(node2, tensorMap2, context2));
-      case "normalization":
-        return tidy2(() => executeOp13(node2, tensorMap2, context2));
-      case "ragged":
-        return tidy2(() => executeOp14(node2, tensorMap2, context2));
-      case "reduction":
-        return tidy2(() => executeOp15(node2, tensorMap2, context2));
-      case "slice_join":
-        return tidy2(() => executeOp16(node2, tensorMap2, context2));
-      case "sparse":
-        return tidy2(() => executeOp17(node2, tensorMap2, context2));
-      case "spectral":
-        return tidy2(() => executeOp18(node2, tensorMap2, context2));
-      case "string":
-        return tidy2(() => executeOp19(node2, tensorMap2, context2));
-      case "transformation":
-        return tidy2(() => executeOp20(node2, tensorMap2, context2));
-      case "hash_table":
-        return executeOp9(node2, tensorMap2, context2, resourceManager);
-      case "custom":
-        const opMapper = getRegisteredOp(node2.op);
-        if (opMapper && opMapper.customExecutor) {
-          return opMapper.customExecutor(new NodeValueImpl(node2, tensorMap2, context2));
-        } else {
-          throw TypeError(`Custom op ${node2.op} is not registered.`);
-        }
-      default:
-        throw TypeError(`Unknown op '${node2.op}'. File an issue at https://github.com/tensorflow/tfjs/issues so we can add it, or register a custom execution with tf.registerOp()`);
-    }
-  })(node, tensorMap, context);
-  if (util_exports.isPromise(value)) {
-    return value.then((data) => [].concat(data));
-  }
-  return [].concat(value);
-}
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/execution_context.js
-var ExecutionContext = class {
-  constructor(weightMap = {}, tensorArrayMap = {}, tensorListMap = {}, functionMap = {}, parseNodeNameCache) {
-    this.weightMap = weightMap;
-    this.tensorArrayMap = tensorArrayMap;
-    this.tensorListMap = tensorListMap;
-    this.functionMap = functionMap;
-    this.parseNodeNameCache = parseNodeNameCache;
-    this.rootContext = { id: 0, frameName: "", iterationId: 0 };
-    this.contexts = [this.rootContext];
-    this.lastId = 0;
-    this.generateCurrentContextIds();
-  }
-  newFrame(id, frameName) {
-    return { id, frameName, iterationId: 0 };
-  }
-  /**
-   * Set the current context
-   * @param contexts: ExecutionContextInfo[] the current path of execution
-   * frames
-   */
-  set currentContext(contexts2) {
-    if (this.contexts !== contexts2) {
-      this.contexts = contexts2;
-      this.generateCurrentContextIds();
-    }
-  }
-  get currentContext() {
-    return this.contexts;
-  }
-  /**
-   * Returns the current context in string format.
-   */
-  get currentContextId() {
-    return this._currentContextIds[0];
-  }
-  /**
-   * Returns the current context and all parent contexts in string format.
-   * This allow access to the nodes in the current and parent frames.
-   */
-  get currentContextIds() {
-    return this._currentContextIds;
-  }
-  generateCurrentContextIds() {
-    const names = [];
-    for (let i = 0; i < this.contexts.length - 1; i++) {
-      const contexts2 = this.contexts.slice(0, this.contexts.length - i);
-      names.push(this.contextIdforContexts(contexts2));
-    }
-    names.push("");
-    this._currentContextIds = names;
-  }
-  contextIdforContexts(contexts2) {
-    return contexts2 ? contexts2.map((context) => context.id === 0 && context.iterationId === 0 ? "" : `${context.frameName}-${context.iterationId}`).join("/") : "";
-  }
-  /**
-   * Enter a new frame, a new context is pushed on the current context list.
-   * @param frameId new frame id
-   */
-  enterFrame(frameId) {
-    if (this.contexts) {
-      this.lastId++;
-      this.contexts = this.contexts.slice();
-      this.contexts.push(this.newFrame(this.lastId, frameId));
-      this._currentContextIds.unshift(this.contextIdforContexts(this.contexts));
-    }
-  }
-  /**
-   * Exit the current frame, the last context is removed from the current
-   * context list.
-   */
-  exitFrame() {
-    if (this.contexts && this.contexts.length > 1) {
-      this.contexts = this.contexts.slice();
-      this.contexts.splice(-1);
-      this.currentContextIds.shift();
-    } else {
-      throw new Error("Cannot exit frame, the context is empty");
-    }
-  }
-  /**
-   * Enter the next iteration of a loop, the iteration id of last context is
-   * increased.
-   */
-  nextIteration() {
-    if (this.contexts && this.contexts.length > 0) {
-      this.contexts = this.contexts.slice();
-      this.lastId++;
-      const context = Object.assign({}, this.contexts[this.contexts.length - 1]);
-      context.iterationId += 1;
-      context.id = this.lastId;
-      this.contexts.splice(-1, 1, context);
-      this._currentContextIds.splice(0, 1, this.contextIdforContexts(this.contexts));
-    } else {
-      throw new Error("Cannot increase frame iteration, the context is empty");
-    }
-  }
-  getWeight(name) {
-    return this.weightMap[name];
-  }
-  addTensorArray(tensorArray) {
-    this.tensorArrayMap[tensorArray.id] = tensorArray;
-  }
-  getTensorArray(id) {
-    return this.tensorArrayMap[id];
-  }
-  addTensorList(tensorList) {
-    this.tensorListMap[tensorList.id] = tensorList;
-  }
-  getTensorList(id) {
-    return this.tensorListMap[id];
-  }
-  dispose(keepIds) {
-    for (const key in this.tensorArrayMap) {
-      this.tensorArrayMap[key].clearAndClose(keepIds);
-    }
-    for (const key in this.tensorListMap) {
-      this.tensorListMap[key].clearAndClose(keepIds);
-    }
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/model_analysis.js
-function getExecutionSubgraph(inputs, outputs, weightMap, initNodes) {
-  const usedNodes = /* @__PURE__ */ new Set();
-  const missingInputs = [];
-  let dynamicNode = null;
-  let syncInputs = null;
-  const seen = /* @__PURE__ */ new Set();
-  const inputNodeNames = new Set(Object.keys(inputs).map((name) => parseNodeName(name)[0]));
-  initNodes = initNodes || [];
-  const initNodeNames = new Set(initNodes.map((node) => parseNodeName(node.name)[0]));
-  const frontier = [...outputs];
-  while (frontier.length > 0) {
-    const node = frontier.pop();
-    if (isControlFlow(node) || isDynamicShape(node) || isHashTable(node)) {
-      if (dynamicNode == null) {
-        dynamicNode = node;
-        syncInputs = dynamicNode.children.map((child) => child.name).filter((name) => usedNodes.has(name));
-      }
-    }
-    usedNodes.add(node.name);
-    if (weightMap[node.name] != null) {
-      continue;
-    }
-    if (inputNodeNames.has(node.name)) {
-      continue;
-    }
-    if (initNodeNames.has(node.name)) {
-      continue;
-    }
-    if (node.inputs.length === 0) {
-      missingInputs.push(node.name);
-      continue;
-    }
-    node.inputs.forEach((input2) => {
-      if (seen.has(input2.name)) {
-        return;
-      }
-      seen.add(input2.name);
-      frontier.push(input2);
-    });
-  }
-  return { inputs, outputs, usedNodes, missingInputs, dynamicNode, syncInputs };
-}
-function getNodesInTopologicalOrder(graph, executionInfo) {
-  const { usedNodes, inputs } = executionInfo;
-  const inputNodes = Object.keys(inputs).map((name) => parseNodeName(name)[0]).map((name) => graph.nodes[name]);
-  const initNodes = graph.initNodes || [];
-  const isUsed = (node) => usedNodes.has(typeof node === "string" ? node : node.name);
-  function unique5(nodes) {
-    return [...new Map(nodes.map((node) => [node.name, node])).values()];
-  }
-  const predefinedNodes = unique5([
-    ...inputNodes,
-    ...graph.weights,
-    ...initNodes
-  ]).filter(isUsed);
-  const allNodes = unique5([
-    ...predefinedNodes,
-    ...Object.values(graph.nodes)
-  ]).filter(isUsed);
-  const nameToNode = new Map(allNodes.map((node) => [node.name, node]));
-  const inCounts = {};
-  for (const node of allNodes) {
-    inCounts[node.name] = inCounts[node.name] || 0;
-    for (const child of node.children) {
-      if (!isUsed(child)) {
-        inCounts[child.name] = Number.POSITIVE_INFINITY;
-      }
-      inCounts[child.name] = (inCounts[child.name] || 0) + 1;
-    }
-  }
-  const frontier = Object.entries(inCounts).filter(([, inCount]) => inCount === 0).map(([name]) => name);
-  const orderedNodeNames = [...frontier];
-  while (frontier.length > 0) {
-    const nodeName = frontier.pop();
-    const node = nameToNode.get(nodeName);
-    for (const child of node.children.filter(isUsed)) {
-      if (--inCounts[child.name] === 0) {
-        orderedNodeNames.push(child.name);
-        frontier.push(child.name);
-      }
-    }
-  }
-  const orderedNodes = orderedNodeNames.map((name) => nameToNode.get(name));
-  const filteredOrderedNodes = filterPredefinedReachableNodes(orderedNodes, predefinedNodes);
-  validateNodesExecutionOrder(filteredOrderedNodes, predefinedNodes);
-  return filteredOrderedNodes;
-}
-function filterPredefinedReachableNodes(orderedNodes, predefinedNodes) {
-  const nameToNode = new Map(orderedNodes.map((node) => [node.name, node]));
-  const stack2 = predefinedNodes.map((node) => node.name);
-  const predefinedReachableNodeNames = new Set(stack2);
-  while (stack2.length > 0) {
-    const nodeName = stack2.pop();
-    const node = nameToNode.get(nodeName);
-    for (const child of node.children) {
-      if (!nameToNode.has(child.name) || predefinedReachableNodeNames.has(child.name)) {
-        continue;
-      }
-      predefinedReachableNodeNames.add(child.name);
-      stack2.push(child.name);
-    }
-  }
-  const filteredOrderedNodes = orderedNodes.filter((node) => predefinedReachableNodeNames.has(node.name));
-  return filteredOrderedNodes;
-}
-var NodesExecutionOrderError = class extends Error {
-  constructor(message) {
-    super(`NodesExecutionOrderError: ${message}`);
-  }
-};
-function validateNodesExecutionOrder(orderedNodes, predefinedNodes) {
-  const nodeNameToOrder = new Map(orderedNodes.map((node, order) => [node.name, order]));
-  const predefinedNodeNames = new Set(predefinedNodes.map((node) => node.name));
-  const isPredefined = (node) => predefinedNodeNames.has(typeof node === "string" ? node : node.name);
-  const willBeExecutedNodeNames = new Set(orderedNodes.map((node) => node.name));
-  const willBeExecuted = (node) => willBeExecutedNodeNames.has(typeof node === "string" ? node : node.name);
-  for (const node of orderedNodes) {
-    for (const child of node.children.filter(willBeExecuted)) {
-      if (!nodeNameToOrder.has(child.name)) {
-        throw new NodesExecutionOrderError(`Child ${child.name} of node ${node.name} is unreachable.`);
-      }
-      if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
-        throw new NodesExecutionOrderError(`Node ${node.name} is scheduled to run after its child ${child.name}.`);
-      }
-    }
-    if (!isPredefined(node)) {
-      for (const input2 of node.inputs) {
-        if (!nodeNameToOrder.has(input2.name)) {
-          throw new NodesExecutionOrderError(`Input ${input2.name} of node ${node.name} is unreachable.`);
-        }
-        if (nodeNameToOrder.get(input2.name) > nodeNameToOrder.get(node.name)) {
-          throw new NodesExecutionOrderError(`Node ${node.name} is scheduled to run before its input ${input2.name}.`);
-        }
-      }
-    }
-  }
-}
-function getNodeLiveUntilMap(orderedNodes) {
-  const nodeNameToOrder = new Map(orderedNodes.map((node, order) => [node.name, order]));
-  const INF_LIFE = Number.MAX_SAFE_INTEGER;
-  const selfLifespans = orderedNodes.map((node, nodeOrder) => isControlFlow(node) ? INF_LIFE : nodeOrder);
-  const getSelfLifeSpan = (node) => {
-    const selfLife = selfLifespans[nodeNameToOrder.get(node.name)];
-    if (selfLife == null) {
-      return -1;
-    }
-    return selfLife;
-  };
-  const liveUntilOrders = orderedNodes.map((node, nodeOrder) => {
-    return node.children.map(getSelfLifeSpan).reduce((a, b) => Math.max(a, b), selfLifespans[nodeOrder]);
-  });
-  const liveUntilMap = /* @__PURE__ */ new Map();
-  for (let nodeOrder = 0; nodeOrder < orderedNodes.length; ++nodeOrder) {
-    const liveUntilOrder = liveUntilOrders[nodeOrder];
-    if (liveUntilOrder === INF_LIFE) {
-      continue;
-    }
-    const node = orderedNodes[nodeOrder];
-    const liveUntilNode = orderedNodes[liveUntilOrder];
-    if (!liveUntilMap.has(liveUntilNode.name)) {
-      liveUntilMap.set(liveUntilNode.name, []);
-    }
-    liveUntilMap.get(liveUntilNode.name).push(node);
-  }
-  return liveUntilMap;
-}
-var CONTROL_FLOW_OPS = /* @__PURE__ */ new Set([
-  "Switch",
-  "Merge",
-  "Enter",
-  "Exit",
-  "NextIteration",
-  "StatelessIf",
-  "StatelessWhile",
-  "if",
-  "While"
-]);
-var DYNAMIC_SHAPE_OPS = /* @__PURE__ */ new Set([
-  "NonMaxSuppressionV2",
-  "NonMaxSuppressionV3",
-  "NonMaxSuppressionV5",
-  "Where"
-]);
-var HASH_TABLE_OPS = /* @__PURE__ */ new Set([
-  "HashTable",
-  "HashTableV2",
-  "LookupTableImport",
-  "LookupTableImportV2",
-  "LookupTableFind",
-  "LookupTableFindV2",
-  "LookupTableSize",
-  "LookupTableSizeV2"
-]);
-function isControlFlow(node) {
-  return CONTROL_FLOW_OPS.has(node.op);
-}
-function isDynamicShape(node) {
-  return DYNAMIC_SHAPE_OPS.has(node.op);
-}
-function isHashTable(node) {
-  return HASH_TABLE_OPS.has(node.op);
-}
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/graph_executor.js
-var GraphExecutor = class _GraphExecutor {
-  get weightIds() {
-    return this.parent ? this.parent.weightIds : this._weightIds;
-  }
-  get functionExecutorMap() {
-    return this.parent ? this.parent.functionExecutorMap : this._functionExecutorMap;
-  }
-  get weightMap() {
-    return this.parent ? this.parent.weightMap : this._weightMap;
-  }
-  set weightMap(weightMap) {
-    const weightIds = Object.keys(weightMap).map((key) => weightMap[key].map((tensor2) => tensor2.id));
-    this._weightIds = [].concat(...weightIds);
-    this._weightMap = weightMap;
-  }
-  /**
-   * Set `ResourceManager` shared by executors of a model.
-   * @param resourceManager: `ResourceManager` of the `GraphModel`.
-   */
-  set resourceManager(resourceManager) {
-    this._resourceManager = resourceManager;
-  }
-  get inputs() {
-    return this._inputs.map((node) => {
-      return {
-        name: node.name,
-        shape: node.attrParams["shape"] ? node.attrParams["shape"].value : void 0,
-        dtype: node.attrParams["dtype"] ? node.attrParams["dtype"].value : void 0
-      };
-    });
-  }
-  get outputs() {
-    return this._outputs.map((node) => {
-      return {
-        name: node.name,
-        shape: node.attrParams["shape"] ? node.attrParams["shape"].value : void 0,
-        dtype: node.attrParams["dtype"] ? node.attrParams["dtype"].value : void 0
-      };
-    });
-  }
-  get inputNodes() {
-    return this._inputs.map((node) => node.signatureKey || node.name);
-  }
-  get outputNodes() {
-    return this._outputs.map((node) => {
-      const name = node.signatureKey || node.name;
-      return node.defaultOutput ? `${name}:${node.defaultOutput}` : name;
-    });
-  }
-  get functions() {
-    return Object.keys(this._functions).reduce((map, key) => {
-      map[key] = this._functions[key].signature;
-      return map;
-    }, {});
-  }
-  /**
-   *
-   * @param graph Graph the model or function graph to be executed.
-   * @param parent When building function exector you need to set the parent
-   * executor. Since the weights and function executor maps are set at parant
-   * level, that function executor can access the function maps and weight maps
-   * through the parent.
-   */
-  constructor(graph, parent) {
-    this.graph = graph;
-    this.parent = parent;
-    this.compiledMap = /* @__PURE__ */ new Map();
-    this.parseNodeNameCache = /* @__PURE__ */ new Map();
-    this._weightMap = {};
-    this.SEPARATOR = ",";
-    this._functions = {};
-    this._functionExecutorMap = {};
-    this.keepIntermediateTensors = false;
-    this._outputs = graph.outputs;
-    this._inputs = graph.inputs;
-    this._initNodes = graph.initNodes;
-    this._signature = graph.signature;
-    this._functions = graph.functions;
-    if (graph.functions != null) {
-      Object.keys(graph.functions).forEach((name) => {
-        this._functionExecutorMap[name] = new _GraphExecutor(graph.functions[name], this);
-      });
-    }
-  }
-  getCompilationKey(inputs, outputs) {
-    const sortedInputs = inputs.map((node) => node.name).sort();
-    const sortedOutputs = outputs.map((node) => node.name).sort();
-    return sortedInputs.join(this.SEPARATOR) + "--" + sortedOutputs.join(this.SEPARATOR);
-  }
-  /**
-   * Compiles the inference graph and returns the minimal set of nodes that are
-   * required for execution, in the correct execution order.
-   * @returns {Object} compilation The compile result.
-   * @returns {Node[]} compilation.orderedNodes Nodes in the correct execution
-   *     order.
-   * @returns {Map<string, Node[]>} compilation.nodeLiveUntilMap A map from node
-   *     to disposable nodes after its execution. That is, for a node `x`,
-   *     `nodeLiveUntilMap[x]` indicates all nodes whose intermediate
-   *     tensors should be disposed after `x` is executed.
-   */
-  compile(inputs, outputs) {
-    const executionInfo = getExecutionSubgraph(inputs, outputs, this.weightMap, this._initNodes);
-    const { missingInputs, dynamicNode, syncInputs } = executionInfo;
-    if (dynamicNode != null) {
-      throw new Error(`This execution contains the node '${dynamicNode.name}', which has the dynamic op '${dynamicNode.op}'. Please use model.executeAsync() instead. Alternatively, to avoid the dynamic ops, specify the inputs [${syncInputs}]`);
-    }
-    if (missingInputs.length > 0) {
-      const outNames = outputs.map((n) => n.name);
-      const inNames = Object.keys(inputs);
-      throw new Error(`Cannot compute the outputs [${outNames}] from the provided inputs [${inNames}]. Missing the following inputs: [${missingInputs}]`);
-    }
-    const orderedNodes = getNodesInTopologicalOrder(this.graph, executionInfo);
-    const nodeLiveUntilMap = getNodeLiveUntilMap(orderedNodes);
-    return { orderedNodes, nodeLiveUntilMap };
-  }
-  cloneAndKeepTensor(tensor2) {
-    if (tensor2 == null) {
-      return null;
-    }
-    const clone2 = tensor2.clone();
-    keep(clone2);
-    return clone2;
-  }
-  cloneTensorList(tensors) {
-    if (!tensors) {
-      return null;
-    }
-    const clonedTensor = tensors.map((tensor2) => {
-      return this.cloneAndKeepTensor(tensor2);
-    });
-    return clonedTensor;
-  }
-  cloneTensorMap(tensorsMap) {
-    return Object.fromEntries(Object.entries(tensorsMap).map(([name, tensorsList]) => {
-      return [name, this.cloneTensorList(tensorsList)];
-    }));
-  }
-  /**
-   * Executes the inference for given input tensors.
-   * @param inputs Tensor map for the model inputs, keyed by the input node
-   * names.
-   * @param outputs Optional. output node name from the Tensorflow model, if
-   * no outputs are specified, the default outputs of the model would be used.
-   * You can inspect intermediate nodes of the model by adding them to the
-   * outputs array.
-   */
-  execute(inputs, outputs) {
-    this.disposeIntermediateTensors();
-    inputs = this.mapInputs(inputs);
-    const names = Object.keys(inputs).sort();
-    this.checkInputs(inputs);
-    this.checkInputShapeAndType(inputs);
-    outputs = this.mapOutputs(outputs);
-    this.checkOutputs(outputs);
-    const inputNodes = names.map((name) => this.graph.nodes[parseNodeName(name)[0]]);
-    const outputNodeNames = outputs.map((name) => parseNodeName(name)[0]);
-    const outputNodeNameSet = new Set(outputNodeNames);
-    let outputNodes = outputNodeNames.map((name) => this.graph.nodes[name]);
-    if (outputNodes.length === 0) {
-      outputNodes = this._outputs;
-    }
-    const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
-    let compilation = this.compiledMap.get(compilationKey);
-    if (compilation == null) {
-      compilation = this.compile(inputs, outputNodes);
-      this.compiledMap.set(compilationKey, compilation);
-    }
-    try {
-      this.keepIntermediateTensors = env().getBool("KEEP_INTERMEDIATE_TENSORS");
-    } catch (e) {
-      this.keepIntermediateTensors = false;
-      console.warn(e.message);
-    }
-    const tensorArrayMap = {};
-    const tensorListMap = {};
-    return tidy(() => {
-      const context = new ExecutionContext(this.weightMap, tensorArrayMap, tensorListMap, this.functionExecutorMap, this.parseNodeNameCache);
-      const tensorsMap = Object.assign({}, this.weightMap);
-      if (this.keepIntermediateTensors) {
-        this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
-      }
-      Object.keys(inputs).forEach((name) => {
-        const [nodeName, index] = parseNodeName(name, context);
-        const tensors = [];
-        tensors[index] = inputs[name];
-        tensorsMap[nodeName] = tensors;
-        if (this.keepIntermediateTensors) {
-          this.clonedTensorsMap[nodeName] = this.cloneTensorList(tensors);
-        }
-      });
-      const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
-      const { orderedNodes, nodeLiveUntilMap } = compilation;
-      for (const node of orderedNodes) {
-        if (tensorsMap[node.name]) {
-          continue;
-        }
-        const tensors = executeOp21(node, tensorsMap, context, this._resourceManager);
-        if (util_exports.isPromise(tensors)) {
-          throw new Error(`The execution of the op '${node.op}' returned a promise. Please use model.executeAsync() instead.`);
-        }
-        tensorsMap[node.name] = tensors;
-        if (this.keepIntermediateTensors) {
-          this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
-        }
-        this.checkTensorForDisposalWithNodeLiveUntilInfo(node, tensorsMap, context, tensorsToKeep, outputNodeNameSet, nodeLiveUntilMap.get(node.name));
-      }
-      if (this.parent == null) {
-        context.dispose(tensorsToKeep);
-      }
-      return outputs.map((name) => getTensor(name, tensorsMap, context));
-    });
-  }
-  getFrozenTensorIds(tensorMap) {
-    const ids = [].concat.apply([], Object.keys(tensorMap).map((key) => tensorMap[key]).map((tensors) => tensors.map((tensor2) => tensor2.id)));
-    return new Set(ids);
-  }
-  checkTensorForDisposal(nodeName, node, tensorMap, context, tensorsToKeep, outputNodeNameSet, intermediateTensorConsumerCount) {
-    if (isControlFlow(node) || outputNodeNameSet.has(nodeName)) {
-      return;
-    }
-    for (const tensor2 of tensorMap[nodeName]) {
-      if (tensor2 == null) {
-        continue;
-      }
-      intermediateTensorConsumerCount[tensor2.id] = (intermediateTensorConsumerCount[tensor2.id] || 0) + node.children.length;
-    }
-    for (const input2 of node.inputs) {
-      if (isControlFlow(input2)) {
-        continue;
-      }
-      const tensors = getTensorsForCurrentContext(input2.name, tensorMap, context);
-      if (tensors == null) {
-        continue;
-      }
-      for (const tensor2 of tensors) {
-        if (!tensor2 || tensor2.kept || tensorsToKeep.has(tensor2.id)) {
-          continue;
-        }
-        const count2 = intermediateTensorConsumerCount[tensor2.id];
-        if (count2 === 1) {
-          tensor2.dispose();
-          delete intermediateTensorConsumerCount[tensor2.id];
-        } else if (count2 != null) {
-          intermediateTensorConsumerCount[tensor2.id]--;
-        }
-      }
-    }
-  }
-  checkTensorForDisposalWithNodeLiveUntilInfo(node, tensorMap, context, tensorsToKeep, outputNodeNameSet, liveUntilNodes) {
-    function isNonDisposableNode(node2) {
-      return isControlFlow(node2) || outputNodeNameSet.has(node2.name);
-    }
-    if (isControlFlow(node) || liveUntilNodes == null) {
-      return;
-    }
-    for (const nodeToDispose of liveUntilNodes) {
-      if (isNonDisposableNode(nodeToDispose)) {
-        continue;
-      }
-      const tensors = getTensorsForCurrentContext(nodeToDispose.name, tensorMap, context);
-      for (const tensor2 of tensors) {
-        if (!tensor2 || tensor2.kept || tensorsToKeep.has(tensor2.id)) {
-          continue;
-        }
-        tensor2.dispose();
-      }
-    }
-  }
-  /**
-   * Executes the inference for given input tensors in Async fashion.
-   * @param inputs Tensor map for the model inputs, keyed by the input node
-   * names.
-   * @param outputs output node name from the Tensorflow model, if no outputs
-   * are specified, the default outputs of the model would be used. You can
-   * inspect intermediate nodes of the model by adding them to the outputs
-   * array.
-   */
-  async executeAsync(inputs, outputs) {
-    return this._executeAsync(inputs, outputs);
-  }
-  disposeIntermediateTensors() {
-    if (!this.clonedTensorsMap) {
-      return;
-    }
-    Object.values(this.clonedTensorsMap).forEach((tensorsList) => {
-      for (const tensor2 of tensorsList) {
-        if (tensor2 && !tensor2.isDisposed) {
-          tensor2.dispose();
-        }
-      }
-    });
-    this.clonedTensorsMap = null;
-  }
-  getIntermediateTensors() {
-    return this.clonedTensorsMap;
-  }
-  /**
-   * Executes the inference for given input tensors in Async fashion.
-   * @param inputs Tensor map for the model inputs, keyed by the input node
-   * names.
-   * @param outputs Optional. output node name from the Tensorflow model,
-   * if no outputs are specified, the default outputs of the model would be
-   * used. You can inspect intermediate nodes of the model by adding them to
-   * the outputs array.
-   * @param isFunctionExecution Optional. Flag for executing a function.
-   * @param tensorArrayMap Optional, global TensorArray map by id. Used for
-   * function execution.
-   * @param tensorArrayMap Optional global TensorList map by id. Used for
-   * function execution.
-   */
-  async _executeAsync(inputs, outputs, isFunctionExecution = false, tensorArrayMap = {}, tensorListMap = {}) {
-    this.disposeIntermediateTensors();
-    if (!isFunctionExecution) {
-      inputs = this.mapInputs(inputs);
-      this.checkInputs(inputs);
-      this.checkInputShapeAndType(inputs);
-      outputs = this.mapOutputs(outputs);
-      this.checkOutputs(outputs);
-    }
-    try {
-      this.keepIntermediateTensors = env().getBool("KEEP_INTERMEDIATE_TENSORS");
-    } catch (e) {
-      this.keepIntermediateTensors = false;
-      console.warn(e.message);
-    }
-    const context = new ExecutionContext(this.weightMap, tensorArrayMap, tensorListMap, this.functionExecutorMap, this.parseNodeNameCache);
-    if (this.keepIntermediateTensors) {
-      this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
-    }
-    const tensorsMap = await this.executeWithControlFlow(inputs, context, outputs, isFunctionExecution);
-    const results = outputs.map((name) => getTensor(name, tensorsMap, context));
-    const outputIds = results.map((t) => t.id);
-    const inputIds = Object.keys(inputs).map((name) => inputs[name].id);
-    const keepIds = /* @__PURE__ */ new Set([...outputIds, ...inputIds, ...this.weightIds]);
-    Object.values(tensorsMap).forEach((tensorsList) => {
-      tensorsList.forEach((tensor2) => {
-        if (tensor2 && !tensor2.isDisposed && !keepIds.has(tensor2.id)) {
-          tensor2.dispose();
-        }
-      });
-    });
-    if (this.parent == null) {
-      context.dispose(keepIds);
-    }
-    return results;
-  }
-  async executeFunctionAsync(inputs, tensorArrayMap, tensorListMap) {
-    const mappedInputs = inputs.reduce((map, tensor2, index) => {
-      map[this.inputs[index].name] = tensor2;
-      return map;
-    }, {});
-    return this._executeAsync(mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap);
-  }
-  /**
-   * When there are control flow nodes in the graph, the graph execution use
-   * ExecutionContext to keep track of the frames and loop iterators.
-   * @param inputs placeholder tensors for the graph.
-   * @param context the execution context object for current execution.
-   * @param outputNames Optional. output node name from the Tensorflow model,
-   * if no outputs are specified, the default outputs of the model would be
-   * used. You can inspect intermediate nodes of the model by adding them to
-   * the outputs array.
-   * @param isFunctionExecution Flag for executing a function.
-   */
-  async executeWithControlFlow(inputs, context, outputNames, isFunctionExecution) {
-    const names = Object.keys(inputs);
-    const inputNodes = names.map((name) => this.graph.nodes[parseNodeName(name)[0]]);
-    const outputNodeNames = outputNames.map((name) => parseNodeName(name)[0]);
-    const outputNodeNameSet = new Set(outputNodeNames);
-    let outputNodes = outputNodeNames.map((name) => this.graph.nodes[name]);
-    if (outputNodes.length === 0) {
-      outputNodes = this._outputs;
-    }
-    const { usedNodes, missingInputs, dynamicNode, syncInputs } = getExecutionSubgraph(inputs, outputNodes, this.weightMap, this._initNodes);
-    const stack2 = [
-      ...inputNodes,
-      ...this.graph.weights,
-      ...this._initNodes || []
-    ].map((node) => {
-      return { node, contexts: context.currentContext };
-    });
-    const tensorsMap = Object.assign({}, this.weightMap);
-    Object.keys(inputs).forEach((name) => {
-      const [nodeName, index] = parseNodeName(name);
-      const tensors = [];
-      tensors[index] = inputs[name];
-      tensorsMap[nodeName] = tensors;
-    });
-    const intermediateTensorConsumerCount = {};
-    const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
-    const added = {};
-    while (stack2.length > 0) {
-      const promises = this.processStack(inputNodes, stack2, context, tensorsMap, added, tensorsToKeep, outputNodeNameSet, intermediateTensorConsumerCount, usedNodes);
-      await Promise.all(promises);
-    }
-    if (dynamicNode == null && !isFunctionExecution) {
-      console.warn(`This model execution did not contain any nodes with control flow or dynamic output shapes. You can use model.execute() instead.`);
-    }
-    const missingOutputs = outputNodes.filter((node) => !isControlFlow(node) && !getTensor(node.name, tensorsMap, context)).map((node) => node.name);
-    if (missingOutputs.length > 0) {
-      let alternativeMsg = "";
-      if (dynamicNode != null) {
-        alternativeMsg = `Alternatively, to avoid the dynamic ops, use model.execute() and specify the inputs [${syncInputs}]`;
-      }
-      throw new Error(`Cannot compute the outputs [${missingOutputs}] from the provided inputs [${names}]. Consider providing the following inputs: [${missingInputs}]. ${alternativeMsg}`);
-    }
-    return tensorsMap;
-  }
-  processStack(inputNodes, stack2, context, tensorMap, added, tensorsToKeep, outputNodeNameSet, intermediateTensorConsumerCount, usedNodes) {
-    const promises = [];
-    while (stack2.length > 0) {
-      const item = stack2.pop();
-      context.currentContext = item.contexts;
-      let nodeName = "";
-      if (item.node.op === "Enter" && getParamValue("isConstant", item.node, tensorMap, context)) {
-        [nodeName] = getNodeNameAndIndex(item.node.name, context);
-      }
-      if (tensorMap[item.node.name] == null) {
-        const tensors = executeOp21(item.node, tensorMap, context, this._resourceManager);
-        if (!nodeName) {
-          [nodeName] = getNodeNameAndIndex(item.node.name, context);
-        }
-        const currentContext = context.currentContext;
-        if (util_exports.isPromise(tensors)) {
-          promises.push(tensors.then((t) => {
-            tensorMap[nodeName] = t;
-            if (this.keepIntermediateTensors) {
-              this.clonedTensorsMap[nodeName] = this.cloneTensorList(t);
-            }
-            context.currentContext = currentContext;
-            this.checkTensorForDisposal(nodeName, item.node, tensorMap, context, tensorsToKeep, outputNodeNameSet, intermediateTensorConsumerCount);
-            this.processChildNodes(item.node, stack2, context, tensorMap, added, usedNodes);
-            return t;
-          }));
-        } else {
-          tensorMap[nodeName] = tensors;
-          if (this.keepIntermediateTensors) {
-            this.clonedTensorsMap[nodeName] = this.cloneTensorList(tensors);
-          }
-          this.checkTensorForDisposal(nodeName, item.node, tensorMap, context, tensorsToKeep, outputNodeNameSet, intermediateTensorConsumerCount);
-          this.processChildNodes(item.node, stack2, context, tensorMap, added, usedNodes);
-        }
-      } else {
-        this.processChildNodes(item.node, stack2, context, tensorMap, added, usedNodes);
-      }
-    }
-    return promises;
-  }
-  processChildNodes(node, stack2, context, tensorMap, added, usedNodes) {
-    node.children.forEach((childNode) => {
-      const [nodeName] = getNodeNameAndIndex(childNode.name, context);
-      if (added[nodeName] || !usedNodes.has(childNode.name)) {
-        return;
-      }
-      if (childNode.op === "Merge") {
-        if (childNode.inputNames.some((name) => {
-          return !!getTensor(name, tensorMap, context);
-        })) {
-          added[nodeName] = true;
-          stack2.push({ contexts: context.currentContext, node: childNode });
-        }
-      } else if (childNode.inputNames.every((name) => {
-        return !!getTensor(name, tensorMap, context);
-      })) {
-        added[nodeName] = true;
-        stack2.push({ contexts: context.currentContext, node: childNode });
-      }
-    });
-  }
-  /**
-   * Releases the memory used by the weight tensors.
-   */
-  dispose() {
-    Object.keys(this.weightMap).forEach((key) => this.weightMap[key].forEach((tensor2) => tensor2.dispose()));
-  }
-  checkInputShapeAndType(inputs) {
-    Object.keys(inputs).forEach((name) => {
-      const input2 = inputs[name];
-      const [nodeName] = parseNodeName(name);
-      const node = this.graph.nodes[nodeName];
-      if (node.attrParams["shape"] && node.attrParams["shape"].value) {
-        const shape = node.attrParams["shape"].value;
-        const match = shape.length === input2.shape.length && input2.shape.every((dim, index) => shape[index] === -1 || shape[index] === dim);
-        util_exports.assert(match, () => `The shape of dict['${node.name}'] provided in model.execute(dict) must be [${shape}], but was [${input2.shape}]`);
-      }
-      if (node.attrParams["dtype"] && node.attrParams["dtype"].value) {
-        util_exports.assert(input2.dtype === node.attrParams["dtype"].value, () => `The dtype of dict['${node.name}'] provided in model.execute(dict) must be ${node.attrParams["dtype"].value}, but was ${input2.dtype}`);
-      }
-    });
-  }
-  mapInputs(inputs) {
-    var _a, _b;
-    const result = {};
-    for (const inputName in inputs) {
-      const tensor2 = (_b = (_a = this._signature) === null || _a === void 0 ? void 0 : _a.inputs) === null || _b === void 0 ? void 0 : _b[inputName];
-      if (tensor2 != null) {
-        result[tensor2.name] = inputs[inputName];
-      } else {
-        result[inputName] = inputs[inputName];
-      }
-    }
-    return result;
-  }
-  checkInputs(inputs) {
-    const notInGraph = Object.keys(inputs).filter((name) => {
-      const [nodeName] = parseNodeName(name);
-      return this.graph.nodes[nodeName] == null;
-    });
-    if (notInGraph.length > 0) {
-      throw new Error(`The dict provided in model.execute(dict) has keys: [${notInGraph}] that are not part of graph`);
-    }
-  }
-  mapOutputs(outputs) {
-    return outputs.map((name) => {
-      var _a, _b;
-      const tensor2 = (_b = (_a = this._signature) === null || _a === void 0 ? void 0 : _a.outputs) === null || _b === void 0 ? void 0 : _b[name];
-      if (tensor2 != null) {
-        return tensor2.name;
-      }
-      return name;
-    }, {});
-  }
-  checkOutputs(outputs) {
-    outputs.forEach((name) => {
-      const [normalizedName] = parseNodeName(name);
-      if (!this.graph.nodes[normalizedName]) {
-        throw new Error(`The output '${name}' is not found in the graph`);
-      }
-    });
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/resource_manager.js
-var ResourceManager = class {
-  constructor(hashTableNameToHandle = {}, hashTableMap = {}) {
-    this.hashTableNameToHandle = hashTableNameToHandle;
-    this.hashTableMap = hashTableMap;
-  }
-  /**
-   * Register a `HashTable` in the resource manager.
-   *
-   * The `HashTable` can be retrieved by `resourceManager.getHashTableById`,
-   * where id is the table handle tensor's id.
-   *
-   * @param name Op node name that creates the `HashTable`.
-   * @param hashTable The `HashTable` to be added to resource manager.
-   */
-  addHashTable(name, hashTable) {
-    this.hashTableNameToHandle[name] = hashTable.handle;
-    this.hashTableMap[hashTable.id] = hashTable;
-  }
-  /**
-   * Get the table handle by node name.
-   * @param name Op node name that creates the `HashTable`. This name is also
-   *     used in the inputs list of lookup and import `HashTable` ops.
-   */
-  getHashTableHandleByName(name) {
-    return this.hashTableNameToHandle[name];
-  }
-  /**
-   * Get the actual `HashTable` by its handle tensor's id.
-   * @param id The id of the handle tensor.
-   */
-  getHashTableById(id) {
-    return this.hashTableMap[id];
-  }
-  /**
-   * Dispose `ResourceManager`, including its hashTables and tensors in them.
-   */
-  dispose() {
-    for (const key in this.hashTableMap) {
-      this.hashTableMap[key].clearAndClose();
-      delete this.hashTableMap[key];
-    }
-    for (const name in this.hashTableNameToHandle) {
-      this.hashTableNameToHandle[name].dispose();
-      delete this.hashTableNameToHandle[name];
-    }
-  }
-};
-
-// node_modules/@tensorflow/tfjs-converter/dist/executor/graph_model.js
-var TFHUB_SEARCH_PARAM = "?tfjs-format=file";
-var DEFAULT_MODEL_NAME = "model.json";
-var GraphModel = class {
-  // Returns the version information for the tensorflow model GraphDef.
-  get modelVersion() {
-    return this.version;
-  }
-  get inputNodes() {
-    return this.executor.inputNodes;
-  }
-  get outputNodes() {
-    return this.executor.outputNodes;
-  }
-  get inputs() {
-    return this.executor.inputs;
-  }
-  get outputs() {
-    return this.executor.outputs;
-  }
-  get weights() {
-    return this.executor.weightMap;
-  }
-  get metadata() {
-    return this.artifacts.userDefinedMetadata;
-  }
-  get modelSignature() {
-    return this.signature;
-  }
-  get modelStructuredOutputKeys() {
-    return this.structuredOutputKeys;
-  }
-  /**
-   * @param modelUrl url for the model, or an `io.IOHandler`.
-   * @param weightManifestUrl url for the weight file generated by
-   * scripts/convert.py script.
-   * @param requestOption options for Request, which allows to send credentials
-   * and custom headers.
-   * @param onProgress Optional, progress callback function, fired periodically
-   * before the load is completed.
-   */
-  constructor(modelUrl, loadOptions = {}, tfio = io_exports) {
-    this.modelUrl = modelUrl;
-    this.loadOptions = loadOptions;
-    this.version = "n/a";
-    this.io = tfio;
-    if (loadOptions == null) {
-      this.loadOptions = {};
-    }
-    this.resourceManager = new ResourceManager();
-  }
-  findIOHandler() {
-    const path = this.modelUrl;
-    if (path.load != null) {
-      this.handler = path;
-    } else if (this.loadOptions.requestInit != null) {
-      this.handler = this.io.browserHTTPRequest(path, this.loadOptions);
-    } else {
-      const handlers = this.io.getLoadHandlers(path, this.loadOptions);
-      if (handlers.length === 0) {
-        handlers.push(this.io.browserHTTPRequest(path, this.loadOptions));
-      } else if (handlers.length > 1) {
-        throw new Error(`Found more than one (${handlers.length}) load handlers for URL '${[path]}'`);
-      }
-      this.handler = handlers[0];
-    }
-  }
-  /**
-   * Loads the model and weight files, construct the in memory weight map and
-   * compile the inference graph.
-   */
-  load() {
-    this.findIOHandler();
-    if (this.handler.load == null) {
-      throw new Error("Cannot proceed with model loading because the IOHandler provided does not have the `load` method implemented.");
-    }
-    const loadResult = this.handler.load();
-    if (util_exports.isPromise(loadResult)) {
-      return loadResult.then((artifacts) => {
-        if (artifacts.getWeightStream == null) {
-          return this.loadSync(artifacts);
-        }
-        return this.loadStreaming(artifacts);
-      });
-    }
-    return this.loadSync(loadResult);
-  }
-  /**
-   * Synchronously construct the in memory weight map and
-   * compile the inference graph.
-   *
-   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
-   */
-  loadSync(artifacts) {
-    const weightMap = this.io.decodeWeights(artifacts.weightData, artifacts.weightSpecs);
-    return this.loadWithWeightMap(artifacts, weightMap);
-  }
-  async loadStreaming(artifacts) {
-    if (artifacts.getWeightStream == null) {
-      throw new Error("Model artifacts missing streamWeights function");
-    }
-    const weightMap = await decodeWeightsStream(artifacts.getWeightStream(), artifacts.weightSpecs);
-    return this.loadWithWeightMap(artifacts, weightMap);
-  }
-  loadWithWeightMap(artifacts, weightMap) {
-    this.artifacts = artifacts;
-    const graph = this.artifacts.modelTopology;
-    let signature = this.artifacts.signature;
-    if (this.artifacts.userDefinedMetadata != null) {
-      const metadata = this.artifacts.userDefinedMetadata;
-      if (metadata.signature != null) {
-        signature = metadata.signature;
-      }
-      if (metadata.structuredOutputKeys != null) {
-        this.structuredOutputKeys = metadata.structuredOutputKeys;
-      }
-    }
-    this.signature = signature;
-    this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
-    this.executor = new GraphExecutor(OperationMapper.Instance.transformGraph(graph, this.signature));
-    this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
-    this.executor.resourceManager = this.resourceManager;
-    if (artifacts.modelInitializer != null && artifacts.modelInitializer.node != null) {
-      const initializer = OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
-      this.initializer = new GraphExecutor(initializer);
-      this.initializer.weightMap = this.executor.weightMap;
-      this.initializer.resourceManager = this.resourceManager;
-      this.initializerSignature = artifacts.initializerSignature;
-    }
-    return true;
-  }
-  /**
-   * Save the configuration and/or weights of the GraphModel.
-   *
-   * An `IOHandler` is an object that has a `save` method of the proper
-   * signature defined. The `save` method manages the storing or
-   * transmission of serialized data ("artifacts") that represent the
-   * model's topology and weights onto or via a specific medium, such as
-   * file downloads, local storage, IndexedDB in the web browser and HTTP
-   * requests to a server. TensorFlow.js provides `IOHandler`
-   * implementations for a number of frequently used saving mediums, such as
-   * `tf.io.browserDownloads` and `tf.io.browserLocalStorage`. See `tf.io`
-   * for more details.
-   *
-   * This method also allows you to refer to certain types of `IOHandler`s
-   * as URL-like string shortcuts, such as 'localstorage://' and
-   * 'indexeddb://'.
-   *
-   * Example 1: Save `model`'s topology and weights to browser [local
-   * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
-   * then load it back.
-   *
-   * ```js
-   * const modelUrl =
-   *    'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
-   * const model = await tf.loadGraphModel(modelUrl);
-   * const zeros = tf.zeros([1, 224, 224, 3]);
-   * model.predict(zeros).print();
-   *
-   * const saveResults = await model.save('localstorage://my-model-1');
-   *
-   * const loadedModel = await tf.loadGraphModel('localstorage://my-model-1');
-   * console.log('Prediction from loaded model:');
-   * model.predict(zeros).print();
-   * ```
-   *
-   * @param handlerOrURL An instance of `IOHandler` or a URL-like,
-   * scheme-based string shortcut for `IOHandler`.
-   * @param config Options for saving the model.
-   * @returns A `Promise` of `SaveResult`, which summarizes the result of
-   * the saving, such as byte sizes of the saved artifacts for the model's
-   *   topology and weight values.
-   *
-   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
-   */
-  async save(handlerOrURL, config) {
-    if (typeof handlerOrURL === "string") {
-      const handlers = this.io.getSaveHandlers(handlerOrURL);
-      if (handlers.length === 0) {
-        throw new Error(`Cannot find any save handlers for URL '${handlerOrURL}'`);
-      } else if (handlers.length > 1) {
-        throw new Error(`Found more than one (${handlers.length}) save handlers for URL '${handlerOrURL}'`);
-      }
-      handlerOrURL = handlers[0];
-    }
-    if (handlerOrURL.save == null) {
-      throw new Error("GraphModel.save() cannot proceed because the IOHandler provided does not have the `save` attribute defined.");
-    }
-    return handlerOrURL.save(this.artifacts);
-  }
-  addStructuredOutputNames(outputTensors) {
-    if (this.structuredOutputKeys) {
-      const outputTensorsArray = outputTensors instanceof Tensor ? [outputTensors] : outputTensors;
-      const outputTensorMap = {};
-      outputTensorsArray.forEach((outputTensor, i) => outputTensorMap[this.structuredOutputKeys[i]] = outputTensor);
-      return outputTensorMap;
-    }
-    return outputTensors;
-  }
-  /**
-   * Execute the inference for the input tensors.
-   *
-   * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a `tf.Tensor`. For models with multiple inputs,
-   * inputs params should be in either `tf.Tensor`[] if the input order is
-   * fixed, or otherwise NamedTensorMap format.
-   *
-   * For model with multiple inputs, we recommend you use NamedTensorMap as the
-   * input type, if you use `tf.Tensor`[], the order of the array needs to
-   * follow the
-   * order of inputNodes array. @see {@link GraphModel.inputNodes}
-   *
-   * You can also feed any intermediate nodes using the NamedTensorMap as the
-   * input type. For example, given the graph
-   *    InputNode => Intermediate => OutputNode,
-   * you can execute the subgraph Intermediate => OutputNode by calling
-   *    model.execute('IntermediateNode' : tf.tensor(...));
-   *
-   * This is useful for models that uses tf.dynamic_rnn, where the intermediate
-   * state needs to be fed manually.
-   *
-   * For batch inference execution, the tensors for each input need to be
-   * concatenated together. For example with mobilenet, the required input shape
-   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
-   * If we are provide a batched data of 100 images, the input tensor should be
-   * in the shape of [100, 244, 244, 3].
-   *
-   * @param config Prediction configuration for specifying the batch size.
-   * Currently the batch size option is ignored for graph model.
-   *
-   * @returns Inference result tensors. If the model is converted and it
-   * originally had structured_outputs in tensorflow, then a NamedTensorMap
-   * will be returned matching the structured_outputs. If no structured_outputs
-   * are present, the output will be single `tf.Tensor` if the model has single
-   * output node, otherwise Tensor[].
-   *
-   * @doc {heading: 'Models', subheading: 'Classes'}
-   */
-  predict(inputs, config) {
-    const outputTensors = this.execute(inputs, this.outputNodes);
-    return this.addStructuredOutputNames(outputTensors);
-  }
-  /**
-   * Execute the inference for the input tensors in async fashion, use this
-   * method when your model contains control flow ops.
-   *
-   * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
-   * inputs params should be in either `tf.Tensor`[] if the input order is
-   * fixed, or otherwise NamedTensorMap format.
-   *
-   * For model with multiple inputs, we recommend you use NamedTensorMap as the
-   * input type, if you use `tf.Tensor`[], the order of the array needs to
-   * follow the
-   * order of inputNodes array. @see {@link GraphModel.inputNodes}
-   *
-   * You can also feed any intermediate nodes using the NamedTensorMap as the
-   * input type. For example, given the graph
-   *    InputNode => Intermediate => OutputNode,
-   * you can execute the subgraph Intermediate => OutputNode by calling
-   *    model.execute('IntermediateNode' : tf.tensor(...));
-   *
-   * This is useful for models that uses tf.dynamic_rnn, where the intermediate
-   * state needs to be fed manually.
-   *
-   * For batch inference execution, the tensors for each input need to be
-   * concatenated together. For example with mobilenet, the required input shape
-   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
-   * If we are provide a batched data of 100 images, the input tensor should be
-   * in the shape of [100, 244, 244, 3].
-   *
-   * @param config Prediction configuration for specifying the batch size.
-   * Currently the batch size option is ignored for graph model.
-   *
-   * @returns A Promise of inference result tensors. If the model is converted
-   * and it originally had structured_outputs in tensorflow, then a
-   * NamedTensorMap will be returned matching the structured_outputs. If no
-   * structured_outputs are present, the output will be single `tf.Tensor` if
-   * the model has single output node, otherwise Tensor[].
-   *
-   * @doc {heading: 'Models', subheading: 'Classes'}
-   */
-  async predictAsync(inputs, config) {
-    const outputTensors = await this.executeAsync(inputs, this.outputNodes);
-    return this.addStructuredOutputNames(outputTensors);
-  }
-  normalizeInputs(inputs) {
-    var _a;
-    if (!(inputs instanceof Tensor) && !Array.isArray(inputs)) {
-      const signatureInputs = (_a = this.signature) === null || _a === void 0 ? void 0 : _a.inputs;
-      if (signatureInputs != null) {
-        for (const input2 in signatureInputs) {
-          const tensor2 = signatureInputs[input2];
-          if (tensor2.resourceId != null) {
-            inputs[input2] = this.resourceIdToCapturedInput[tensor2.resourceId];
-          }
-        }
-      }
-      return inputs;
-    }
-    inputs = Array.isArray(inputs) ? inputs : [inputs];
-    const numCapturedInputs = Object.keys(this.resourceIdToCapturedInput).length;
-    if (inputs.length + numCapturedInputs !== this.inputNodes.length) {
-      throw new Error(`Input tensor count mismatch, the graph model has ${this.inputNodes.length - numCapturedInputs} non-resource placeholders, while there are ${inputs.length} input tensors provided.`);
-    }
-    let inputIndex = 0;
-    return this.inputNodes.reduce((map, inputName) => {
-      var _a2, _b, _c;
-      const resourceId = (_c = (_b = (_a2 = this.signature) === null || _a2 === void 0 ? void 0 : _a2.inputs) === null || _b === void 0 ? void 0 : _b[inputName]) === null || _c === void 0 ? void 0 : _c.resourceId;
-      if (resourceId != null) {
-        map[inputName] = this.resourceIdToCapturedInput[resourceId];
-      } else {
-        map[inputName] = inputs[inputIndex++];
-      }
-      return map;
-    }, {});
-  }
-  normalizeOutputs(outputs) {
-    outputs = outputs || this.outputNodes;
-    return !Array.isArray(outputs) ? [outputs] : outputs;
-  }
-  executeInitializerGraph() {
-    if (this.initializer == null) {
-      return [];
-    }
-    if (this.initializerSignature == null) {
-      return this.initializer.execute({}, []);
-    } else {
-      return this.initializer.execute({}, Object.keys(this.initializerSignature.outputs));
-    }
-  }
-  async executeInitializerGraphAsync() {
-    if (this.initializer == null) {
-      return [];
-    }
-    if (this.initializerSignature == null) {
-      return this.initializer.executeAsync({}, []);
-    } else {
-      return this.initializer.executeAsync({}, Object.keys(this.initializerSignature.outputs));
-    }
-  }
-  setResourceIdToCapturedInput(outputs) {
-    this.resourceIdToCapturedInput = {};
-    if (this.initializerSignature) {
-      const signatureOutputs = this.initializerSignature.outputs;
-      const outputNames = Object.keys(signatureOutputs);
-      for (let i = 0; i < outputNames.length; i++) {
-        const outputName = outputNames[i];
-        const tensorInfo = signatureOutputs[outputName];
-        this.resourceIdToCapturedInput[tensorInfo.resourceId] = outputs[i];
-      }
-    }
-  }
-  /**
-   * Executes inference for the model for given input tensors.
-   * @param inputs tensor, tensor array or tensor map of the inputs for the
-   * model, keyed by the input node names.
-   * @param outputs output node name from the TensorFlow model, if no
-   * outputs are specified, the default outputs of the model would be used.
-   * You can inspect intermediate nodes of the model by adding them to the
-   * outputs array.
-   *
-   * @returns A single tensor if provided with a single output or no outputs
-   * are provided and there is only one default output, otherwise return a
-   * tensor array. The order of the tensor array is the same as the outputs
-   * if provided, otherwise the order of outputNodes attribute of the model.
-   *
-   * @doc {heading: 'Models', subheading: 'Classes'}
-   */
-  execute(inputs, outputs) {
-    if (this.resourceIdToCapturedInput == null) {
-      this.setResourceIdToCapturedInput(this.executeInitializerGraph());
-    }
-    inputs = this.normalizeInputs(inputs);
-    outputs = this.normalizeOutputs(outputs);
-    const result = this.executor.execute(inputs, outputs);
-    return result.length > 1 ? result : result[0];
-  }
-  /**
-   * Executes inference for the model for given input tensors in async
-   * fashion, use this method when your model contains control flow ops.
-   * @param inputs tensor, tensor array or tensor map of the inputs for the
-   * model, keyed by the input node names.
-   * @param outputs output node name from the TensorFlow model, if no outputs
-   * are specified, the default outputs of the model would be used. You can
-   * inspect intermediate nodes of the model by adding them to the outputs
-   * array.
-   *
-   * @returns A Promise of single tensor if provided with a single output or
-   * no outputs are provided and there is only one default output, otherwise
-   * return a tensor map.
-   *
-   * @doc {heading: 'Models', subheading: 'Classes'}
-   */
-  async executeAsync(inputs, outputs) {
-    if (this.resourceIdToCapturedInput == null) {
-      this.setResourceIdToCapturedInput(await this.executeInitializerGraphAsync());
-    }
-    inputs = this.normalizeInputs(inputs);
-    outputs = this.normalizeOutputs(outputs);
-    const result = await this.executor.executeAsync(inputs, outputs);
-    return result.length > 1 ? result : result[0];
-  }
-  /**
-   * Get intermediate tensors for model debugging mode (flag
-   * KEEP_INTERMEDIATE_TENSORS is true).
-   *
-   * @doc {heading: 'Models', subheading: 'Classes'}
-   */
-  getIntermediateTensors() {
-    return this.executor.getIntermediateTensors();
-  }
-  /**
-   * Dispose intermediate tensors for model debugging mode (flag
-   * KEEP_INTERMEDIATE_TENSORS is true).
-   *
-   * @doc {heading: 'Models', subheading: 'Classes'}
-   */
-  disposeIntermediateTensors() {
-    this.executor.disposeIntermediateTensors();
-  }
-  convertTensorMapToTensorsMap(map) {
-    return Object.keys(map).reduce((newMap, key) => {
-      newMap[key] = [map[key]];
-      return newMap;
-    }, {});
-  }
-  /**
-   * Releases the memory used by the weight tensors and resourceManager.
-   *
-   * @doc {heading: 'Models', subheading: 'Classes'}
-   */
-  dispose() {
-    this.executor.dispose();
-    if (this.initializer) {
-      this.initializer.dispose();
-      if (this.resourceIdToCapturedInput) {
-        dispose(this.resourceIdToCapturedInput);
-      }
-    }
-    this.resourceManager.dispose();
-  }
-};
-async function loadGraphModel(modelUrl, options = {}, tfio = io_exports) {
-  if (modelUrl == null) {
-    throw new Error("modelUrl in loadGraphModel() cannot be null. Please provide a url or an IOHandler that loads the model");
-  }
-  if (options == null) {
-    options = {};
-  }
-  if (options.fromTFHub && typeof modelUrl === "string") {
-    modelUrl = getTFHubUrl(modelUrl);
-  }
-  const model2 = new GraphModel(modelUrl, options, tfio);
-  await model2.load();
-  return model2;
-}
-function getTFHubUrl(modelUrl) {
-  if (!modelUrl.endsWith("/")) {
-    modelUrl = modelUrl + "/";
-  }
-  return `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
-}
-
 // node_modules/@tensorflow/tfjs-data/dist/dataset.js
 var seedrandom3 = __toESM(require_seedrandom2());
 
@@ -42049,11 +30094,11 @@ function bincountReduceImpl(xBuf, weightsBuf, size, binaryOutput = false) {
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/BitwiseAnd.js
 var bitwiseAndImpl = createSimpleBinaryKernelImpl(((a, b) => a & b));
-var bitwiseAnd2 = binaryKernelFunc(BitwiseAnd, bitwiseAndImpl);
+var bitwiseAnd = binaryKernelFunc(BitwiseAnd, bitwiseAndImpl);
 var bitwiseAndConfig = {
   kernelName: BitwiseAnd,
   backendName: "cpu",
-  kernelFunc: bitwiseAnd2
+  kernelFunc: bitwiseAnd
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/utils/unary_impl.js
@@ -42563,7 +30608,7 @@ function raggedGatherImpl(paramsNestedSplits, paramsNestedSplitsShapes, paramsDe
 }
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/RaggedRange_impl.js
-var INT32_MAX2 = 2147483647;
+var INT32_MAX = 2147483647;
 function raggedRangeImpl(starts, startsShape, startsDType, limits, limitsShape, deltas, deltasShape) {
   if (startsShape.length > 1) {
     throw new Error("starts must be a scalar or vector");
@@ -42607,8 +30652,8 @@ function raggedRangeImpl(starts, startsShape, startsDType, limits, limitsShape, 
       size = 0;
     } else {
       size = Math.ceil(Math.abs((limit - start) / delta));
-      if (size > INT32_MAX2) {
-        throw new Error(`Requires ((limit - start) / delta) <= ${INT32_MAX2}`);
+      if (size > INT32_MAX) {
+        throw new Error(`Requires ((limit - start) / delta) <= ${INT32_MAX}`);
       }
     }
     rtNestedSplits[row + 1] = rtNestedSplits[row] + size;
@@ -43356,11 +31401,11 @@ var staticRegexReplaceImpl = createSimpleUnaryImpl((x, attrs) => {
   const { pattern, replaceGlobal, rewrite } = attrs;
   return x.replace(new RegExp(pattern, replaceGlobal ? "g" : ""), rewrite);
 });
-var staticRegexReplace2 = unaryKernelFuncFromImpl(StaticRegexReplace, staticRegexReplaceImpl);
+var staticRegexReplace = unaryKernelFuncFromImpl(StaticRegexReplace, staticRegexReplaceImpl);
 var staticRegexReplaceConfig = {
   kernelName: StaticRegexReplace,
   backendName: "cpu",
-  kernelFunc: staticRegexReplace2
+  kernelFunc: staticRegexReplace
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/StridedSlice_impl.js
@@ -43994,7 +32039,7 @@ var acoshConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/AddN.js
-function addN2(args) {
+function addN(args) {
   const { inputs, backend: backend2 } = args;
   const tensors = inputs;
   assertNotComplex(inputs, "addN");
@@ -44012,7 +32057,7 @@ function addN2(args) {
 var addNConfig = {
   kernelName: AddN,
   backendName: "cpu",
-  kernelFunc: addN2
+  kernelFunc: addN
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/All.js
@@ -44754,7 +32799,7 @@ var bincountConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/BroadcastArgs.js
-function broadcastArgs2(args) {
+function broadcastArgs(args) {
   const { inputs, backend: backend2 } = args;
   const { s0, s1 } = inputs;
   const s0Vals = backend2.data.get(s0.dataId).values;
@@ -44765,7 +32810,7 @@ function broadcastArgs2(args) {
 var broadcastArgsConfig = {
   kernelName: BroadcastArgs,
   backendName: "cpu",
-  kernelFunc: broadcastArgs2
+  kernelFunc: broadcastArgs
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/ClipByValue.js
@@ -45748,7 +33793,7 @@ var depthwiseConv2dNativeBackpropInputConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Diag.js
-function diag2(args) {
+function diag(args) {
   const { inputs, backend: backend2 } = args;
   const { x } = inputs;
   const xSize = util_exports.sizeFromShape(x.shape);
@@ -45764,7 +33809,7 @@ function diag2(args) {
 var diagConfig = {
   kernelName: Diag,
   backendName: "cpu",
-  kernelFunc: diag2
+  kernelFunc: diag
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Dilation2D.js
@@ -45916,7 +33961,7 @@ var dilation2DBackpropInputConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Draw.js
-function draw2(args) {
+function draw(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { image: image2 } = inputs;
   const { canvas, options } = attrs;
@@ -45971,7 +34016,7 @@ function draw2(args) {
 var drawConfig = {
   kernelName: Draw,
   backendName: "cpu",
-  kernelFunc: draw2
+  kernelFunc: draw
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Sum.js
@@ -47177,7 +35222,7 @@ var softmaxConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Multinomial.js
-function multinomial2(args) {
+function multinomial(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { logits } = inputs;
   const { numSamples, seed, normalized } = attrs;
@@ -47216,7 +35261,7 @@ function multinomial2(args) {
 var multinomialConfig = {
   kernelName: Multinomial,
   backendName: "cpu",
-  kernelFunc: multinomial2
+  kernelFunc: multinomial
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/NonMaxSuppressionV3.js
@@ -47436,7 +35481,7 @@ var powConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/RaggedGather.js
-function raggedGather2(args) {
+function raggedGather(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { paramsNestedSplits, paramsDenseValues, indices } = inputs;
   const { outputRaggedRank } = attrs;
@@ -47452,11 +35497,11 @@ function raggedGather2(args) {
 var raggedGatherConfig = {
   kernelName: RaggedGather,
   backendName: "cpu",
-  kernelFunc: raggedGather2
+  kernelFunc: raggedGather
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/RaggedRange.js
-function raggedRange2(args) {
+function raggedRange(args) {
   const { inputs, backend: backend2 } = args;
   const { starts, limits, deltas } = inputs;
   const $starts = backend2.data.get(starts.dataId).values;
@@ -47470,11 +35515,11 @@ function raggedRange2(args) {
 var raggedRangeConfig = {
   kernelName: RaggedRange,
   backendName: "cpu",
-  kernelFunc: raggedRange2
+  kernelFunc: raggedRange
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/RaggedTensorToTensor.js
-function raggedTensorToTensor2(args) {
+function raggedTensorToTensor(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { shape, values, defaultValue, rowPartitionTensors } = inputs;
   const { rowPartitionTypes } = attrs;
@@ -47489,7 +35534,7 @@ function raggedTensorToTensor2(args) {
 var raggedTensorToTensorConfig = {
   kernelName: RaggedTensorToTensor,
   backendName: "cpu",
-  kernelFunc: raggedTensorToTensor2
+  kernelFunc: raggedTensorToTensor
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Range.js
@@ -47896,7 +35941,7 @@ var scatterNdConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SearchSorted_impl.js
-function lowerBound2(array2, value) {
+function lowerBound(array2, value) {
   let left = 0;
   let right = array2.length;
   let mid = 0;
@@ -47910,7 +35955,7 @@ function lowerBound2(array2, value) {
   }
   return right;
 }
-function upperBound2(array2, value) {
+function upperBound(array2, value) {
   let left = 0;
   let right = array2.length;
   let mid = 0;
@@ -47930,14 +35975,14 @@ function searchSortedImpl(sortedInputs, values, batchSize, numInputs, numValues,
     const sortedInputsSlice = sortedInputs.slice(b * numInputs, (b + 1) * numInputs);
     const outputOffset = b * numValues;
     for (let i = 0; i < numValues; ++i) {
-      output[outputOffset + i] = side === "left" ? lowerBound2(sortedInputsSlice, values[i + outputOffset]) : upperBound2(sortedInputsSlice, values[i + outputOffset]);
+      output[outputOffset + i] = side === "left" ? lowerBound(sortedInputsSlice, values[i + outputOffset]) : upperBound(sortedInputsSlice, values[i + outputOffset]);
     }
   }
   return output;
 }
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SearchSorted.js
-function searchSorted2(args) {
+function searchSorted(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { sortedSequence, values } = inputs;
   const { side } = attrs;
@@ -47949,7 +35994,7 @@ function searchSorted2(args) {
 var searchSortedConfig = {
   kernelName: SearchSorted,
   backendName: "cpu",
-  kernelFunc: searchSorted2
+  kernelFunc: searchSorted
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Select.js
@@ -48094,7 +36139,7 @@ var spaceToBatchNDConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SparseFillEmptyRows.js
-function sparseFillEmptyRows2(args) {
+function sparseFillEmptyRows(args) {
   const { inputs, backend: backend2 } = args;
   const { indices, values, denseShape, defaultValue } = inputs;
   if (denseShape.shape.length !== 1) {
@@ -48128,11 +36173,11 @@ function sparseFillEmptyRows2(args) {
 var sparseFillEmptyRowsConfig = {
   kernelName: SparseFillEmptyRows,
   backendName: "cpu",
-  kernelFunc: sparseFillEmptyRows2
+  kernelFunc: sparseFillEmptyRows
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SparseReshape.js
-function sparseReshape2(args) {
+function sparseReshape(args) {
   const { inputs, backend: backend2 } = args;
   const { inputIndices, inputShape, newShape } = inputs;
   if (inputIndices.shape.length !== 2) {
@@ -48158,11 +36203,11 @@ function sparseReshape2(args) {
 var sparseReshapeConfig = {
   kernelName: SparseReshape,
   backendName: "cpu",
-  kernelFunc: sparseReshape2
+  kernelFunc: sparseReshape
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SparseSegmentMean.js
-function sparseSegmentMean2(args) {
+function sparseSegmentMean(args) {
   const { inputs, backend: backend2 } = args;
   const { data, indices, segmentIds } = inputs;
   if (data.shape.length < 1) {
@@ -48188,11 +36233,11 @@ function sparseSegmentMean2(args) {
 var sparseSegmentMeanConfig = {
   kernelName: SparseSegmentMean,
   backendName: "cpu",
-  kernelFunc: sparseSegmentMean2
+  kernelFunc: sparseSegmentMean
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SparseSegmentSum.js
-function sparseSegmentSum2(args) {
+function sparseSegmentSum(args) {
   const { inputs, backend: backend2 } = args;
   const { data, indices, segmentIds } = inputs;
   if (data.shape.length < 1) {
@@ -48218,11 +36263,11 @@ function sparseSegmentSum2(args) {
 var sparseSegmentSumConfig = {
   kernelName: SparseSegmentSum,
   backendName: "cpu",
-  kernelFunc: sparseSegmentSum2
+  kernelFunc: sparseSegmentSum
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SparseToDense.js
-function sparseToDense2(args) {
+function sparseToDense(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { sparseIndices, sparseValues, defaultValue } = inputs;
   const { outputShape } = attrs;
@@ -48263,7 +36308,7 @@ function sparseToDense2(args) {
 var sparseToDenseConfig = {
   kernelName: SparseToDense,
   backendName: "cpu",
-  kernelFunc: sparseToDense2
+  kernelFunc: sparseToDense
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/SplitV.js
@@ -48353,7 +36398,7 @@ var stridedSliceConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/StringNGrams.js
-function stringNGrams2(args) {
+function stringNGrams(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { separator, nGramWidths, leftPad, rightPad: rightPad2, padWidth, preserveShortSequences } = attrs;
   const { data, dataSplits } = inputs;
@@ -48368,11 +36413,11 @@ function stringNGrams2(args) {
 var stringNGramsConfig = {
   kernelName: StringNGrams,
   backendName: "cpu",
-  kernelFunc: stringNGrams2
+  kernelFunc: stringNGrams
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/StringSplit.js
-function stringSplit2(args) {
+function stringSplit(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { skipEmpty } = attrs;
   const { input: input2, delimiter } = inputs;
@@ -48398,11 +36443,11 @@ function stringSplit2(args) {
 var stringSplitConfig = {
   kernelName: StringSplit,
   backendName: "cpu",
-  kernelFunc: stringSplit2
+  kernelFunc: stringSplit
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/StringToHashBucketFast.js
-function stringToHashBucketFast2(args) {
+function stringToHashBucketFast(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { numBuckets } = attrs;
   const { input: input2 } = inputs;
@@ -48419,7 +36464,7 @@ function stringToHashBucketFast2(args) {
 var stringToHashBucketFastConfig = {
   kernelName: StringToHashBucketFast,
   backendName: "cpu",
-  kernelFunc: stringToHashBucketFast2
+  kernelFunc: stringToHashBucketFast
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Tan.js
@@ -48439,7 +36484,7 @@ var tanhConfig = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/TensorScatterUpdate.js
-function tensorScatterUpdate2(args) {
+function tensorScatterUpdate(args) {
   const { inputs, backend: backend2 } = args;
   const { tensor: tensor2, indices, updates } = inputs;
   const { sliceRank, numUpdates, sliceSize, strides, outputSize } = backend_util_exports.calculateShapes(updates, indices, tensor2.shape);
@@ -48453,7 +36498,7 @@ function tensorScatterUpdate2(args) {
 var tensorScatterUpdateConfig = {
   kernelName: TensorScatterUpdate,
   backendName: "cpu",
-  kernelFunc: tensorScatterUpdate2
+  kernelFunc: tensorScatterUpdate
 };
 
 // node_modules/@tensorflow/tfjs-backend-cpu/dist/kernels/Tile.js
@@ -55025,7 +43070,7 @@ var AddNPackedProgram = class {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/AddN.js
-function addN3(args) {
+function addN2(args) {
   const { inputs, backend: backend2 } = args;
   const tensors = inputs;
   if (tensors.length === 1) {
@@ -55033,9 +43078,9 @@ function addN3(args) {
   }
   if (tensors.length > env().getNumber("WEBGL_MAX_TEXTURES_IN_SHADER")) {
     const midIndex = Math.floor(tensors.length / 2);
-    const leftSide = addN3({ inputs: tensors.slice(0, midIndex), backend: backend2 });
-    const rightSide = addN3({ inputs: tensors.slice(midIndex), backend: backend2 });
-    return addN3({ inputs: [leftSide, rightSide], backend: backend2 });
+    const leftSide = addN2({ inputs: tensors.slice(0, midIndex), backend: backend2 });
+    const rightSide = addN2({ inputs: tensors.slice(midIndex), backend: backend2 });
+    return addN2({ inputs: [leftSide, rightSide], backend: backend2 });
   }
   const dtype = tensors.map((t) => t.dtype).reduce((d1, d2) => upcastType(d1, d2));
   const shapes = tensors.map((t) => t.shape);
@@ -55046,7 +43091,7 @@ function addN3(args) {
 var addNConfig2 = {
   kernelName: AddN,
   backendName: "webgl",
-  kernelFunc: addN3
+  kernelFunc: addN2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/All.js
@@ -56361,7 +44406,7 @@ var BITWISEAND = `
 var BITWISEAND_UNPACKED = `
   return float(int(a.r) & int(b.r));
 `;
-function bitwiseAnd3(args) {
+function bitwiseAnd2(args) {
   const { inputs, backend: backend2 } = args;
   const { a, b } = inputs;
   const shouldUsePackedProgram = env().getBool("WEBGL_PACK_BINARY_OPERATIONS");
@@ -56386,11 +44431,11 @@ function bitwiseAnd3(args) {
 var bitwiseAndConfig2 = {
   kernelName: BitwiseAnd,
   backendName: "webgl",
-  kernelFunc: bitwiseAnd3
+  kernelFunc: bitwiseAnd2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/BroadcastArgs.js
-function broadcastArgs3(args) {
+function broadcastArgs2(args) {
   const { inputs, backend: backend2 } = args;
   const { s0, s1 } = inputs;
   const s0Vals = backend2.readSync(s0.dataId);
@@ -56401,7 +44446,7 @@ function broadcastArgs3(args) {
 var broadcastArgsConfig2 = {
   kernelName: BroadcastArgs,
   backendName: "webgl",
-  kernelFunc: broadcastArgs3
+  kernelFunc: broadcastArgs2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/NotEqual.js
@@ -59161,7 +47206,7 @@ var DiagProgram = class {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/Diag.js
-function diag3(args) {
+function diag2(args) {
   const { inputs, backend: backend2 } = args;
   const { x } = inputs;
   const outShape = [...x.shape, ...x.shape];
@@ -59177,7 +47222,7 @@ function diag3(args) {
 var diagConfig2 = {
   kernelName: Diag,
   backendName: "webgl",
-  kernelFunc: diag3
+  kernelFunc: diag2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/dilation_gpu.js
@@ -59756,11 +47801,11 @@ var FromPixelsPackedProgram = class {
 var fromPixelsConfig = {
   kernelName: FromPixels,
   backendName: "webgl",
-  kernelFunc: fromPixels2
+  kernelFunc: fromPixels
 };
-var fromPixels2DContext2;
+var fromPixels2DContext;
 var willReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
-function fromPixels2(args) {
+function fromPixels(args) {
   const { inputs, backend: backend2, attrs } = args;
   let { pixels } = inputs;
   const { numChannels } = attrs;
@@ -59774,14 +47819,14 @@ function fromPixels2(args) {
   const outShape = [height, width, numChannels];
   if (isImage || isVideo) {
     const newWillReadFrequently = env().getBool("CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU");
-    if (fromPixels2DContext2 == null || newWillReadFrequently !== willReadFrequently) {
+    if (fromPixels2DContext == null || newWillReadFrequently !== willReadFrequently) {
       willReadFrequently = newWillReadFrequently;
-      fromPixels2DContext2 = document.createElement("canvas").getContext("2d", { willReadFrequently });
+      fromPixels2DContext = document.createElement("canvas").getContext("2d", { willReadFrequently });
     }
-    fromPixels2DContext2.canvas.width = width;
-    fromPixels2DContext2.canvas.height = height;
-    fromPixels2DContext2.drawImage(pixels, 0, 0, width, height);
-    pixels = fromPixels2DContext2.canvas;
+    fromPixels2DContext.canvas.width = width;
+    fromPixels2DContext.canvas.height = height;
+    fromPixels2DContext.drawImage(pixels, 0, 0, width, height);
+    pixels = fromPixels2DContext.canvas;
   }
   const tempPixelHandle = backend2.makeTensorInfo(texShape, "int32");
   backend2.texData.get(tempPixelHandle.dataId).usage = TextureUsage.PIXELS;
@@ -61270,7 +49315,7 @@ var softmaxConfig2 = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/Multinomial.js
-function multinomial3(args) {
+function multinomial2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { logits } = inputs;
   const { numSamples, seed, normalized } = attrs;
@@ -61288,7 +49333,7 @@ function multinomial3(args) {
 var multinomialConfig2 = {
   kernelName: Multinomial,
   backendName: "webgl",
-  kernelFunc: multinomial3
+  kernelFunc: multinomial2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/Neg.js
@@ -61732,7 +49777,7 @@ var prodConfig2 = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/RaggedGather.js
-function raggedGather3(args) {
+function raggedGather2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { paramsNestedSplits, paramsDenseValues, indices } = inputs;
   const { outputRaggedRank } = attrs;
@@ -61748,11 +49793,11 @@ function raggedGather3(args) {
 var raggedGatherConfig2 = {
   kernelName: RaggedGather,
   backendName: "webgl",
-  kernelFunc: raggedGather3
+  kernelFunc: raggedGather2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/RaggedRange.js
-function raggedRange3(args) {
+function raggedRange2(args) {
   const { inputs, backend: backend2 } = args;
   const { starts, limits, deltas } = inputs;
   const $starts = backend2.readSync(starts.dataId);
@@ -61766,11 +49811,11 @@ function raggedRange3(args) {
 var raggedRangeConfig2 = {
   kernelName: RaggedRange,
   backendName: "webgl",
-  kernelFunc: raggedRange3
+  kernelFunc: raggedRange2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/RaggedTensorToTensor.js
-function raggedTensorToTensor3(args) {
+function raggedTensorToTensor2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { shape, values, defaultValue, rowPartitionTensors } = inputs;
   const { rowPartitionTypes } = attrs;
@@ -61785,7 +49830,7 @@ function raggedTensorToTensor3(args) {
 var raggedTensorToTensorConfig2 = {
   kernelName: RaggedTensorToTensor,
   backendName: "webgl",
-  kernelFunc: raggedTensorToTensor3
+  kernelFunc: raggedTensorToTensor2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/Range.js
@@ -62810,7 +50855,7 @@ var SearchSortedProgram = class {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/SearchSorted.js
-function searchSorted3(args) {
+function searchSorted2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { sortedSequence, values } = inputs;
   const { side } = attrs;
@@ -62821,7 +50866,7 @@ function searchSorted3(args) {
 var searchSortedConfig2 = {
   kernelName: SearchSorted,
   backendName: "webgl",
-  kernelFunc: searchSorted3
+  kernelFunc: searchSorted2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/select_gpu.js
@@ -63030,7 +51075,7 @@ var spaceToBatchNDConfig2 = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/SparseFillEmptyRows.js
-function sparseFillEmptyRows3(args) {
+function sparseFillEmptyRows2(args) {
   const { inputs, backend: backend2 } = args;
   const { indices, values, denseShape, defaultValue } = inputs;
   if (denseShape.shape.length !== 1) {
@@ -63064,11 +51109,11 @@ function sparseFillEmptyRows3(args) {
 var sparseFillEmptyRowsConfig2 = {
   kernelName: SparseFillEmptyRows,
   backendName: "webgl",
-  kernelFunc: sparseFillEmptyRows3
+  kernelFunc: sparseFillEmptyRows2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/SparseReshape.js
-function sparseReshape3(args) {
+function sparseReshape2(args) {
   const { inputs, backend: backend2 } = args;
   const { inputIndices, inputShape, newShape } = inputs;
   if (inputIndices.shape.length !== 2) {
@@ -63092,11 +51137,11 @@ function sparseReshape3(args) {
 var sparseReshapeConfig2 = {
   kernelName: SparseReshape,
   backendName: "webgl",
-  kernelFunc: sparseReshape3
+  kernelFunc: sparseReshape2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/SparseSegmentMean.js
-function sparseSegmentMean3(args) {
+function sparseSegmentMean2(args) {
   const { inputs, backend: backend2 } = args;
   const { data, indices, segmentIds } = inputs;
   if (data.shape.length < 1) {
@@ -63119,11 +51164,11 @@ function sparseSegmentMean3(args) {
 var sparseSegmentMeanConfig2 = {
   kernelName: SparseSegmentMean,
   backendName: "webgl",
-  kernelFunc: sparseSegmentMean3
+  kernelFunc: sparseSegmentMean2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/SparseSegmentSum.js
-function sparseSegmentSum3(args) {
+function sparseSegmentSum2(args) {
   const { inputs, backend: backend2 } = args;
   const { data, indices, segmentIds } = inputs;
   if (data.shape.length < 1) {
@@ -63146,11 +51191,11 @@ function sparseSegmentSum3(args) {
 var sparseSegmentSumConfig2 = {
   kernelName: SparseSegmentSum,
   backendName: "webgl",
-  kernelFunc: sparseSegmentSum3
+  kernelFunc: sparseSegmentSum2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/SparseToDense.js
-function sparseToDense3(args) {
+function sparseToDense2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { sparseIndices, sparseValues, defaultValue } = inputs;
   const { outputShape } = attrs;
@@ -63172,7 +51217,7 @@ function sparseToDense3(args) {
 var sparseToDenseConfig2 = {
   kernelName: SparseToDense,
   backendName: "webgl",
-  kernelFunc: sparseToDense3
+  kernelFunc: sparseToDense2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/SplitV.js
@@ -63227,7 +51272,7 @@ var squaredDifferenceConfig2 = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/StaticRegexReplace.js
-function staticRegexReplace3(args) {
+function staticRegexReplace2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { x } = inputs;
   if (x.dtype !== "string") {
@@ -63241,7 +51286,7 @@ function staticRegexReplace3(args) {
 var staticRegexReplaceConfig2 = {
   kernelName: StaticRegexReplace,
   backendName: "webgl",
-  kernelFunc: staticRegexReplace3
+  kernelFunc: staticRegexReplace2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/Step.js
@@ -63327,7 +51372,7 @@ var stridedSliceConfig2 = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/StringNGrams.js
-function stringNGrams3(args) {
+function stringNGrams2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { separator, nGramWidths, leftPad, rightPad: rightPad2, padWidth, preserveShortSequences } = attrs;
   const { data, dataSplits } = inputs;
@@ -63342,11 +51387,11 @@ function stringNGrams3(args) {
 var stringNGramsConfig2 = {
   kernelName: StringNGrams,
   backendName: "webgl",
-  kernelFunc: stringNGrams3
+  kernelFunc: stringNGrams2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/StringSplit.js
-function stringSplit3(args) {
+function stringSplit2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { skipEmpty } = attrs;
   const { input: input2, delimiter } = inputs;
@@ -63372,11 +51417,11 @@ function stringSplit3(args) {
 var stringSplitConfig2 = {
   kernelName: StringSplit,
   backendName: "webgl",
-  kernelFunc: stringSplit3
+  kernelFunc: stringSplit2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/StringToHashBucketFast.js
-function stringToHashBucketFast3(args) {
+function stringToHashBucketFast2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { numBuckets } = attrs;
   const { input: input2 } = inputs;
@@ -63393,7 +51438,7 @@ function stringToHashBucketFast3(args) {
 var stringToHashBucketFastConfig2 = {
   kernelName: StringToHashBucketFast,
   backendName: "webgl",
-  kernelFunc: stringToHashBucketFast3
+  kernelFunc: stringToHashBucketFast2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/Tan.js
@@ -63418,7 +51463,7 @@ var tanhConfig2 = {
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/kernels/TensorScatterUpdate.js
-function tensorScatterUpdate3(args) {
+function tensorScatterUpdate2(args) {
   const { inputs, backend: backend2, attrs } = args;
   const { tensor: tensor2, indices, updates } = inputs;
   const {} = attrs;
@@ -63442,7 +51487,7 @@ function tensorScatterUpdate3(args) {
 var tensorScatterUpdateConfig2 = {
   kernelName: TensorScatterUpdate,
   backendName: "webgl",
-  kernelFunc: tensorScatterUpdate3
+  kernelFunc: tensorScatterUpdate2
 };
 
 // node_modules/@tensorflow/tfjs-backend-webgl/dist/tile_gpu.js
@@ -64311,66 +52356,366 @@ for (const kernelConfig of kernelConfigs2) {
 }
 
 // inference.js
+var KEYWORD_RULES = {
+  aggressive_tone: [
+    /don't message me/i,
+    /do not message me/i,
+    /don't waste my time/i,
+    /swipe left/i,
+    /you better/i,
+    /prove me wrong/i,
+    /idiot|stupid|get lost|shut up/i
+  ],
+  hookup_focus: [
+    /hook\s?up/i,
+    /one[-\s]?night/i,
+    /friends with benefits/i,
+    /\bfwb\b/i,
+    /nothing serious/i,
+    /no strings attached/i,
+    /\bdtf\b/i,
+    /situationship/i
+  ],
+  negativity: [
+    /tired of/i,
+    /sick of/i,
+    /people suck/i,
+    /i hate/i,
+    /waste of time/i,
+    /everyone is fake/i,
+    /dating is trash/i,
+    /i don't trust people/i
+  ],
+  sarcasm_cynicism: [
+    /sarcasm/i,
+    /sarcastic/i,
+    /fluent in sarcasm/i,
+    /dark humor/i,
+    /cynical/i,
+    /dead inside/i
+  ],
+  controlling_behavior: [
+    /always right/i,
+    /must obey/i,
+    /my rules/i,
+    /i decide/i,
+    /do what i say/i,
+    /need permission/i
+  ],
+  emotional_manipulation: [
+    /silent treatment/i,
+    /test you/i,
+    /prove you care/i,
+    /make you jealous/i,
+    /guilt trip/i
+  ],
+  entitlement_superiority: [
+    /impress me/i,
+    /high standards/i,
+    /princess treatment/i,
+    /alpha/i,
+    /i deserve/i,
+    /don't settle/i
+  ],
+  poor_conflict_resolution: [
+    /cut people off/i,
+    /block you/i,
+    /revenge/i,
+    /never apologize/i,
+    /hold grudges/i
+  ],
+  main_character_syndrome: [
+    /main character/i,
+    /center of attention/i,
+    /obsessed with me/i,
+    /treat me like/i
+  ],
+  dismissive: [
+    /too sensitive/i,
+    /not my problem/i,
+    /cry about it/i,
+    /get over it/i,
+    /feelings are/i
+  ]
+};
+var LABEL_DESCRIPTIONS = {
+  aggressive_tone: "Harsh, hostile, demanding, or insulting wording.",
+  hookup_focus: "Strong focus on casual hookups or non-committal intent.",
+  negativity: "Pessimistic, bitter, cynical, or emotionally negative statements.",
+  sarcasm_cynicism: "Sarcastic, dismissive, or cynical tone.",
+  substance_risk: "Heavy drinking, smoking, drugs, or party-heavy lifestyle.",
+  incomplete_profile: "Low-effort profile with very little useful information.",
+  controlling_behavior: "Language suggesting control, obedience, punishment, or dominance over a partner.",
+  emotional_manipulation: "Silent treatment, guilt, emotional punishment, testing, or conditional affection.",
+  entitlement_superiority: "Self-important, superior, dismissive, or impress-me framing.",
+  poor_conflict_resolution: "Cutting people off, refusing communication, revenge, blame, or inability to resolve conflict maturely.",
+  main_character_syndrome: "Self-centred profile framing that expects special attention.",
+  dismissive: "Invalidating, belittling, or contemptuous wording toward feelings, interests, or boundaries."
+};
+function clamp2(value, min5 = 0, max5 = 1) {
+  return Math.max(min5, Math.min(max5, Number(value) || 0));
+}
+function sigmoid4(value) {
+  return 1 / (1 + Math.exp(-value));
+}
+function tokenize(text) {
+  return String(text || "").toLowerCase().match(/[a-z0-9']+/g) || [];
+}
+function scoreToRisk(score) {
+  if (score >= 70) return "High";
+  if (score >= 40) return "Moderate";
+  if (score >= 20) return "Low-to-Moderate";
+  return "Low";
+}
+function emptyLabelScores(labels) {
+  const scores = {};
+  labels.forEach((label) => {
+    scores[label] = {
+      probability: 0,
+      predicted: 0,
+      sources: [],
+      evidence: [],
+      description: LABEL_DESCRIPTIONS[label] || ""
+    };
+  });
+  return scores;
+}
 var ProfileAnalyzer = class {
   constructor() {
     this.nlpConfig = null;
-    this.tabularModel = null;
-    this.visualModel = null;
-    this.isLoaded = false;
+    this.labels = [];
+    this.status = {
+      tfjsReady: false,
+      nlpReady: false,
+      tabularMode: "rules",
+      visualMode: "dom_heuristic",
+      notes: []
+    };
   }
   async loadModels() {
-    if (this.isLoaded) return;
-    const nlpRes = await fetch(chrome.runtime.getURL("models/nlp_model.json"));
-    this.nlpConfig = await nlpRes.json();
-    this.tabularModel = await loadLayersModel(chrome.runtime.getURL("models/tabular_model_tfjs/model.json"));
-    this.visualModel = await loadGraphModel(chrome.runtime.getURL("models/yolo_model_tfjs/model.json"));
-    this.isLoaded = true;
+    await ready();
+    this.status.tfjsReady = true;
+    const nlpUrl = chrome.runtime.getURL("models/nlp_model.json");
+    const response = await fetch(nlpUrl);
+    if (!response.ok) {
+      throw new Error(`Missing NLP model metadata at ${nlpUrl}`);
+    }
+    this.nlpConfig = await response.json();
+    this.labels = this.nlpConfig.labels || Object.keys(LABEL_DESCRIPTIONS);
+    this.status.nlpReady = true;
+    this.status.notes.push("TF-IDF logistic regression metadata loaded from models/nlp_model.json.");
+    this.status.notes.push("Tabular and visual modules run as browser-safe client-side heuristics unless TFJS assets are exported later.");
   }
-  async analyzeNLP(text) {
-    const words = text.toLowerCase().match(/\b\w+\b/g) || [];
-    const docLength = words.length || 1;
-    const counts = {};
-    words.forEach((w) => counts[w] = (counts[w] || 0) + 1);
+  getStatus() {
+    return { ...this.status };
+  }
+  analyzeNLP(text) {
+    const labels = this.labels;
+    const tokens = tokenize(text);
+    const docLength = tokens.length || 1;
+    const counts = /* @__PURE__ */ new Map();
+    tokens.forEach((token) => counts.set(token, (counts.get(token) || 0) + 1));
     const scores = {};
-    this.nlpConfig.labels.forEach((label, i) => {
-      let logit = this.nlpConfig.intercepts[i];
-      for (const [word, count2] of Object.entries(counts)) {
-        const featIdx = this.nlpConfig.vocab[word];
-        if (featIdx !== void 0) {
-          const idf = this.nlpConfig.idf[featIdx] || 1;
-          const tfidf = count2 / docLength * idf;
-          logit += tfidf * this.nlpConfig.coefs[i][featIdx];
+    labels.forEach((label, labelIndex) => {
+      let logit = Number(this.nlpConfig.intercepts?.[labelIndex] || 0);
+      const values = [];
+      const weights = [];
+      for (const [word, count2] of counts.entries()) {
+        const featureIndex = this.nlpConfig.vocab?.[word];
+        if (featureIndex === void 0) continue;
+        values.push(count2 / docLength * Number(this.nlpConfig.idf?.[featureIndex] || 1));
+        weights.push(Number(this.nlpConfig.coefs?.[labelIndex]?.[featureIndex] || 0));
+      }
+      if (values.length) {
+        logit += tidy(() => {
+          const featureTensor = tensor1d(values);
+          const weightTensor = tensor1d(weights);
+          return featureTensor.mul(weightTensor).sum().arraySync();
+        });
+      }
+      const probability = clamp2(sigmoid4(logit));
+      const threshold3 = Number(this.nlpConfig.thresholds?.[label] ?? 0.5);
+      scores[label] = {
+        probability,
+        threshold: threshold3,
+        predicted: probability >= threshold3 ? 1 : 0,
+        source: "tfjs_tfidf_logreg",
+        description: this.nlpConfig.descriptions?.[label] || LABEL_DESCRIPTIONS[label] || ""
+      };
+    });
+    return {
+      available: true,
+      module: "TensorFlow.js TF-IDF logistic regression scorer",
+      detected_flags: Object.entries(scores).filter(([, info]) => info.predicted).map(([label]) => label),
+      label_scores: scores
+    };
+  }
+  analyzeKeywordRules(text) {
+    const scores = emptyLabelScores(this.labels);
+    for (const [label, rules] of Object.entries(KEYWORD_RULES)) {
+      if (!scores[label]) continue;
+      const matched = rules.filter((rule) => rule.test(String(text || ""))).map((rule) => rule.source);
+      if (matched.length) {
+        scores[label] = {
+          ...scores[label],
+          probability: clamp2(0.62 + matched.length * 0.08),
+          threshold: 0.55,
+          predicted: 1,
+          source: "keyword_rules",
+          evidence: matched.slice(0, 4)
+        };
+      }
+    }
+    return {
+      available: true,
+      module: "Transparent browser keyword rules",
+      detected_flags: Object.entries(scores).filter(([, info]) => info.predicted).map(([label]) => label),
+      label_scores: scores
+    };
+  }
+  analyzeTabular(profileData) {
+    const data = profileData || {};
+    const scores = emptyLabelScores(this.labels);
+    const textLength = Number(data.bioLength || 0);
+    const missingCount = Number(data.missingFieldCount || 0);
+    const drinks = String(data.drinks || "").toLowerCase();
+    const drugs = String(data.drugs || "").toLowerCase();
+    const smokes = String(data.smokes || "").toLowerCase();
+    const status = String(data.status || "").toLowerCase();
+    const substanceSignals = [
+      /often|very often|desperately/.test(drinks),
+      /sometimes|often/.test(drugs),
+      /yes|sometimes|trying to quit/.test(smokes)
+    ].filter(Boolean).length;
+    if (substanceSignals) {
+      scores.substance_risk = {
+        ...scores.substance_risk,
+        probability: clamp2(0.55 + substanceSignals * 0.12),
+        threshold: 0.5,
+        predicted: 1,
+        source: "tabular_rules",
+        evidence: ["drinks/drugs/smokes metadata"]
+      };
+    }
+    if (textLength > 0 && textLength < 20) {
+      scores.incomplete_profile = {
+        ...scores.incomplete_profile,
+        probability: 0.72,
+        threshold: 0.5,
+        predicted: 1,
+        source: "tabular_rules",
+        evidence: [`bio length ${textLength} words`]
+      };
+    } else if (missingCount >= 8) {
+      scores.incomplete_profile = {
+        ...scores.incomplete_profile,
+        probability: 0.58,
+        threshold: 0.5,
+        predicted: 1,
+        source: "tabular_rules",
+        evidence: [`${missingCount} metadata fields unavailable`]
+      };
+    }
+    if (/married|seeing someone/.test(status)) {
+      scores.hookup_focus = {
+        ...scores.hookup_focus,
+        probability: 0.56,
+        threshold: 0.5,
+        predicted: 1,
+        source: "tabular_rules",
+        evidence: [`status: ${status}`]
+      };
+    }
+    return {
+      available: true,
+      module: "Client-side tabular metadata scorer",
+      mode: "heuristic_json_scorer",
+      metadata_used: data,
+      detected_flags: Object.entries(scores).filter(([, info]) => info.predicted).map(([label]) => label),
+      label_scores: scores
+    };
+  }
+  analyzeVisual(profileData) {
+    const images = Array.isArray(profileData?.images) ? profileData.images : [];
+    const visibleImages = images.filter((image2) => Number(image2.width || 0) >= 80 && Number(image2.height || 0) >= 80);
+    const flags = [];
+    const evidence = [];
+    if (!visibleImages.length) {
+      flags.push("No_Face_Present");
+      evidence.push("No large profile image was available from the DOM.");
+    }
+    const groupHint = visibleImages.some((image2) => /group|friends|party|crew|team/i.test(`${image2.alt || ""} ${image2.className || ""} ${image2.src || ""}`));
+    if (groupHint) {
+      flags.push("Group_Photo_Ambiguity");
+      evidence.push("Image metadata suggests a group/party photo.");
+    }
+    const tinyOrAvatarOnly = images.length > 0 && visibleImages.length === 0;
+    if (tinyOrAvatarOnly) {
+      flags.push("Face_Obscured");
+      evidence.push("Only small avatar-sized images were found.");
+    }
+    const detected = flags.length ? [...new Set(flags)] : ["clean"];
+    const visualRisk = detected.includes("No_Face_Present") ? 0.55 : detected.includes("Face_Obscured") ? 0.5 : detected.includes("Group_Photo_Ambiguity") ? 0.35 : 0;
+    return {
+      available: true,
+      module: "Browser DOM visual presentation scorer",
+      mode: "dom_heuristic_yolo_fallback",
+      detected_visual_flags: detected,
+      visual_risk_score: visualRisk,
+      images_checked: images.slice(0, 4),
+      evidence,
+      note: "The extension is fully client-side. Real YOLO TFJS inference can replace this fallback when models/yolo_model_tfjs/model.json is exported."
+    };
+  }
+  aggregate(profileData) {
+    const text = profileData?.text || "";
+    const nlp = this.analyzeNLP(text);
+    const keyword = this.analyzeKeywordRules(text);
+    const tabular = this.analyzeTabular({ ...profileData?.tabular || {}, bioLength: tokenize(text).length });
+    const visual = this.analyzeVisual(profileData);
+    const combined = emptyLabelScores(this.labels);
+    [nlp, keyword, tabular].forEach((moduleResult) => {
+      for (const [label, info] of Object.entries(moduleResult.label_scores || {})) {
+        if (!combined[label]) continue;
+        if (Number(info.probability || 0) > combined[label].probability) {
+          combined[label] = {
+            ...combined[label],
+            probability: Number(info.probability || 0),
+            threshold: Number(info.threshold || 0.5),
+            predicted: Number(info.predicted || 0),
+            source: info.source || moduleResult.module,
+            evidence: info.evidence || [],
+            description: info.description || combined[label].description
+          };
         }
       }
-      scores[label] = 1 / (1 + Math.exp(-logit));
     });
-    return scores;
-  }
-  async analyzeTabular(profileData) {
-    const dummyInput = zeros([1, 237]);
-    const prediction = this.tabularModel.predict(dummyInput);
-    const probs = await prediction.data();
-    dummyInput.dispose();
-    prediction.dispose();
-    const labels = ["aggressive_tone", "hookup_focus", " Negativity", "sarcasm_cynicism", "substance_risk", "incomplete_profile"];
-    const scores = {};
-    labels.forEach((label, i) => scores[label] = probs[i]);
-    return scores;
-  }
-  async analyzeVisual(imageSrc) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = async () => {
-        const tensor2 = browser_exports.fromPixels(img).resizeNearestNeighbor([640, 640]).expandDims(0).toFloat().div(255);
-        const output = this.visualModel.predict(tensor2);
-        const data = await output.data();
-        tensor2.dispose();
-        output.dispose();
-        resolve({ person_confidence: Math.max(...data.slice(0, 100)) });
-      };
-      img.src = imageSrc;
-    });
+    const detectedTextFlags = Object.entries(combined).filter(([, info]) => info.predicted || info.probability >= 0.5).sort((a, b) => b[1].probability - a[1].probability).map(([label]) => label);
+    const topScores = Object.values(combined).map((info) => info.probability).sort((a, b) => b - a).slice(0, 3);
+    const textRisk = topScores.length ? topScores.reduce((sum5, value) => sum5 + value, 0) / topScores.length : 0;
+    const visualRisk = Number(visual.visual_risk_score || 0);
+    const overallRiskScore = Math.round(clamp2(0.78 * textRisk + 0.22 * visualRisk) * 1e3) / 10;
+    return {
+      profile_summary: {
+        source_url: profileData?.url || "",
+        title: profileData?.title || "",
+        bio_word_count: tokenize(text).length,
+        images_found: profileData?.images?.length || 0
+      },
+      overall_risk_score: overallRiskScore,
+      overall_risk_level: scoreToRisk(overallRiskScore),
+      detected_text_tabular_flags: detectedTextFlags,
+      detected_visual_flags: visual.detected_visual_flags,
+      combined_label_scores: combined,
+      module_outputs: {
+        nlp_tfidf_tfjs: nlp,
+        keyword_rules: keyword,
+        tabular_metadata: tabular,
+        visual_dom: visual
+      },
+      runtime: this.getStatus(),
+      bio_excerpt: String(text || "").slice(0, 420)
+    };
   }
 };
 
@@ -64379,49 +52724,211 @@ var analyzer = new ProfileAnalyzer();
 var statusEl = document.getElementById("status");
 var resultsEl = document.getElementById("results");
 var analyzeBtn = document.getElementById("analyzeBtn");
-analyzer.loadModels().then(() => {
-  statusEl.textContent = "Models loaded. Ready to analyze.";
-  analyzeBtn.disabled = false;
-}).catch((err) => {
-  statusEl.textContent = "Error loading models.";
-  console.error(err);
-});
-analyzeBtn.addEventListener("click", async () => {
-  statusEl.textContent = "Extracting data and analyzing...";
-  resultsEl.innerHTML = "";
-  analyzeBtn.disabled = true;
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const responseData = await chrome.tabs.sendMessage(tab.id, { action: "GET_PROFILE_DATA" });
-    const nlpScores = await analyzer.analyzeNLP(responseData.text);
-    const tabularScores = await analyzer.analyzeTabular(responseData.tabular);
-    let visualScores = {};
-    if (responseData.images.length > 0) {
-      visualScores = await analyzer.analyzeVisual(responseData.images[0]);
+var moduleEl = document.getElementById("moduleStatus");
+function escapeHtml(value) {
+  return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+}
+function percent(value) {
+  return `${Math.round(Number(value || 0) * 1e3) / 10}%`;
+}
+function riskClass(level) {
+  const text = String(level || "").toLowerCase();
+  if (text.includes("high")) return "high";
+  if (text.includes("moderate")) return "warn";
+  return "ok";
+}
+function extractProfileDataInPage() {
+  const localCleanText = (value) => String(value || "").replace(/\s+/g, " ").trim();
+  const localVisibleTextOf = (selector) => Array.from(document.querySelectorAll(selector)).filter((element) => {
+    const style = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  }).map((element) => localCleanText(element.innerText || element.textContent || "")).filter(Boolean);
+  const localFirstMatch = (regex, text2, fallback = "") => {
+    const match = String(text2 || "").match(regex);
+    return match ? localCleanText(match[1] || match[0]) : fallback;
+  };
+  const localInferChoice = (text2, rules, fallback) => {
+    const lower = String(text2 || "").toLowerCase();
+    for (const [value, patterns] of Object.entries(rules)) {
+      if (patterns.some((pattern) => pattern.test(lower))) return value;
     }
-    displayResults(nlpScores, tabularScores, visualScores);
+    return fallback;
+  };
+  const localExtractAge = (text2) => {
+    const direct = localFirstMatch(/\b(?:age[:\s]*)?([1-9][0-9])\b/i, text2, "");
+    const age = Number(direct);
+    return age >= 18 && age <= 90 ? age : 27;
+  };
+  const prioritySelectors = [
+    '[data-test*="bio" i]',
+    '[data-testid*="bio" i]',
+    '[class*="bio" i]',
+    '[class*="about" i]',
+    '[id*="bio" i]',
+    '[id*="about" i]',
+    "main",
+    "article",
+    "section"
+  ];
+  const profileText = prioritySelectors.flatMap(localVisibleTextOf).join(" ");
+  const fallbackText = localCleanText(document.body?.innerText || "");
+  const text = localCleanText(profileText || fallbackText).slice(0, 6e3);
+  const fullText = localCleanText(`${document.title || ""} ${fallbackText}`);
+  const imageElements = Array.from(document.images || []);
+  const metaImage = document.querySelector('meta[property="og:image"], meta[name="twitter:image"]')?.content;
+  const images = imageElements.map((img) => ({
+    src: img.currentSrc || img.src || "",
+    alt: localCleanText(img.alt || ""),
+    className: localCleanText(img.className || ""),
+    width: Number(img.naturalWidth || img.width || 0),
+    height: Number(img.naturalHeight || img.height || 0)
+  })).filter((img) => img.src).sort((a, b) => b.width * b.height - a.width * a.height);
+  if (metaImage && !images.some((img) => img.src === metaImage)) {
+    images.unshift({ src: metaImage, alt: "open graph image", className: "meta", width: 0, height: 0 });
+  }
+  const tabular = {
+    age: localExtractAge(fullText),
+    height: 170,
+    income: -1,
+    drinks: localInferChoice(fullText, { "very often": [/drinks?\s+very often/, /heavy drink/], often: [/drinks?\s+often/, /part(y|ies) often/], socially: [/drinks?\s+socially/, /social drink/], rarely: [/drinks?\s+rarely/], "not at all": [/does not drink/, /no alcohol/, /sober/] }, "socially"),
+    drugs: localInferChoice(fullText, { often: [/drugs?\s+often/], sometimes: [/drugs?\s+sometimes/, /420 friendly/, /weed/, /cannabis/], never: [/no drugs/, /drug free/, /never.*drugs/] }, "never"),
+    smokes: localInferChoice(fullText, { yes: [/smokes?\s+yes/, /smoker/], sometimes: [/smokes?\s+sometimes/, /trying to quit/], no: [/non smoker/, /does not smoke/, /no smoking/] }, "no"),
+    status: localInferChoice(fullText, { married: [/married/], "seeing someone": [/seeing someone/, /in a relationship/], single: [/single/] }, "single"),
+    sex: localInferChoice(fullText, { f: [/\bwoman\b/, /\bfemale\b/], m: [/\bman\b/, /\bmale\b/] }, "m"),
+    orientation: localInferChoice(fullText, { bisexual: [/bisexual/, /\bbi\b/], gay: [/\bgay\b/, /lesbian/], straight: [/straight/] }, "straight"),
+    body_type: localInferChoice(fullText, { athletic: [/athletic/], fit: [/\bfit\b/], thin: [/\bthin\b/], curvy: [/curvy/], average: [/average/] }, "average"),
+    diet: localInferChoice(fullText, { vegan: [/vegan/], vegetarian: [/vegetarian/], halal: [/halal/], kosher: [/kosher/], "mostly anything": [/anything/, /foodie/] }, "mostly anything"),
+    education: localInferChoice(fullText, { "graduated from masters program": [/masters/, /master's/], "graduated from college/university": [/college/, /university/, /degree/], "graduated from high school": [/high school/] }, "graduated from college/university"),
+    ethnicity: localFirstMatch(/\b(asian|white|black|hispanic|latino|middle eastern|indian|pacific islander)\b/i, fullText, "not specified"),
+    job: localFirstMatch(/\b(?:job|work|works as|career)[:\s]+([a-zA-Z /-]{2,40})/i, fullText, "other"),
+    offspring: localInferChoice(fullText, { "has kids": [/has kids/, /has children/, /\bdad\b/, /\bmom\b/], "doesn't want kids": [/doesn't want kids/, /does not want kids/, /no kids/], "doesn't have kids": [/no children/, /no kids yet/] }, "doesn't have kids"),
+    pets: localInferChoice(fullText, { "likes dogs and likes cats": [/dogs?.*cats?|cats?.*dogs?/], "likes dogs": [/dog/], "likes cats": [/cat/] }, "likes dogs"),
+    religion: localFirstMatch(/\b(agnostic|atheist|christian|muslim|islam|hindu|buddhist|jewish|catholic)\b/i, fullText, "agnosticism"),
+    sign: localFirstMatch(/\b(aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces)\b/i, fullText, "leo")
+  };
+  const missingFieldCount = Object.keys(tabular).filter((field) => tabular[field] === "not specified" || tabular[field] === "").length;
+  return {
+    text,
+    tabular: { ...tabular, missingFieldCount },
+    images: images.slice(0, 8),
+    title: document.title || "",
+    url: location.href
+  };
+}
+async function getProfileFromActiveTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) throw new Error("No active tab found.");
+  try {
+    return await chrome.tabs.sendMessage(tab.id, { action: "GET_PROFILE_DATA" });
+  } catch (messageError) {
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: extractProfileDataInPage
+    });
+    if (!result?.result) throw messageError;
+    return result.result;
+  }
+}
+function renderModuleStatus() {
+  const status = analyzer.getStatus();
+  moduleEl.innerHTML = `
+    <div class="module-pill ${status.tfjsReady ? "ok" : "warn"}">TFJS ${status.tfjsReady ? "ready" : "loading"}</div>
+    <div class="module-pill ${status.nlpReady ? "ok" : "warn"}">NLP JSON ${status.nlpReady ? "loaded" : "missing"}</div>
+    <div class="module-pill warn">Visual ${escapeHtml(status.visualMode)}</div>
+  `;
+}
+function renderFlagList(title, labels, combined) {
+  if (!labels.length) {
+    return `<section class="panel"><h4>${escapeHtml(title)}</h4><p class="muted">No major flags crossed threshold.</p></section>`;
+  }
+  const rows = labels.slice(0, 8).map((label) => {
+    const info = combined[label] || {};
+    return `
+      <div class="flag-row">
+        <div>
+          <strong>${escapeHtml(label)}</strong>
+          <small>${escapeHtml(info.description || "")}</small>
+          ${info.evidence?.length ? `<small>Evidence: ${escapeHtml(info.evidence.join(", "))}</small>` : ""}
+        </div>
+        <span>${percent(info.probability)}</span>
+      </div>
+    `;
+  }).join("");
+  return `<section class="panel"><h4>${escapeHtml(title)}</h4>${rows}</section>`;
+}
+function renderResults(audit) {
+  const visualFlags = audit.detected_visual_flags || [];
+  const visual = audit.module_outputs.visual_dom || {};
+  const profile = audit.profile_summary || {};
+  const riskClassName = riskClass(audit.overall_risk_level);
+  resultsEl.innerHTML = `
+    <section class="score-card ${riskClassName}">
+      <div>
+        <span class="score">${escapeHtml(audit.overall_risk_score)}</span>
+        <span class="level">${escapeHtml(audit.overall_risk_level)}</span>
+      </div>
+      <div class="score-bar"><span></span></div>
+    </section>
+
+    ${renderFlagList("Text and Metadata Flags", audit.detected_text_tabular_flags || [], audit.combined_label_scores || {})}
+
+    <section class="panel">
+      <h4>Visual Evidence</h4>
+      <div class="chips">${visualFlags.map((flag) => `<span>${escapeHtml(flag)}</span>`).join("") || "<span>clean</span>"}</div>
+      <p class="muted">${escapeHtml(visual.note || "Visual DOM heuristic completed.")}</p>
+      ${(visual.evidence || []).map((item) => `<p class="muted">- ${escapeHtml(item)}</p>`).join("")}
+    </section>
+
+    <section class="panel compact">
+      <h4>Extracted Profile</h4>
+      <p><b>Words:</b> ${escapeHtml(profile.bio_word_count)}</p>
+      <p><b>Images:</b> ${escapeHtml(profile.images_found)}</p>
+      <p><b>Page:</b> ${escapeHtml(profile.title || "current tab")}</p>
+    </section>
+
+    <details class="panel">
+      <summary>Bio excerpt</summary>
+      <p class="excerpt">${escapeHtml(audit.bio_excerpt || "No bio text found.")}</p>
+    </details>
+  `;
+  const bar = resultsEl.querySelector(".score-bar span");
+  if (bar) {
+    bar.style.width = `${Math.min(100, Number(audit.overall_risk_score || 0))}%`;
+  }
+}
+async function boot() {
+  analyzeBtn.disabled = true;
+  statusEl.textContent = "Loading client-side models...";
+  try {
+    await analyzer.loadModels();
+    renderModuleStatus();
+    statusEl.textContent = "Ready. Open a profile-like page and run the audit.";
+    analyzeBtn.disabled = false;
   } catch (error) {
-    statusEl.textContent = "Failed to analyze. Are you on a profile page?";
+    statusEl.textContent = "Model load failed. Check extension/models/nlp_model.json.";
+    moduleEl.innerHTML = `<div class="module-pill high">${escapeHtml(error.message)}</div>`;
+    console.error(error);
+  }
+}
+analyzeBtn.addEventListener("click", async () => {
+  analyzeBtn.disabled = true;
+  statusEl.textContent = "Reading page DOM and running client-side audit...";
+  resultsEl.innerHTML = "";
+  try {
+    const profileData = await getProfileFromActiveTab();
+    const audit = analyzer.aggregate(profileData);
+    statusEl.textContent = "Analysis complete.";
+    renderResults(audit);
+  } catch (error) {
+    statusEl.textContent = "Could not analyze this tab.";
+    resultsEl.innerHTML = `<div class="error">${escapeHtml(error.message || error)}</div>`;
     console.error(error);
   } finally {
     analyzeBtn.disabled = false;
   }
 });
-function displayResults(nlp, tabular, visual) {
-  statusEl.textContent = "Analysis Complete:";
-  const flags = [];
-  const allScores = { ...nlp, ...tabular };
-  for (const [label, score] of Object.entries(allScores)) {
-    if (score > 0.6) {
-      flags.push(`<div class="flag">\u26A0\uFE0F ${label.replace("_", " ").toUpperCase()} (${(score * 100).toFixed(1)}%)</div>`);
-    }
-  }
-  if (flags.length === 0) {
-    resultsEl.innerHTML = '<div class="safe">\u2705 No major red flags detected.</div>';
-  } else {
-    resultsEl.innerHTML = flags.join("");
-  }
-}
+boot();
 /*! Bundled license information:
 
 @tensorflow/tfjs-core/dist/backends/backend.js:
@@ -64433,7 +52940,6 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/floorDiv.js:
 @tensorflow/tfjs-core/dist/ops/div.js:
 @tensorflow/tfjs-core/dist/ops/mul.js:
-@tensorflow/tfjs-core/dist/ops/add_n.js:
 @tensorflow/tfjs-core/dist/ops/all.js:
 @tensorflow/tfjs-core/dist/ops/any.js:
 @tensorflow/tfjs-core/dist/ops/atan2.js:
@@ -64443,7 +52949,6 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/avg_pool_3d.js:
 @tensorflow/tfjs-core/dist/ops/concat.js:
 @tensorflow/tfjs-core/dist/ops/mat_mul.js:
-@tensorflow/tfjs-core/dist/ops/basic_lstm_cell.js:
 @tensorflow/tfjs-core/dist/ops/batch_to_space_nd.js:
 @tensorflow/tfjs-core/dist/ops/batchnorm.js:
 @tensorflow/tfjs-core/dist/ops/bincount.js:
@@ -64456,7 +52961,6 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/dense_bincount.js:
 @tensorflow/tfjs-core/dist/ops/depth_to_space.js:
 @tensorflow/tfjs-core/dist/ops/depthwise_conv2d.js:
-@tensorflow/tfjs-core/dist/ops/diag.js:
 @tensorflow/tfjs-core/dist/ops/dilation2d.js:
 @tensorflow/tfjs-core/dist/ops/equal.js:
 @tensorflow/tfjs-core/dist/ops/where.js:
@@ -64488,24 +52992,17 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/mirror_pad.js:
 @tensorflow/tfjs-core/dist/ops/mod.js:
 @tensorflow/tfjs-core/dist/ops/moments.js:
-@tensorflow/tfjs-core/dist/ops/multinomial.js:
 @tensorflow/tfjs-core/dist/ops/not_equal.js:
 @tensorflow/tfjs-core/dist/ops/one_hot.js:
 @tensorflow/tfjs-core/dist/ops/pad.js:
 @tensorflow/tfjs-core/dist/ops/space_to_batch_nd.js:
 @tensorflow/tfjs-core/dist/ops/prelu.js:
 @tensorflow/tfjs-core/dist/ops/prod.js:
-@tensorflow/tfjs-core/dist/ops/rand.js:
-@tensorflow/tfjs-core/dist/ops/random_gamma.js:
 @tensorflow/tfjs-core/dist/ops/random_normal.js:
 @tensorflow/tfjs-core/dist/ops/random_uniform.js:
 @tensorflow/tfjs-core/dist/ops/real.js:
 @tensorflow/tfjs-core/dist/ops/relu.js:
 @tensorflow/tfjs-core/dist/ops/relu6.js:
-@tensorflow/tfjs-core/dist/ops/reverse_1d.js:
-@tensorflow/tfjs-core/dist/ops/reverse_2d.js:
-@tensorflow/tfjs-core/dist/ops/reverse_3d.js:
-@tensorflow/tfjs-core/dist/ops/reverse_4d.js:
 @tensorflow/tfjs-core/dist/ops/selu.js:
 @tensorflow/tfjs-core/dist/ops/spectral/fft.js:
 @tensorflow/tfjs-core/dist/ops/spectral/ifft.js:
@@ -64517,7 +53014,6 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/unique.js:
 @tensorflow/tfjs-core/dist/ops/unsorted_segment_sum.js:
 @tensorflow/tfjs-core/dist/ops/unstack.js:
-@tensorflow/tfjs-core/dist/ops/where_async.js:
 @tensorflow/tfjs-core/dist/ops/conv2d_backprop_filter.js:
 @tensorflow/tfjs-core/dist/ops/depthwise_conv2d_native_backprop_filter.js:
 @tensorflow/tfjs-core/dist/ops/depthwise_conv2d_native_backprop_input.js:
@@ -64537,13 +53033,6 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/linalg/band_part.js:
 @tensorflow/tfjs-core/dist/ops/linalg/gram_schmidt.js:
 @tensorflow/tfjs-core/dist/ops/linalg/qr.js:
-@tensorflow/tfjs-core/dist/ops/loss_ops_utils.js:
-@tensorflow/tfjs-core/dist/ops/losses/absolute_difference.js:
-@tensorflow/tfjs-core/dist/ops/losses/huber_loss.js:
-@tensorflow/tfjs-core/dist/ops/losses/log_loss.js:
-@tensorflow/tfjs-core/dist/ops/losses/mean_squared_error.js:
-@tensorflow/tfjs-core/dist/ops/losses/sigmoid_cross_entropy.js:
-@tensorflow/tfjs-core/dist/ops/losses/softmax_cross_entropy.js:
 @tensorflow/tfjs-core/dist/ops/ops.js:
 @tensorflow/tfjs-core/dist/ops/rotate_util.js:
 @tensorflow/tfjs-core/dist/backends/kernel_impls.js:
@@ -64782,7 +53271,6 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/public/chained_ops/where.js:
 @tensorflow/tfjs-core/dist/public/chained_ops/zeros_like.js:
 @tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops.js:
-@tensorflow/tfjs-core/dist/ops/ops_for_converter.js:
 @tensorflow/tfjs-converter/dist/executor/tensor_utils.js:
 @tensorflow/tfjs-converter/dist/executor/tensor_list.js:
 @tensorflow/tfjs-converter/dist/executor/hash_table.js:
@@ -65213,14 +53701,12 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/is_finite.js:
 @tensorflow/tfjs-core/dist/ops/is_inf.js:
 @tensorflow/tfjs-core/dist/ops/is_nan.js:
-@tensorflow/tfjs-core/dist/ops/linspace.js:
 @tensorflow/tfjs-core/dist/ops/log.js:
 @tensorflow/tfjs-core/dist/ops/log1p.js:
 @tensorflow/tfjs-core/dist/gradients.js:
 @tensorflow/tfjs-core/dist/ops/neg.js:
 @tensorflow/tfjs-core/dist/ops/softplus.js:
 @tensorflow/tfjs-core/dist/ops/log_sigmoid.js:
-@tensorflow/tfjs-core/dist/ops/max_pool_with_argmax.js:
 @tensorflow/tfjs-core/dist/ops/zeros.js:
 @tensorflow/tfjs-core/dist/ops/ones.js:
 @tensorflow/tfjs-core/dist/ops/ones_like.js:
@@ -65246,19 +53732,10 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/tan.js:
 @tensorflow/tfjs-core/dist/ops/tensor1d.js:
 @tensorflow/tfjs-core/dist/ops/tensor2d.js:
-@tensorflow/tfjs-core/dist/ops/tensor3d.js:
-@tensorflow/tfjs-core/dist/ops/tensor4d.js:
-@tensorflow/tfjs-core/dist/ops/tensor5d.js:
-@tensorflow/tfjs-core/dist/ops/tensor6d.js:
 @tensorflow/tfjs-core/dist/ops/topk.js:
 @tensorflow/tfjs-core/dist/ops/variable.js:
 @tensorflow/tfjs-core/dist/backends/where_impl.js:
-@tensorflow/tfjs-core/dist/ops/boolean_mask.js:
 @tensorflow/tfjs-core/dist/ops/transpose.js:
-@tensorflow/tfjs-core/dist/ops/moving_average.js:
-@tensorflow/tfjs-core/dist/ops/scatter_nd.js:
-@tensorflow/tfjs-core/dist/ops/sparse_to_dense.js:
-@tensorflow/tfjs-core/dist/ops/gather_nd.js:
 @tensorflow/tfjs-core/dist/ops/dropout.js:
 @tensorflow/tfjs-core/dist/serialization.js:
 @tensorflow/tfjs-core/dist/optimizers/optimizer.js:
@@ -65360,20 +53837,13 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/platforms/platform_node.js:
 @tensorflow/tfjs-core/dist/ops/square.js:
 @tensorflow/tfjs-core/dist/ops/dropout_util.js:
-@tensorflow/tfjs-core/dist/ops/signal_ops_util.js:
-@tensorflow/tfjs-core/dist/ops/in_top_k.js:
 @tensorflow/tfjs-core/dist/ops/fused_util.js:
 @tensorflow/tfjs-core/dist/ops/fused/conv2d.js:
 @tensorflow/tfjs-core/dist/ops/fused/depthwise_conv2d.js:
 @tensorflow/tfjs-core/dist/ops/fused/mat_mul.js:
 @tensorflow/tfjs-core/dist/ops/fused_ops.js:
-@tensorflow/tfjs-core/dist/ops/signal/hamming_window.js:
-@tensorflow/tfjs-core/dist/ops/signal/hann_window.js:
-@tensorflow/tfjs-core/dist/ops/signal/frame.js:
-@tensorflow/tfjs-core/dist/ops/signal/stft.js:
 @tensorflow/tfjs-core/dist/backends/non_max_suppression_util.js:
 @tensorflow/tfjs-core/dist/io/progress.js:
-@tensorflow/tfjs-core/dist/ops/browser.js:
 @tensorflow/tfjs-core/dist/gradients/Square_grad.js:
 @tensorflow/tfjs-converter/dist/operations/custom_op/register.js:
 @tensorflow/tfjs-converter/dist/operations/custom_op/node_value_impl.js:
@@ -65419,11 +53889,7 @@ function displayResults(nlp, tabular, visual) {
    *)
 
 @tensorflow/tfjs-core/dist/platforms/is_typed_array_browser.js:
-@tensorflow/tfjs-core/dist/ops/bitwise_and.js:
-@tensorflow/tfjs-core/dist/ops/ensure_shape.js:
-@tensorflow/tfjs-core/dist/ops/random_uniform_int.js:
 @tensorflow/tfjs-core/dist/ops/image/rgb_to_grayscale.js:
-@tensorflow/tfjs-core/dist/ops/string/static_regex_replace.js:
 @tensorflow/tfjs-backend-cpu/dist/kernels/BitwiseAnd.js:
 @tensorflow/tfjs-backend-cpu/dist/kernels/StaticRegexReplace.js:
 @tensorflow/tfjs-backend-cpu/dist/kernels/Draw.js:
@@ -65449,18 +53915,9 @@ function displayResults(nlp, tabular, visual) {
    *)
 
 @tensorflow/tfjs-core/dist/hash_util.js:
-@tensorflow/tfjs-core/dist/ops/broadcast_args.js:
 @tensorflow/tfjs-core/dist/ops/einsum.js:
-@tensorflow/tfjs-core/dist/ops/meshgrid.js:
 @tensorflow/tfjs-core/dist/ops/image/grayscale_to_rgb.js:
 @tensorflow/tfjs-core/dist/ops/image/transform.js:
-@tensorflow/tfjs-core/dist/ops/sparse/sparse_fill_empty_rows.js:
-@tensorflow/tfjs-core/dist/ops/sparse/sparse_reshape.js:
-@tensorflow/tfjs-core/dist/ops/sparse/sparse_segment_mean.js:
-@tensorflow/tfjs-core/dist/ops/sparse/sparse_segment_sum.js:
-@tensorflow/tfjs-core/dist/ops/string/string_n_grams.js:
-@tensorflow/tfjs-core/dist/ops/string/string_split.js:
-@tensorflow/tfjs-core/dist/ops/string/string_to_hash_bucket_fast.js:
 @tensorflow/tfjs-core/dist/ops/slice_util.js:
 @tensorflow/tfjs-core/dist/backends/einsum_util.js:
 @tensorflow/tfjs-core/dist/ops/sparse/sparse_fill_empty_rows_util.js:
@@ -65525,7 +53982,6 @@ function displayResults(nlp, tabular, visual) {
 @tensorflow/tfjs-core/dist/ops/min.js:
 @tensorflow/tfjs-core/dist/ops/log_softmax.js:
 @tensorflow/tfjs-core/dist/ops/mean.js:
-@tensorflow/tfjs-core/dist/ops/setdiff1d_async.js:
 @tensorflow/tfjs-core/dist/base.js:
 @tensorflow/tfjs-core/dist/gradients/ArgMax_grad.js:
 @tensorflow/tfjs-core/dist/gradients/ArgMin_grad.js:
@@ -65570,13 +54026,6 @@ function displayResults(nlp, tabular, visual) {
    *)
 
 @tensorflow/tfjs-core/dist/ops/euclidean_norm.js:
-@tensorflow/tfjs-core/dist/ops/search_sorted.js:
-@tensorflow/tfjs-core/dist/ops/lower_bound.js:
-@tensorflow/tfjs-core/dist/ops/ragged_gather.js:
-@tensorflow/tfjs-core/dist/ops/ragged_tensor_to_tensor.js:
-@tensorflow/tfjs-core/dist/ops/random_standard_normal.js:
-@tensorflow/tfjs-core/dist/ops/tensor_scatter_update.js:
-@tensorflow/tfjs-core/dist/ops/upper_bound.js:
 @tensorflow/tfjs-core/dist/ops/ragged_to_dense_util.js:
 @tensorflow/tfjs-layers/dist/flags_layers.js:
 @tensorflow/tfjs-converter/dist/operations/executors/ragged_executor.js:
@@ -65614,7 +54063,24 @@ function displayResults(nlp, tabular, visual) {
    * =============================================================================
    *)
 
-@tensorflow/tfjs-core/dist/ops/ragged_range.js:
+@tensorflow/tfjs-core/dist/ops/image/threshold.js:
+  (**
+   * @license
+   * Copyright 2021 Google LLC. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * https://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   *)
+
 @tensorflow/tfjs-core/dist/optimizers/register_optimizers.js:
 @tensorflow/tfjs-backend-cpu/dist/kernels/RaggedRange_impl.js:
 @tensorflow/tfjs-backend-cpu/dist/kernels/RaggedRange.js:
@@ -65627,24 +54093,6 @@ function displayResults(nlp, tabular, visual) {
    * You may obtain a copy of the License at
    *
    * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   * =============================================================================
-   *)
-
-@tensorflow/tfjs-core/dist/ops/image/threshold.js:
-  (**
-   * @license
-   * Copyright 2021 Google LLC. All Rights Reserved.
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * https://www.apache.org/licenses/LICENSE-2.0
    *
    * Unless required by applicable law or agreed to in writing, software
    * distributed under the License is distributed on an "AS IS" BASIS,

@@ -3,19 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Red Flag Analyzer</title>
-  <!-- Link to the external CSS file -->
+  <title>Red Flagger Extension</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h3>Red Flag Analyzer</h3>
-  
-  <button id="analyzeBtn">Analyze Current Profile</button>
-  
-  <div id="status">Loading AI models...</div>
+  <header class="topbar">
+    <div class="mark">RF</div>
+    <div>
+      <h1>Red Flagger</h1>
+      <p>Client-side profile audit</p>
+    </div>
+  </header>
+
+  <div id="moduleStatus" class="module-status">
+    <div class="module-pill warn">Loading</div>
+  </div>
+
+  <button id="analyzeBtn" type="button" disabled>Run DOM Audit</button>
+
+  <div id="status" class="status">Loading client-side models...</div>
   <div id="results"></div>
 
-  <!-- Load popup.js as a module to support ES6 imports -->
+  <footer>
+    TFJS NLP scorer plus browser-safe tabular and visual heuristics.
+  </footer>
+
   <script type="module" src="dist/popup.bundle.js"></script>
 </body>
 </html>
