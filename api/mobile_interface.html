@@ -330,6 +330,7 @@
       display: grid;
       gap: 12px;
       min-height: 180px;
+      overflow: hidden;
     }
 
     .score-top {
@@ -375,6 +376,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 7px;
+      min-width: 0;
     }
 
     .flag {
@@ -385,6 +387,23 @@
       font-size: 12px;
       font-weight: 800;
       overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    .score-card .flag-wrap {
+      max-height: 78px;
+      overflow: auto;
+      padding-right: 2px;
+      align-content: flex-start;
+    }
+
+    .score-card .flag {
+      font-size: 11px;
+      padding: 6px 8px;
+      max-width: calc(100% - 2px);
     }
 
     .flag.neutral {
@@ -477,6 +496,28 @@
       flex-wrap: wrap;
       justify-content: flex-end;
       gap: 8px;
+    }
+
+    .key-console {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto;
+      align-items: end;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .key-console .field {
+      min-width: 0;
+    }
+
+    .key-hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      max-width: 260px;
     }
 
     .grid-two {
@@ -706,7 +747,8 @@
       .workspace-header,
       .grid-two,
       .grid-three,
-      .field-row {
+      .field-row,
+      .key-console {
         grid-template-columns: 1fr;
       }
 
@@ -994,6 +1036,14 @@
           </div>
         </header>
 
+        <section class="key-console" aria-label="OpenRouter report key">
+          <label class="field">
+            Beautify key
+            <input id="openRouterKey" type="password" placeholder="Paste OpenRouter key for this audit" autocomplete="off" />
+          </label>
+          <p class="key-hint">Typing a key here makes the next full audit request a beautified OpenRouter report.</p>
+        </section>
+
         <div class="grid-two">
           <details class="evidence-panel" open>
             <summary class="panel-header">
@@ -1079,6 +1129,7 @@
       visualRisk: document.getElementById("visualRisk"),
       reportWriter: document.getElementById("reportWriter"),
       keyStatus: document.getElementById("keyStatus"),
+      openRouterKey: document.getElementById("openRouterKey"),
       visualFrame: document.getElementById("visualFrame"),
       visualSource: document.getElementById("visualSource"),
       visualFlagsList: document.getElementById("visualFlagsList"),
@@ -1094,6 +1145,7 @@
       reportSource: document.getElementById("reportSource"),
       rawJson: document.getElementById("rawJson")
     };
+    let envBeautifyKeyConfigured = false;
 
     function value(id) {
       return document.getElementById(id).value;
@@ -1101,6 +1153,14 @@
 
     function checked(id) {
       return document.getElementById(id).checked;
+    }
+
+    function openRouterKeyValue() {
+      return String(els.openRouterKey && els.openRouterKey.value || "").trim();
+    }
+
+    function shouldUseBeautifier() {
+      return checked("useOpenRouter") || Boolean(openRouterKeyValue());
     }
 
     function tabularPayload() {
@@ -1324,6 +1384,28 @@
       els.reportSource.title = info.reason || "";
     }
 
+    function refreshTypedKeyStatus() {
+      if (openRouterKeyValue()) {
+        renderReportStatus({
+          beautify_key_configured: true,
+          beautify_requested: true,
+          beautify_used: false,
+          report_source: "pending",
+          reason: "A per-audit key is typed. The next full audit will request OpenRouter beautification."
+        });
+      } else {
+        renderReportStatus({
+          beautify_key_configured: envBeautifyKeyConfigured,
+          beautify_requested: false,
+          beautify_used: false,
+          report_source: "local_fallback",
+          reason: envBeautifyKeyConfigured
+            ? "An environment OpenRouter key is configured, but beautification has not been requested for this audit yet."
+            : "No typed or environment OpenRouter key is available."
+        });
+      }
+    }
+
     function renderProfile(summary) {
       const fields = Object.entries(summary || {}).slice(0, 10).map(([key, val]) => [key, val, "profile"]);
       tableRows(els.profileSummary, fields.length ? fields : [["profile", "not loaded", ""]], ["Field", "Value", "Source"]);
@@ -1446,7 +1528,8 @@
           form.append("bio", value("bio"));
           form.append("profile_id", currentProfileId());
           form.append("tabular_json", JSON.stringify(tabularPayload()));
-          form.append("use_openrouter", checked("useOpenRouter") ? "true" : "false");
+          form.append("use_openrouter", shouldUseBeautifier() ? "true" : "false");
+          form.append("openrouter_api_key", openRouterKeyValue());
           form.append("photo", file);
           showAudit(await requestJson("/audit/photo", {
             method: "POST",
@@ -1461,7 +1544,8 @@
               bio: value("bio"),
               visual_flags: value("visualFlags"),
               tabular: tabularPayload(),
-              use_openrouter: checked("useOpenRouter")
+              use_openrouter: shouldUseBeautifier(),
+              openrouter_api_key: openRouterKeyValue() || null
             })
           }));
         }
@@ -1495,6 +1579,7 @@
     async function boot() {
       try {
         const health = await requestJson("/health");
+        envBeautifyKeyConfigured = Boolean(health.openrouter_key_configured);
         els.apiStatus.textContent = health.status === "ok" ? "online" : "check";
         els.apiStatus.style.background = health.status === "ok" ? "var(--teal-soft)" : "var(--gold-soft)";
         els.apiStatus.style.color = health.status === "ok" ? "var(--teal)" : "var(--gold)";
@@ -1506,7 +1591,7 @@
           ["Beautify key", health.openrouter_key_configured ? "found" : "missing", "OPENROUTER_API_KEY"]
         ];
         renderReportStatus({
-          beautify_key_configured: Boolean(health.openrouter_key_configured),
+          beautify_key_configured: envBeautifyKeyConfigured,
           beautify_requested: false,
           beautify_used: false,
           report_source: "local_fallback",
@@ -1518,6 +1603,7 @@
       }
     }
 
+    els.openRouterKey.addEventListener("input", refreshTypedKeyStatus);
     boot();
   </script>
 </body>

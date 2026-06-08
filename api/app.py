@@ -134,6 +134,7 @@ class CustomAuditRequest(BaseModel):
     visual_flags: list[str] | str = "clean"
     tabular: dict[str, Any] = Field(default_factory=dict)
     use_openrouter: bool = False
+    openrouter_api_key: str | None = None
 
 
 app = FastAPI(
@@ -684,8 +685,12 @@ def generate_local_report(assessment: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def call_openrouter_for_report(assessment: dict[str, Any]) -> str | None:
-    api_key = os.getenv("OPENROUTER_API_KEY", "").strip().strip('"').strip("'")
+def clean_openrouter_key(api_key: str | None = None) -> str:
+    return (api_key or os.getenv("OPENROUTER_API_KEY", "")).strip().strip('"').strip("'")
+
+
+def call_openrouter_for_report(assessment: dict[str, Any], api_key_override: str | None = None) -> str | None:
+    api_key = clean_openrouter_key(api_key_override)
     if not api_key:
         return None
     try:
@@ -713,11 +718,18 @@ def call_openrouter_for_report(assessment: dict[str, Any]) -> str | None:
         return None
 
 
-def openrouter_key_configured() -> bool:
-    return bool(os.getenv("OPENROUTER_API_KEY", "").strip().strip('"').strip("'"))
+def openrouter_key_configured(api_key_override: str | None = None) -> bool:
+    return bool(clean_openrouter_key(api_key_override))
 
 
-def build_assessment(profile_row: dict[str, Any], profile_id: str | int, visual: dict[str, Any], state: dict[str, Any], use_openrouter: bool = False) -> dict[str, Any]:
+def build_assessment(
+    profile_row: dict[str, Any],
+    profile_id: str | int,
+    visual: dict[str, Any],
+    state: dict[str, Any],
+    use_openrouter: bool = False,
+    openrouter_api_key: str | None = None,
+) -> dict[str, Any]:
     text = str(profile_row.get("clean_bio") or profile_row.get("full_bio") or profile_row.get("bio") or "")
     nlp = run_nlp_inference(text, state)
     keyword = run_keyword_rule_inference(text, state)
@@ -746,13 +758,16 @@ def build_assessment(profile_row: dict[str, Any], profile_id: str | int, visual:
         "previous_model_performance": state["metrics"],
     }
     local_report = generate_local_report(assessment)
-    key_configured = openrouter_key_configured()
-    openrouter_report = call_openrouter_for_report(assessment) if use_openrouter else None
+    key_configured = openrouter_key_configured(openrouter_api_key)
+    env_key_configured = openrouter_key_configured()
+    request_key_configured = bool(clean_openrouter_key(openrouter_api_key))
+    openrouter_report = call_openrouter_for_report(assessment, openrouter_api_key) if use_openrouter else None
     assessment["report_markdown"] = openrouter_report or local_report
     assessment["report_source"] = "openrouter" if openrouter_report else "local_fallback"
     assessment["llm_report_status"] = {
         "beautify_key_name": "OPENROUTER_API_KEY",
         "beautify_key_configured": key_configured,
+        "beautify_key_source": "request_input" if request_key_configured else ("environment" if env_key_configured else "missing"),
         "beautify_requested": bool(use_openrouter),
         "beautify_used": bool(openrouter_report),
         "report_source": assessment["report_source"],
@@ -842,7 +857,14 @@ def audit_sample(profile_id: int, use_openrouter: bool = False) -> dict[str, Any
 def audit_custom(request: CustomAuditRequest) -> dict[str, Any]:
     state = artifacts()
     row = profile_row_from_custom(request.bio, request.tabular)
-    return build_assessment(row, request.profile_id, manual_visual(request.visual_flags), state, use_openrouter=request.use_openrouter)
+    return build_assessment(
+        row,
+        request.profile_id,
+        manual_visual(request.visual_flags),
+        state,
+        use_openrouter=request.use_openrouter,
+        openrouter_api_key=request.openrouter_api_key,
+    )
 
 
 @app.post("/audit/photo")
@@ -851,10 +873,11 @@ def audit_photo(
     profile_id: str = Form("photo_upload_demo"),
     tabular_json: str = Form("{}"),
     use_openrouter: bool = Form(False),
+    openrouter_api_key: str = Form(""),
     photo: UploadFile = File(...),
 ) -> dict[str, Any]:
     state = artifacts()
     image_path, image_url = save_upload(photo)
     row = profile_row_from_custom(bio, parse_tabular_json(tabular_json))
     visual = analyze_uploaded_photo(image_path, image_url=image_url)
-    return build_assessment(row, profile_id, visual, state, use_openrouter=use_openrouter)
+    return build_assessment(row, profile_id, visual, state, use_openrouter=use_openrouter, openrouter_api_key=openrouter_api_key)
