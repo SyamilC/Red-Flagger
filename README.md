@@ -1,56 +1,144 @@
 # Red-Flagger
 
-Dating Red Flag Detector: an interactive profile auditing prototype for multi-label dating profile risk signals.
+Dating Red Flag Detector is an interactive profile auditing prototype for multi-label dating profile risk signals. The main demo is now the local FastAPI mobile-style UI, which combines bio text, OkCupid-style metadata, optional profile photo upload, YOLO visual analysis, and an explainable audit report.
 
-The project combines text, tabular, and visual signals from the OkCupid dataset plus synthetic dating-bio examples. The final notebook builds an auditor-style report with Precision, Recall, and visual IoU context. The Chrome extension folder is intended for the bonus browser-side demo using TensorFlow.js.
+The Chrome extension remains a bonus/browser-side experiment. For grading and demonstration, start with the local UI.
+
+## What The App Does
+
+- Audits dating bios for sarcasm, cynicism, controlling language, negativity, entitlement, hookup focus, substance risk, and related labels.
+- Uses OkCupid-style profile metadata such as age, body type, education, children/offspring, smoking, drinking, drugs, job, pets, religion, sign, and more.
+- Handles imbalanced tabular classification through the SMOTE-trained tabular model.
+- Accepts an optional profile photo and runs YOLOv8 automatically as part of the same full audit.
+- Shows Precision, Recall, and visual IoU metrics from the generated reports.
+- Produces an end-user audit report using either the local fallback writer or OpenRouter when a key is provided.
 
 ## Assignment Mapping
 
-| Requirement | Current project area |
+| Requirement | Project area |
 | --- | --- |
 | OkCupid dataset plus synthetic modern dating bios | `data/`, `notebooks/01_data_exploration.ipynb`, `notebooks/02_nlp_model_training.ipynb` |
-| Multi-label class imbalance handling | `notebooks/02_nlp_model_training.ipynb`, `notebooks/03_tabular_smote_model.ipynb` |
-| Sarcasm and textual tone labels | NLP taxonomy and keyword rules in Notebook 02 |
-| YOLOv8 visual analysis and IoU | `notebooks/04_yolo_visual_module.ipynb`, `reports/yolo_visual_metrics.csv` |
-| Interactive auditing agent and reports | `notebooks/05_agent_inference_demo.ipynb`, `reports/` |
-| Conceptual mobile interface | HTML phone mockup rendered in Notebook 05 |
+| Multi-label class imbalance handling | `notebooks/03_tabular_smote_model.ipynb`, `models/tabular_*`, SMOTE tabular module in `api/app.py` |
+| Sarcasm and textual tone parsing | TF-IDF NLP model, keyword rules, optional DistilBERT transformer module |
+| YOLOv8 visual analysis and IoU | `notebooks/04_yolo_visual_module.ipynb`, `models/yolo_model.pt`, `reports/yolo_visual_metrics.csv` |
+| Interactive auditing agent | `api/app.py`, `api/mobile_interface.html`, `notebooks/05_agent_inference_demo.ipynb` |
+| Conceptual mobile interface | `http://127.0.0.1:8000/` after starting FastAPI |
+| Precision, Recall, and IoU reporting | Evidence Console in the UI and files under `reports/` |
 | Chrome extension bonus | `chrome_extension/` |
-| TensorFlow.js browser model export | Starter helpers in `scripts/` and target asset notes in `chrome_extension/models/` |
-
-OpenRouter is treated as the course-recommended local/source LLM interface for the report beautification layer.
 
 ## Repository Layout
 
 ```text
-api/                 Optional API surface
-chrome_extension/    Browser extension prototype and TensorFlow.js target assets
+api/                 FastAPI app and mobile-style auditor UI
+chrome_extension/    Bonus browser extension prototype
 data/                OkCupid-derived dataset and visual sample data
 models/              Trained sklearn, DistilBERT, tabular, and YOLO artifacts
 notebooks/           Main project workflow, from data prep to final auditor demo
 reports/             Generated metrics, JSON assessments, and Markdown reports
-scripts/             Utility scripts for browser/TensorFlow.js export work
+scripts/             Utility scripts for export and setup helpers
 ```
 
 ## Environment Setup
 
-Conda setup:
+From PowerShell:
 
-```bash
+```powershell
+cd C:\Users\LENOVO\anaconda3\Red-Flagger
+```
+
+If `conda` works in your terminal:
+
+```powershell
 conda env create -f environment.yml
 conda activate red-flagger
 ```
 
-Pip setup inside an existing Python environment:
+If `conda` is not recognized, use the existing environment Python directly:
 
-```bash
-pip install -r requirements.txt
+```powershell
+& "C:\Users\LENOVO\anaconda3\envs\red-flagger\python.exe" -m pip install -r requirements.txt
 ```
 
-Then start Jupyter:
+Useful dependency checks:
 
-```bash
-jupyter lab
+```powershell
+& "C:\Users\LENOVO\anaconda3\envs\red-flagger\python.exe" -c "import fastapi, multipart, ultralytics; print('api deps ok')"
 ```
+
+The optional transformer module needs Hugging Face Transformers:
+
+```powershell
+& "C:\Users\LENOVO\anaconda3\envs\red-flagger\python.exe" -m pip install transformers accelerate safetensors
+```
+
+## Run The Mobile Auditor UI
+
+Start the local API:
+
+```powershell
+cd C:\Users\LENOVO\anaconda3\Red-Flagger
+& "C:\Users\LENOVO\anaconda3\envs\red-flagger\python.exe" -m uvicorn api.app:app --reload
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Use the UI:
+
+1. Fill in the bio and profile metadata.
+2. Optionally attach a profile photo.
+3. Optionally paste an OpenRouter key into the Evidence Console `Beautify key` field.
+4. Click `Run Full Audit`.
+
+If a photo is attached, the app automatically runs text, tabular, and YOLO visual analysis in one audit. If no photo is attached, it runs text and tabular analysis with the selected visual preset.
+
+## Report Source: `local_fallback` vs `openrouter`
+
+The models still run either way. This badge only describes who wrote the final prose report.
+
+- `local_fallback`: the app used the built-in local report writer because OpenRouter was not requested, no key was available, or the OpenRouter request failed.
+- `openrouter`: the app successfully used OpenRouter to beautify the final report.
+
+You can provide an OpenRouter key in either place:
+
+- UI: paste it into `Beautify key` before running an audit.
+- Environment variable:
+
+```powershell
+$env:OPENROUTER_API_KEY="your_key_here"
+```
+
+Then run the audit with beautification enabled.
+
+## API Checks
+
+Health check:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+Sample audit:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/audit/sample/0
+```
+
+Photo upload audit:
+
+```powershell
+curl.exe -X POST http://127.0.0.1:8000/audit/photo `
+  -F "bio=Fluent in sarcasm and always right." `
+  -F "profile_id=demo_photo" `
+  -F "tabular_json={}" `
+  -F "use_openrouter=false" `
+  -F "photo=@C:\Users\LENOVO\anaconda3\Red-Flagger\data\test_images\profile_000.jpg;type=image/jpeg"
+```
+
+## Notebooks
 
 Run the notebooks in order when regenerating the full pipeline:
 
@@ -62,65 +150,24 @@ Run the notebooks in order when regenerating the full pipeline:
 05_agent_inference_demo.ipynb
 ```
 
-## Chrome Extension Check
+## Chrome Extension Bonus
 
-Static checks from the project root:
+The Chrome extension is not the primary demo path. It is kept as the extra client-side/browser-side component under `chrome_extension/`.
 
-```bash
+Basic checks:
+
+```powershell
 node --check chrome_extension/content.js
 node --check chrome_extension/popup.js
 node --check chrome_extension/inference.js
 ```
 
-Manifest and asset check in PowerShell:
-
-```powershell
-Get-Content -Raw chrome_extension/manifest.json | ConvertFrom-Json | Out-Null
-Test-Path chrome_extension/popup.html
-Test-Path chrome_extension/content.js
-Test-Path chrome_extension/inference.js
-Test-Path chrome_extension/models/nlp_model.json
-Test-Path chrome_extension/models/tabular_model_tfjs/model.json
-Test-Path chrome_extension/models/yolo_model_tfjs/model.json
-```
-
-Manual Chrome check:
+Manual loading:
 
 1. Open `chrome://extensions`.
 2. Enable Developer mode.
 3. Click Load unpacked and select `chrome_extension/`.
-4. If Chrome shows a manifest or missing-file error, fix that first.
-5. Open a page that contains profile-like DOM fields.
-6. Click the extension icon and press Analyze Current Profile.
-7. Right-click the popup and choose Inspect to view popup console errors.
-8. Open the target page DevTools console to view content-script errors.
-
-A working extension should load without manifest errors, show a ready status after model loading, extract profile text from the page, and render either red-flag scores or a no-major-flags result.
-
-## TensorFlow.js Export Starters
-
-The extension-side model assets should live under `chrome_extension/models/`:
-
-```text
-chrome_extension/models/nlp_model.json
-chrome_extension/models/tabular_model_tfjs/model.json
-chrome_extension/models/yolo_model_tfjs/model.json
-```
-
-Export the TF-IDF NLP model metadata for browser-side scoring:
-
-```bash
-python scripts/export_nlp_for_tfjs.py
-```
-
-Export YOLO weights to TensorFlow.js format when the installed Ultralytics/TensorFlow.js toolchain supports it:
-
-```bash
-python scripts/export_yolo_for_tfjs.py
-```
-
-The tabular SMOTE Random Forest model is not directly a TensorFlow.js LayersModel. For a browser demo, either export a simplified JSON scorer or train a small neural tabular surrogate before loading it with `tf.loadLayersModel`.
 
 ## Current Reports
 
-Model metrics and profile audits are written to `reports/`. The final notebook also saves JSON assessments alongside Markdown reports so the report text can be traced back to structured model outputs.
+Model metrics and profile audits are written to `reports/`. The UI reads those artifacts so the Evidence Console can show Precision, Recall, YOLO visual subset IoU, structured module outputs, and the final report source.
