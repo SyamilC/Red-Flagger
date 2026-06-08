@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Dating Profile Red Flag Analyzer",
+  "version": "1.0",
+  "description": "Client-side AI evaluation using TensorFlow.js",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["models/*", "inference.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

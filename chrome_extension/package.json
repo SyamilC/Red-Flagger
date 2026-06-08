@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check content.js && node --check popup.js && node --check inference.js",
+    "build": "esbuild popup.js --bundle --format=esm --outfile=dist/popup.bundle.js"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25"
+  }
+}

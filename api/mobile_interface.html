@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Red Flagger Profile Auditor</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172026;
+      --muted: #65727d;
+      --soft: #eef2f5;
+      --line: #d8e0e5;
+      --panel: #ffffff;
+      --panel-2: #f8fafb;
+      --red: #c4382f;
+      --red-soft: #f9e5e2;
+      --teal: #14736a;
+      --teal-soft: #dff3ef;
+      --gold: #a56300;
+      --gold-soft: #fff1ce;
+      --blue: #2f5d9c;
+      --shadow: 0 18px 55px rgba(23, 32, 38, 0.14);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #edf2f4;
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(440px, 540px) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .phone-stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 24px;
+      background: #24313a;
+    }
+
+    .phone {
+      width: min(100%, 480px);
+      height: min(940px, calc(100vh - 36px));
+      min-height: 760px;
+      background: #fbfcfd;
+      border: 10px solid #11181d;
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-bar {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      color: #ecf0f2;
+      background: #11181d;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .phone-header {
+      padding: 18px 20px 16px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #c4382f;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 18px;
+      line-height: 1.15;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .status-pill {
+      border: 1px solid var(--line);
+      color: var(--teal);
+      background: var(--teal-soft);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .phone-scroll {
+      overflow: auto;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .control-group,
+    .summary-panel,
+    .evidence-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    details.evidence-panel,
+    details.phone-details {
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.evidence-panel > summary.panel-header::after,
+    details.phone-details > summary::after {
+      content: "+";
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--soft);
+      color: var(--muted);
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    details.evidence-panel[open] > summary.panel-header::after,
+    details.phone-details[open] > summary::after {
+      content: "-";
+    }
+
+    details.evidence-panel:not([open]) > summary.panel-header {
+      border-bottom: 0;
+    }
+
+    .control-group {
+      padding: 15px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .phone-details {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+    }
+
+    .phone-details > summary {
+      min-height: 44px;
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .phone-details-body {
+      padding: 0 12px 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 11px;
+      outline: 0;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(47, 93, 156, 0.14);
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 44px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 12px;
+      color: #fff;
+      background: var(--ink);
+      font-weight: 800;
+    }
+
+    .btn.secondary {
+      color: var(--ink);
+      background: var(--soft);
+      border: 1px solid var(--line);
+    }
+
+    .btn.photo {
+      background: var(--red);
+      min-height: 54px;
+      font-size: 15px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      accent-color: var(--red);
+    }
+
+    .score-card {
+      padding: 18px;
+      border-radius: var(--radius);
+      color: #fff;
+      background: #1f2a31;
+      display: grid;
+      gap: 12px;
+      min-height: 180px;
+    }
+
+    .score-top {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .score-number {
+      font-size: 52px;
+      line-height: 0.95;
+      font-weight: 900;
+    }
+
+    .risk-level {
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      width: 0%;
+      max-width: 100%;
+      height: 100%;
+      background: #ffcf66;
+      transition: width 180ms ease;
+    }
+
+    .flag-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .flag {
+      border-radius: 999px;
+      padding: 7px 9px;
+      background: var(--red-soft);
+      color: #8b2019;
+      font-size: 12px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .flag.neutral {
+      background: var(--soft);
+      color: var(--muted);
+    }
+
+    .flag.visual {
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+
+    .panel-header {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .panel-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-2);
+      min-height: 72px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 18px;
+      line-height: 1.15;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      margin-top: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    .workspace {
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .workspace-inner {
+      max-width: 1260px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .workspace-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 4px 0 10px;
+      border-bottom: 1px solid rgba(23, 32, 38, 0.16);
+    }
+
+    .workspace-header h2 {
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .grid-three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .visual-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #e7ecef;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 240px;
+    }
+
+    .visual-frame img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #11181d;
+    }
+
+    .bbox {
+      position: absolute;
+      border: 3px solid #18b979;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    .bbox-label {
+      position: absolute;
+      top: -26px;
+      left: -3px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: #18b979;
+      color: #062016;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .table {
+      display: grid;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(140px, 0.8fr) minmax(0, 1.2fr) minmax(90px, 0.6fr);
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .row:first-child {
+      border-top: 0;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .row div {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .mono {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .report {
+      line-height: 1.55;
+      color: #25313a;
+    }
+
+    .scroll-body {
+      max-height: 420px;
+      overflow: auto;
+    }
+
+    .report h1,
+    .report h2 {
+      font-size: 15px;
+      line-height: 1.3;
+      margin: 12px 0 8px;
+    }
+
+    .report p,
+    .report li {
+      font-size: 13px;
+      margin: 5px 0;
+    }
+
+    .report ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .module-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .module {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+
+    .module strong,
+    .module span {
+      overflow-wrap: anywhere;
+    }
+
+    .module small {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 900;
+      background: var(--soft);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .badge.ok {
+      background: var(--teal-soft);
+      color: var(--teal);
+    }
+
+    .badge.warn {
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+
+    .badge.high {
+      background: var(--red-soft);
+      color: #8b2019;
+    }
+
+    .empty {
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: var(--panel-2);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1060px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .phone-stage {
+        min-height: auto;
+      }
+
+      .phone {
+        height: auto;
+        min-height: 720px;
+      }
+
+      .workspace {
+        padding: 18px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .phone-stage {
+        padding: 0;
+        background: #11181d;
+      }
+
+      .phone {
+        width: 100%;
+        min-height: 100vh;
+        height: auto;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .workspace {
+        padding: 14px;
+      }
+
+      .workspace-header,
+      .grid-two,
+      .grid-three,
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace-header {
+        display: grid;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="phone-stage" aria-label="Mobile auditor">
+      <div class="phone">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span>RF</span>
+        </div>
+        <header class="phone-header">
+          <div class="brand-line">
+            <div class="brand">
+              <div class="mark">RF</div>
+              <div>
+                <h1>Profile Auditor</h1>
+                <p class="subtle">Interactive red flag report</p>
+              </div>
+            </div>
+            <span id="apiStatus" class="status-pill">checking</span>
+          </div>
+        </header>
+
+        <div class="phone-scroll">
+          <section class="score-card" aria-live="polite">
+            <div class="score-top">
+              <div>
+                <div id="scoreNumber" class="score-number">--</div>
+                <p class="subtle" style="color: rgba(255,255,255,0.72);">overall risk score</p>
+              </div>
+              <span id="riskLevel" class="risk-level">No audit yet</span>
+            </div>
+            <div class="bar"><span id="scoreBar"></span></div>
+            <div id="flagWrap" class="flag-wrap">
+              <span class="flag neutral">Waiting for profile</span>
+            </div>
+          </section>
+
+          <section class="control-group">
+            <div class="field-row">
+              <label class="field">
+                Profile ID
+                <input id="sampleId" type="text" value="mobile_demo_001" />
+              </label>
+              <label class="field">
+                Visual preset
+                <select id="visualFlags">
+                  <option value="clean">clean</option>
+                  <option value="No_Face_Present">No_Face_Present</option>
+                  <option value="Group_Photo_Ambiguity">Group_Photo_Ambiguity</option>
+                  <option value="Face_Obscured">Face_Obscured</option>
+                  <option value="Provocative_Pose">Provocative_Pose</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field">
+              Bio
+              <textarea id="bio">Fluent in sarcasm, allergic to drama, and somehow always right. Looking for someone who can keep up.</textarea>
+            </label>
+
+            <div class="field-row">
+              <label class="field">
+                Age
+                <input id="age" type="number" value="27" min="18" max="90" />
+              </label>
+              <label class="field">
+                Drinks
+                <select id="drinks">
+                  <option value="socially">socially</option>
+                  <option value="rarely">rarely</option>
+                  <option value="often">often</option>
+                  <option value="very often">very often</option>
+                  <option value="not at all">not at all</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field-row">
+              <label class="field">
+                Drugs
+                <select id="drugs">
+                  <option value="never">never</option>
+                  <option value="sometimes">sometimes</option>
+                  <option value="often">often</option>
+                </select>
+              </label>
+              <label class="field">
+                Smokes
+                <select id="smokes">
+                  <option value="no">no</option>
+                  <option value="sometimes">sometimes</option>
+                  <option value="yes">yes</option>
+                </select>
+              </label>
+            </div>
+
+            <details class="phone-details" open>
+              <summary>Profile metadata used by SMOTE</summary>
+              <div class="phone-details-body">
+                <div class="field-row">
+                  <label class="field">
+                    Body type
+                    <select id="bodyType">
+                      <option value="average">average</option>
+                      <option value="fit">fit</option>
+                      <option value="athletic">athletic</option>
+                      <option value="thin">thin</option>
+                      <option value="curvy">curvy</option>
+                      <option value="a little extra">a little extra</option>
+                      <option value="rather not say">rather not say</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    Education
+                    <select id="education">
+                      <option value="graduated from college/university">graduated from college/university</option>
+                      <option value="working on college/university">working on college/university</option>
+                      <option value="graduated from masters program">graduated from masters program</option>
+                      <option value="working on masters program">working on masters program</option>
+                      <option value="graduated from high school">graduated from high school</option>
+                      <option value="dropped out of college/university">dropped out of college/university</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    Children
+                    <select id="offspring">
+                      <option value="doesn't have kids">doesn't have kids</option>
+                      <option value="doesn't have kids, but might want them">doesn't have kids, might want</option>
+                      <option value="doesn't have kids, but wants them">doesn't have kids, wants</option>
+                      <option value="has kids">has kids</option>
+                      <option value="has a kid">has a kid</option>
+                      <option value="doesn't want kids">doesn't want kids</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    Relationship status
+                    <select id="status">
+                      <option value="single">single</option>
+                      <option value="available">available</option>
+                      <option value="seeing someone">seeing someone</option>
+                      <option value="married">married</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    Orientation
+                    <select id="orientation">
+                      <option value="straight">straight</option>
+                      <option value="gay">gay</option>
+                      <option value="bisexual">bisexual</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    Diet
+                    <select id="diet">
+                      <option value="mostly anything">mostly anything</option>
+                      <option value="anything">anything</option>
+                      <option value="vegetarian">vegetarian</option>
+                      <option value="mostly vegetarian">mostly vegetarian</option>
+                      <option value="vegan">vegan</option>
+                      <option value="halal">halal</option>
+                      <option value="kosher">kosher</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    Height
+                    <input id="height" type="number" value="170" min="120" max="230" />
+                  </label>
+                  <label class="field">
+                    Income
+                    <input id="income" type="number" value="-1" step="1000" />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    Job
+                    <input id="job" type="text" value="student" />
+                  </label>
+                  <label class="field">
+                    Pets
+                    <select id="pets">
+                      <option value="likes dogs">likes dogs</option>
+                      <option value="likes cats">likes cats</option>
+                      <option value="likes dogs and likes cats">likes dogs and cats</option>
+                      <option value="has dogs">has dogs</option>
+                      <option value="has cats">has cats</option>
+                      <option value="dislikes dogs and dislikes cats">dislikes pets</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    Religion
+                    <input id="religion" type="text" value="agnosticism" />
+                  </label>
+                  <label class="field">
+                    Sign
+                    <input id="sign" type="text" value="leo" />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label class="field">
+                    Ethnicity
+                    <input id="ethnicity" type="text" value="asian" />
+                  </label>
+                  <label class="field">
+                    Sex
+                    <select id="sex">
+                      <option value="m">m</option>
+                      <option value="f">f</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            </details>
+
+            <label class="field">
+              Photo
+              <input id="photo" type="file" accept="image/*" />
+            </label>
+
+            <label class="toggle">
+              <span>Use OpenRouter report when key is configured</span>
+              <input id="useOpenRouter" type="checkbox" />
+            </label>
+
+            <div class="actions">
+              <button class="btn photo" id="runAuditButton" type="button" onclick="auditProfile()">Run Full Audit</button>
+            </div>
+          </section>
+
+          <section class="summary-panel">
+            <div class="panel-header">
+              <h2>Fast Signals</h2>
+              <span id="sourceBadge" class="badge">local</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid">
+                <div class="metric"><b id="personCount">--</b><span>YOLO persons</span></div>
+                <div class="metric"><b id="iouValue">--</b><span>visual IoU</span></div>
+                <div class="metric"><b id="textRisk">--</b><span>text risk</span></div>
+                <div class="metric"><b id="visualRisk">--</b><span>visual risk</span></div>
+                <div class="metric"><b id="reportWriter">--</b><span>report writer</span></div>
+                <div class="metric"><b id="keyStatus">--</b><span>beautify key</span></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="Audit evidence">
+      <div class="workspace-inner">
+        <header class="workspace-header">
+          <div>
+            <h2>Evidence Console</h2>
+            <p class="subtle">Notebook 05 ensemble outputs, visual artifacts, and report trace.</p>
+          </div>
+          <div class="header-badges">
+            <span id="llmBadge" class="status-pill">Beautify: --</span>
+            <span id="profileBadge" class="status-pill">Profile --</span>
+          </div>
+        </header>
+
+        <div class="grid-two">
+          <details class="evidence-panel" open>
+            <summary class="panel-header">
+              <h2>Visual Evidence</h2>
+              <span id="visualSource" class="badge">not run</span>
+            </summary>
+            <div class="panel-body">
+              <div id="visualFrame" class="visual-frame">No uploaded image yet</div>
+              <div id="visualFlagsList" class="flag-wrap">
+                <span class="flag neutral">No visual flags</span>
+              </div>
+              <div id="visualNote" class="empty">YOLO evidence appears here after a sample or photo audit.</div>
+            </div>
+          </details>
+
+          <details class="evidence-panel" open>
+            <summary class="panel-header">
+              <h2>Module Outputs</h2>
+              <span id="moduleCount" class="badge">0 modules</span>
+            </summary>
+            <div class="panel-body">
+              <div id="modules" class="module-list"></div>
+            </div>
+          </details>
+        </div>
+
+        <div class="grid-three">
+          <details class="evidence-panel" open>
+            <summary class="panel-header"><h2>Scoring Breakdown</h2></summary>
+            <div class="panel-body">
+              <div id="scoring" class="mini-grid"></div>
+            </div>
+          </details>
+
+          <details class="evidence-panel">
+            <summary class="panel-header"><h2>Performance Metrics</h2></summary>
+            <div class="panel-body">
+              <div id="metrics" class="table"></div>
+            </div>
+          </details>
+
+          <details class="evidence-panel">
+            <summary class="panel-header"><h2>Profile Metadata</h2></summary>
+            <div class="panel-body">
+              <div id="profileSummary" class="table"></div>
+            </div>
+          </details>
+        </div>
+
+        <div class="grid-two">
+          <details class="evidence-panel" open>
+            <summary class="panel-header">
+              <h2>Audit Report</h2>
+              <span id="reportSource" class="badge">local</span>
+            </summary>
+            <div class="panel-body scroll-body">
+              <div id="report" class="report empty">Run an audit to generate the end-user explanation.</div>
+            </div>
+          </details>
+
+          <details class="evidence-panel">
+            <summary class="panel-header"><h2>Raw JSON</h2></summary>
+            <div class="panel-body scroll-body">
+              <pre id="rawJson" class="mono empty">{}</pre>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const els = {
+      apiStatus: document.getElementById("apiStatus"),
+      scoreNumber: document.getElementById("scoreNumber"),
+      riskLevel: document.getElementById("riskLevel"),
+      scoreBar: document.getElementById("scoreBar"),
+      flagWrap: document.getElementById("flagWrap"),
+      sourceBadge: document.getElementById("sourceBadge"),
+      personCount: document.getElementById("personCount"),
+      iouValue: document.getElementById("iouValue"),
+      textRisk: document.getElementById("textRisk"),
+      visualRisk: document.getElementById("visualRisk"),
+      reportWriter: document.getElementById("reportWriter"),
+      keyStatus: document.getElementById("keyStatus"),
+      visualFrame: document.getElementById("visualFrame"),
+      visualSource: document.getElementById("visualSource"),
+      visualFlagsList: document.getElementById("visualFlagsList"),
+      visualNote: document.getElementById("visualNote"),
+      modules: document.getElementById("modules"),
+      moduleCount: document.getElementById("moduleCount"),
+      scoring: document.getElementById("scoring"),
+      metrics: document.getElementById("metrics"),
+      profileSummary: document.getElementById("profileSummary"),
+      profileBadge: document.getElementById("profileBadge"),
+      llmBadge: document.getElementById("llmBadge"),
+      report: document.getElementById("report"),
+      reportSource: document.getElementById("reportSource"),
+      rawJson: document.getElementById("rawJson")
+    };
+
+    function value(id) {
+      return document.getElementById(id).value;
+    }
+
+    function checked(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function tabularPayload() {
+      return {
+        age: Number(value("age") || 27),
+        status: value("status"),
+        sex: value("sex"),
+        orientation: value("orientation"),
+        body_type: value("bodyType"),
+        diet: value("diet"),
+        drinks: value("drinks"),
+        drugs: value("drugs"),
+        education: value("education"),
+        ethnicity: value("ethnicity"),
+        height: Number(value("height") || 170),
+        income: Number(value("income") || -1),
+        job: value("job"),
+        offspring: value("offspring"),
+        pets: value("pets"),
+        religion: value("religion"),
+        sign: value("sign"),
+        smokes: value("smokes")
+      };
+    }
+
+    function formatNumber(input) {
+      if (input === null || input === undefined || input === "") {
+        return "--";
+      }
+      const number = Number(input);
+      if (!Number.isFinite(number)) {
+        return String(input);
+      }
+      return number.toFixed(number >= 10 ? 1 : 3).replace(/\.0+$/, "");
+    }
+
+    function badgeClass(level) {
+      const text = String(level || "").toLowerCase();
+      if (text.includes("high")) return "badge high";
+      if (text.includes("moderate")) return "badge warn";
+      return "badge ok";
+    }
+
+    function flagChip(text, className = "") {
+      const span = document.createElement("span");
+      span.className = `flag ${className}`.trim();
+      span.textContent = text;
+      return span;
+    }
+
+    function fillFlags(container, flags, className = "") {
+      container.innerHTML = "";
+      const cleanFlags = (flags || []).filter(Boolean);
+      if (!cleanFlags.length) {
+        container.appendChild(flagChip("No flags", "neutral"));
+        return;
+      }
+      cleanFlags.slice(0, 16).forEach((flag) => container.appendChild(flagChip(flag, className)));
+    }
+
+    function metricTile(label, value) {
+      const div = document.createElement("div");
+      div.className = "metric";
+      const strong = document.createElement("b");
+      strong.textContent = value;
+      const span = document.createElement("span");
+      span.textContent = label;
+      div.append(strong, span);
+      return div;
+    }
+
+    function tableRows(container, rows, headers = ["Field", "Value", "Note"]) {
+      container.innerHTML = "";
+      const header = document.createElement("div");
+      header.className = "row";
+      headers.forEach((item) => {
+        const div = document.createElement("div");
+        div.textContent = item;
+        header.appendChild(div);
+      });
+      container.appendChild(header);
+      rows.forEach((row) => {
+        const line = document.createElement("div");
+        line.className = "row";
+        row.forEach((item) => {
+          const div = document.createElement("div");
+          div.textContent = item === null || item === undefined || item === "" ? "--" : String(item);
+          line.appendChild(div);
+        });
+        container.appendChild(line);
+      });
+    }
+
+    function markdownToHtml(markdown) {
+      const lines = String(markdown || "").split(/\r?\n/);
+      const html = [];
+      let inList = false;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          if (inList) {
+            html.push("</ul>");
+            inList = false;
+          }
+          continue;
+        }
+        if (trimmed.startsWith("#")) {
+          if (inList) {
+            html.push("</ul>");
+            inList = false;
+          }
+          html.push(`<h2>${escapeHtml(trimmed.replace(/^#+\s*/, ""))}</h2>`);
+        } else if (trimmed.startsWith("- ")) {
+          if (!inList) {
+            html.push("<ul>");
+            inList = true;
+          }
+          html.push(`<li>${escapeHtml(trimmed.slice(2))}</li>`);
+        } else {
+          if (inList) {
+            html.push("</ul>");
+            inList = false;
+          }
+          html.push(`<p>${escapeHtml(trimmed)}</p>`);
+        }
+      }
+      if (inList) html.push("</ul>");
+      return html.join("");
+    }
+
+    function escapeHtml(input) {
+      return String(input)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderModules(outputs) {
+      const entries = Object.entries(outputs || {});
+      els.modules.innerHTML = "";
+      els.moduleCount.textContent = `${entries.length} modules`;
+      entries.forEach(([name, output]) => {
+        const module = document.createElement("div");
+        module.className = "module";
+        const title = document.createElement("strong");
+        title.textContent = name;
+        const badge = document.createElement("span");
+        const available = output && output.available !== false;
+        badge.className = available ? "badge ok" : "badge warn";
+        badge.textContent = available ? "available" : "unavailable";
+        const detail = document.createElement("small");
+        const detected = output && (output.detected_flags || output.detected_visual_flags || []);
+        const reason = output && output.reason ? ` Reason: ${output.reason}` : "";
+        const featureText = output && output.feature_count ? ` Features used: ${output.feature_count}.` : "";
+        detail.textContent = `${output && output.module ? output.module : "module output"}; flags: ${(detected || []).join(", ") || "none"}.${featureText}${reason}`;
+        module.append(title, badge, detail);
+        els.modules.appendChild(module);
+      });
+      if (!entries.length) {
+        els.modules.innerHTML = '<div class="empty">No module outputs yet.</div>';
+      }
+    }
+
+    function renderScoring(scoring) {
+      els.scoring.innerHTML = "";
+      const rows = [
+        ["text risk", formatNumber(scoring && scoring.top_label_risk)],
+        ["visual risk", formatNumber(scoring && scoring.visual_risk)],
+        ["severe boost", formatNumber(scoring && scoring.severe_boost)],
+        ["severe labels", (scoring && scoring.severe_detected || []).join(", ") || "none"]
+      ];
+      rows.forEach(([label, val]) => els.scoring.appendChild(metricTile(label, val)));
+    }
+
+    function metricScore(block, metricName) {
+      if (!block) return null;
+      const rows = Array.isArray(block) ? block : Array.isArray(block.rows) ? block.rows : [block];
+      const match = rows.find((row) => String(row.Metric || row.metric || "").toLowerCase() === metricName.toLowerCase());
+      if (match) return match.Score ?? match.score ?? null;
+      const directKey = metricName.toLowerCase().replaceAll(" ", "_");
+      return block[directKey] ?? block[metricName] ?? null;
+    }
+
+    function renderMetrics(metrics) {
+      const nlp = metrics && metrics.nlp_tfidf_logreg_overall;
+      const tab = metrics && metrics.tabular_smote_random_forest_overall;
+      const yolo = metrics && metrics.yolo_visual_subset;
+      const rows = [
+        ["NLP micro precision", metricScore(nlp, "Micro Precision"), "Notebook 02/05"],
+        ["NLP micro recall", metricScore(nlp, "Micro Recall"), "Notebook 02/05"],
+        ["NLP macro F1", metricScore(nlp, "Macro F1"), "Notebook 02/05"],
+        ["Tabular micro precision", metricScore(tab, "Micro Precision"), "SMOTE RF"],
+        ["Tabular micro recall", metricScore(tab, "Micro Recall"), "SMOTE RF"],
+        ["Tabular macro F1", metricScore(tab, "Macro F1"), "SMOTE RF"],
+        ["YOLO precision", yolo && yolo.mean_precision, "visual subset"],
+        ["YOLO recall", yolo && yolo.mean_recall, "visual subset"],
+        ["YOLO mean IoU", yolo && yolo.mean_iou, "ground truth rows"]
+      ].map((row) => [row[0], formatNumber(row[1]), row[2]]);
+      tableRows(els.metrics, rows, ["Metric", "Value", "Source"]);
+    }
+
+    function renderReportStatus(status) {
+      const fallback = {
+        beautify_key_configured: false,
+        beautify_requested: false,
+        beautify_used: false,
+        report_source: "local_fallback",
+        reason: "No audit has been run yet."
+      };
+      const info = status || fallback;
+      const keyText = info.beautify_key_configured ? "found" : "missing";
+      const writerText = info.beautify_used ? "OpenRouter" : "local";
+      els.reportWriter.textContent = writerText;
+      els.keyStatus.textContent = keyText;
+      els.llmBadge.textContent = `Beautify: ${info.beautify_used ? "used" : "not used"}`;
+      els.llmBadge.style.background = info.beautify_used ? "var(--teal-soft)" : "var(--gold-soft)";
+      els.llmBadge.style.color = info.beautify_used ? "var(--teal)" : "var(--gold)";
+      els.sourceBadge.title = info.reason || "";
+      els.reportSource.title = info.reason || "";
+    }
+
+    function renderProfile(summary) {
+      const fields = Object.entries(summary || {}).slice(0, 10).map(([key, val]) => [key, val, "profile"]);
+      tableRows(els.profileSummary, fields.length ? fields : [["profile", "not loaded", ""]], ["Field", "Value", "Source"]);
+    }
+
+    function renderVisual(visual) {
+      const frame = els.visualFrame;
+      frame.innerHTML = "";
+      const imageUrl = visual && visual.image_url;
+      if (imageUrl) {
+        const img = document.createElement("img");
+        img.src = imageUrl;
+        img.alt = "Uploaded profile";
+        frame.appendChild(img);
+
+        const boxes = visual.bounding_boxes || [];
+        function drawBoxes() {
+          frame.querySelectorAll(".bbox").forEach((node) => node.remove());
+          const imgWidth = Number(visual.image_width || img.naturalWidth || 0);
+          const imgHeight = Number(visual.image_height || img.naturalHeight || 0);
+          if (!imgWidth || !imgHeight) return;
+          const frameWidth = frame.clientWidth;
+          const frameHeight = frame.clientHeight;
+          const imageRatio = imgWidth / imgHeight;
+          const frameRatio = frameWidth / frameHeight;
+          let renderWidth = frameWidth;
+          let renderHeight = frameHeight;
+          let offsetX = 0;
+          let offsetY = 0;
+          if (frameRatio > imageRatio) {
+            renderHeight = frameHeight;
+            renderWidth = renderHeight * imageRatio;
+            offsetX = (frameWidth - renderWidth) / 2;
+          } else {
+            renderWidth = frameWidth;
+            renderHeight = renderWidth / imageRatio;
+            offsetY = (frameHeight - renderHeight) / 2;
+          }
+          boxes.forEach((box, index) => {
+            if (!box || box.length < 4) return;
+            const bbox = document.createElement("div");
+            bbox.className = "bbox";
+            const left = offsetX + (Number(box[0]) / imgWidth) * renderWidth;
+            const top = offsetY + (Number(box[1]) / imgHeight) * renderHeight;
+            const width = ((Number(box[2]) - Number(box[0])) / imgWidth) * renderWidth;
+            const height = ((Number(box[3]) - Number(box[1])) / imgHeight) * renderHeight;
+            bbox.style.display = "block";
+            bbox.style.left = `${Math.max(0, left)}px`;
+            bbox.style.top = `${Math.max(0, top)}px`;
+            bbox.style.width = `${Math.max(1, width)}px`;
+            bbox.style.height = `${Math.max(1, height)}px`;
+            const label = document.createElement("span");
+            label.className = "bbox-label";
+            label.textContent = `person ${index + 1}`;
+            bbox.appendChild(label);
+            frame.appendChild(bbox);
+          });
+        }
+        img.addEventListener("load", drawBoxes, { once: true });
+        if (img.complete) drawBoxes();
+      } else {
+        frame.textContent = visual && visual.image_path ? String(visual.image_path) : "No uploaded image yet";
+      }
+
+      els.visualSource.textContent = visual && visual.visual_flag_source ? visual.visual_flag_source : "not run";
+      fillFlags(els.visualFlagsList, visual && visual.detected_visual_flags, "visual");
+      els.visualNote.textContent = visual && visual.iou_explanation ? visual.iou_explanation : "Visual evidence appears here after a sample or photo audit.";
+      els.personCount.textContent = formatNumber(visual && visual.num_persons_detected);
+      els.iouValue.textContent = visual && visual.iou_metric !== null && visual && visual.iou_metric !== undefined ? formatNumber(visual.iou_metric) : "N/A";
+    }
+
+    function showAudit(data) {
+      const score = Number(data.overall_risk_score || 0);
+      els.scoreNumber.textContent = Number.isFinite(score) ? score.toFixed(0) : "--";
+      els.scoreBar.style.width = `${Math.max(0, Math.min(100, score))}%`;
+      els.riskLevel.textContent = data.overall_risk_level || "Unknown";
+      els.profileBadge.textContent = `Profile ${data.profile_id ?? "--"}`;
+      els.sourceBadge.textContent = data.report_source || "local";
+      els.reportSource.textContent = data.report_source || "local";
+      els.reportSource.className = data.report_source === "openrouter" ? "badge ok" : "badge";
+      renderReportStatus(data.llm_report_status);
+
+      fillFlags(els.flagWrap, [
+        ...(data.detected_text_tabular_flags || []),
+        ...(data.detected_visual_flags || [])
+      ], "");
+
+      const scoring = data.scoring_breakdown || {};
+      els.textRisk.textContent = formatNumber(scoring.top_label_risk);
+      els.visualRisk.textContent = formatNumber(scoring.visual_risk);
+      renderScoring(scoring);
+      renderVisual(data.module_outputs && data.module_outputs.visual_yolo);
+      renderModules(data.module_outputs);
+      renderMetrics(data.previous_model_performance);
+      renderProfile(data.profile_summary);
+      els.report.className = "report";
+      els.report.innerHTML = markdownToHtml(data.report_markdown || "");
+      els.rawJson.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `HTTP ${response.status}`);
+      }
+      return response.json();
+    }
+
+    function currentProfileId() {
+      return String(value("sampleId") || "mobile_demo_001").trim() || "mobile_demo_001";
+    }
+
+    async function auditProfile() {
+      const file = document.getElementById("photo").files[0];
+      try {
+        setBusy("audit");
+        if (file) {
+          const form = new FormData();
+          form.append("bio", value("bio"));
+          form.append("profile_id", currentProfileId());
+          form.append("tabular_json", JSON.stringify(tabularPayload()));
+          form.append("use_openrouter", checked("useOpenRouter") ? "true" : "false");
+          form.append("photo", file);
+          showAudit(await requestJson("/audit/photo", {
+            method: "POST",
+            body: form
+          }));
+        } else {
+          showAudit(await requestJson("/audit/custom", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              profile_id: currentProfileId(),
+              bio: value("bio"),
+              visual_flags: value("visualFlags"),
+              tabular: tabularPayload(),
+              use_openrouter: checked("useOpenRouter")
+            })
+          }));
+        }
+      } catch (error) {
+        showError(error);
+      } finally {
+        clearBusy();
+      }
+    }
+
+    function setBusy(label) {
+      els.apiStatus.textContent = `running ${label}`;
+      els.apiStatus.style.background = "var(--gold-soft)";
+      els.apiStatus.style.color = "var(--gold)";
+    }
+
+    function clearBusy() {
+      els.apiStatus.textContent = "online";
+      els.apiStatus.style.background = "var(--teal-soft)";
+      els.apiStatus.style.color = "var(--teal)";
+    }
+
+    function showError(error) {
+      els.apiStatus.textContent = "error";
+      els.apiStatus.style.background = "var(--red-soft)";
+      els.apiStatus.style.color = "#8b2019";
+      els.report.className = "report empty";
+      els.report.textContent = error && error.message ? error.message : String(error);
+    }
+
+    async function boot() {
+      try {
+        const health = await requestJson("/health");
+        els.apiStatus.textContent = health.status === "ok" ? "online" : "check";
+        els.apiStatus.style.background = health.status === "ok" ? "var(--teal-soft)" : "var(--gold-soft)";
+        els.apiStatus.style.color = health.status === "ok" ? "var(--teal)" : "var(--gold)";
+        const healthRows = [
+          ["profiles", health.profiles, "loaded"],
+          ["labels", (health.labels || []).length, "taxonomy"],
+          ["transformer", health.transformer_available ? "available" : "unavailable", health.transformer_reason || ""],
+          ["YOLO", health.yolo_available ? "available" : "unavailable", health.yolo_reason || ""],
+          ["Beautify key", health.openrouter_key_configured ? "found" : "missing", "OPENROUTER_API_KEY"]
+        ];
+        renderReportStatus({
+          beautify_key_configured: Boolean(health.openrouter_key_configured),
+          beautify_requested: false,
+          beautify_used: false,
+          report_source: "local_fallback",
+          reason: "OpenRouter beautifier has not been requested for an audit yet."
+        });
+        tableRows(els.profileSummary, healthRows, ["System", "Value", "Status"]);
+      } catch (error) {
+        showError(error);
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>

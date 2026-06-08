@@ -1,0 +1,33 @@
+name: red-flagger
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - pandas
+  - scikit-learn
+  - imbalanced-learn
+  - joblib
+  - matplotlib
+  - seaborn
+  - requests
+  - jupyterlab
+  - notebook
+  - ipywidgets
+  - pytorch
+  - torchvision
+  - pip:
+      - ultralytics
+      - transformers
+      - accelerate
+      - safetensors
+      - tensorflow
+      - tensorflowjs
+      - onnx
+      - onnxruntime
+      - fastapi
+      - uvicorn
+      - python-multipart>=0.0.20
